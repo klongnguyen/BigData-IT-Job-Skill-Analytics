@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Spark / Hadoop local runtime
+spark-warehouse/
+metastore_db/
+derby.log
+*.crc
+
+# Logs and temporary files
+logs/
+tmp/
+*.log
+
+# Local datasets - keep directory placeholders only
+data/**/*.csv
+data/**/*.tsv
+data/**/*.jsonl
+data/**/*.parquet
+data/**/*.avro
+data/**/*.orc
+data/**/*.zip
+data/**/*.gz
+
+# Model artifacts
+artifacts/
+models/
+
+# Streamlit secrets
+.streamlit/secrets.toml
