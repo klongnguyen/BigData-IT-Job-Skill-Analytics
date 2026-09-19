@@ -1,21 +1,21 @@
 # BigData IT Job Skill Analytics
 
-A Big Data system for analyzing the IT recruitment market and forecasting skill-demand trends using historical and fresh job-posting data.
+Hệ thống Big Data phục vụ phân tích thị trường tuyển dụng CNTT và dự báo xu hướng nhu cầu kỹ năng dựa trên dữ liệu tuyển dụng lịch sử kết hợp với dữ liệu tuyển dụng mới.
 
-## Project Overview
+## Tổng quan đề tài
 
-The project focuses on collecting, processing, analyzing, and forecasting IT job-market trends. Historical recruitment data is combined with newly collected job postings so the system can better reflect the fast-changing demand for technology skills.
+Đề tài tập trung xây dựng một hệ thống có khả năng thu thập, xử lý, phân tích và dự báo xu hướng của thị trường tuyển dụng CNTT. Dữ liệu tuyển dụng lịch sử sẽ được kết hợp với các tin tuyển dụng mới nhằm phản ánh tốt hơn sự thay đổi nhanh chóng của nhu cầu kỹ năng trong ngành công nghệ thông tin.
 
-Main objectives:
+Các mục tiêu chính:
 
-- Analyze high-demand IT occupations.
-- Identify important skills for each occupation.
-- Track skill-demand changes over time.
-- Classify skill trends as **Growing**, **Stable**, or **Declining**.
-- Compare historical-only, recent-only, and hybrid forecasting approaches.
-- Build an interactive dashboard for job-market and skill-demand analytics.
+- Phân tích các vị trí CNTT đang có nhu cầu tuyển dụng cao.
+- Xác định các kỹ năng quan trọng đối với từng vị trí CNTT.
+- Theo dõi sự thay đổi nhu cầu kỹ năng theo thời gian.
+- Phân loại xu hướng kỹ năng thành **Growing**, **Stable** hoặc **Declining**.
+- So sánh ba phương án dự báo: chỉ dùng dữ liệu lịch sử, chỉ dùng dữ liệu gần đây và mô hình kết hợp.
+- Xây dựng dashboard trực quan phục vụ phân tích thị trường việc làm và nhu cầu kỹ năng CNTT.
 
-## Proposed Technology Stack
+## Công nghệ dự kiến
 
 - Python
 - PySpark
@@ -26,45 +26,45 @@ Main objectives:
 - Streamlit
 - Git / GitHub
 
-Optional components may include Kafka, Docker, Plotly, Pandas, and Scikit-learn.
+Các công nghệ có thể bổ sung tùy theo tiến độ gồm Kafka, Docker, Plotly, Pandas và Scikit-learn.
 
-## Initial Architecture
+## Kiến trúc hệ thống ban đầu
 
 ```text
-Historical Data + Fresh Job Data
-              |
-              v
-        Bronze Layer
-              |
-              v
-        Apache Spark
- Cleaning / Deduplication /
- Normalization / Skill Extraction
-              |
-              v
-        Silver Layer
-              |
-              v
+Dữ liệu lịch sử + Dữ liệu tuyển dụng mới
+                  |
+                  v
+            Bronze Layer
+                  |
+                  v
+            Apache Spark
+ Làm sạch / Loại trùng lặp /
+ Chuẩn hóa / Trích xuất kỹ năng
+                  |
+                  v
+            Silver Layer
+                  |
+                  v
  Feature Engineering + Analytics
-              |
-       +------+------+
-       |             |
-       v             v
- Analytics       Spark MLlib
-       |         Trend Forecast
-       +------+------+
-              |
-              v
-          Gold Layer
-              |
-              v
-           MongoDB
-              |
-              v
-      Streamlit Dashboard
+                  |
+           +------+------+
+           |             |
+           v             v
+       Analytics     Spark MLlib
+           |        Dự báo xu hướng
+           +------+------+
+                  |
+                  v
+              Gold Layer
+                  |
+                  v
+               MongoDB
+                  |
+                  v
+          Streamlit Dashboard
 ```
 
-## Repository Structure
+## Cấu trúc thư mục dự án
 
 ```text
 BigData-IT-Job-Skill-Analytics/
@@ -98,14 +98,14 @@ BigData-IT-Job-Skill-Analytics/
 └── README.md
 ```
 
-> The `data/` directories represent the logical Bronze-Silver-Gold data layout. Large datasets should normally be stored in HDFS/object storage and excluded from Git.
+> Các thư mục trong `data/` thể hiện kiến trúc dữ liệu logic theo mô hình Bronze - Silver - Gold. Các bộ dữ liệu có dung lượng lớn nên được lưu trên HDFS hoặc hệ thống lưu trữ phù hợp và không đưa trực tiếp lên GitHub.
 
-## Project Plan
+## Kế hoạch dự án
 
-For the detailed research questions, architecture, 10-week roadmap, data strategy, machine-learning experiments, dashboard scope, risks, and GO/NO-GO criteria, see:
+Kế hoạch chi tiết bao gồm câu hỏi nghiên cứu, kiến trúc hệ thống, chiến lược dữ liệu, lộ trình 10 tuần, thí nghiệm Machine Learning, phạm vi dashboard, rủi ro và tiêu chí GO / NO-GO được trình bày tại:
 
-**[View the full project plan →](docs/PROJECT_PLAN.md)**
+**[Xem kế hoạch dự án đầy đủ →](docs/PROJECT_PLAN.md)**
 
-## Current Status
+## Trạng thái hiện tại
 
-Initial repository structure created. The next milestone is to validate historical/fresh data sources and define the unified job-posting schema before implementing the ingestion and Spark ETL pipeline.
+Đã hoàn thành cấu trúc repository ban đầu. Bước tiếp theo là khảo sát và xác thực nguồn dữ liệu lịch sử, nguồn dữ liệu tuyển dụng mới, đồng thời hoàn thiện Unified Job Schema trước khi triển khai pipeline thu thập dữ liệu và Spark ETL.
