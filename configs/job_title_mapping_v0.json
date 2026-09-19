@@ -1,0 +1,95 @@
+{
+  "Data Analyst": [
+    "data analyst",
+    "bi analyst",
+    "business intelligence analyst",
+    "analytics consultant",
+    "data reporting analyst",
+    "operations data analyst",
+    "reporting analyst",
+    "product analyst",
+    "insights analyst"
+  ],
+  "Data Scientist": [
+    "data scientist",
+    "data science",
+    "decision scientist",
+    "applied scientist",
+    "research scientist",
+    "ai scientist",
+    "statistician",
+    "quantitative analyst"
+  ],
+  "Data Engineer": [
+    "data engineer",
+    "big data engineer",
+    "data warehouse engineer",
+    "etl developer",
+    "database engineer",
+    "data platform engineer",
+    "analytics engineer",
+    "pipeline engineer"
+  ],
+  "Machine Learning Engineer": [
+    "machine learning engineer",
+    "ml engineer",
+    "mle",
+    "ai engineer",
+    "deep learning engineer",
+    "mlops engineer",
+    "ai developer",
+    "machine learning specialist"
+  ],
+  "Software Engineer": [
+    "software engineer",
+    "software developer",
+    "swe",
+    "full stack engineer",
+    "full stack developer",
+    "fullstack developer",
+    "fullstack engineer",
+    "applications developer",
+    "systems developer",
+    "c++ developer",
+    "c# developer"
+  ],
+  "Backend Developer": [
+    "backend developer",
+    "back end developer",
+    "backend engineer",
+    "back-end engineer",
+    "server engineer",
+    "api developer",
+    "python developer",
+    "java developer",
+    "golang developer",
+    "node.js developer",
+    "nodejs developer",
+    ".net developer",
+    "php developer"
+  ],
+  "Frontend Developer": [
+    "frontend developer",
+    "front end developer",
+    "frontend engineer",
+    "front-end engineer",
+    "react developer",
+    "vue developer",
+    "angular developer",
+    "web developer",
+    "ui developer",
+    "javascript developer"
+  ],
+  "DevOps Engineer": [
+    "devops engineer",
+    "devops",
+    "site reliability engineer",
+    "sre",
+    "cloud engineer",
+    "infrastructure engineer",
+    "platform engineer",
+    "systems engineer",
+    "cloud architect",
+    "devsecops engineer"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "total_jobs": 567,
+  "title_match_rate_pct": 60.49,
+  "role_counts": {
+    "Data Scientist": 54,
+    "Frontend Developer": 45,
+    "Software Engineer": 46,
+    "Backend Developer": 36,
+    "Data Engineer": 45,
+    "DevOps Engineer": 41,
+    "Machine Learning Engineer": 48,
+    "Data Analyst": 28,
+    "Other IT": 224
+  },
+  "skill_coverage_rate_pct": 72.66,
+  "avg_skills_per_job": 5.57,
+  "top_skills": {
+    "python": 263,
+    "docker": 180,
+    "sql": 172,
+    "aws": 137,
+    "git": 116,
+    "gcp": 95,
+    "azure": 93,
+    "javascript": 92,
+    "tensorflow": 88,
+    "kubernetes": 84,
+    "java": 83,
+    "postgresql": 79,
+    "mongodb": 73,
+    "typescript": 58,
+    "excel": 58,
+    "ci_cd": 55,
+    "scikit_learn": 52,
+    "llm": 52,
+    "kafka": 48,
+    "terraform": 48
+  },
+  "yearly_distribution": {
+    "2022": 62,
+    "2023": 87,
+    "2024": 69,
+    "2025": 82,
+    "2026": 267
+  },
+  "monthly_months_count": 50
+}

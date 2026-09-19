@@ -1,0 +1,10 @@
+{
+  "GLOBAL": {
+    "enabled": true,
+    "description": "Global IT job market (US, Europe, Worldwide, Remote) - Primary MVP Scope"
+  },
+  "VIETNAM": {
+    "enabled": false,
+    "description": "Vietnam IT job market - Frozen / Optional Extension for Future Work"
+  }
+}

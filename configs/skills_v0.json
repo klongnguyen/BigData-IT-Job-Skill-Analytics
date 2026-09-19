@@ -1,0 +1,51 @@
+{
+  "python": ["python", "python3", "py"],
+  "java": ["java", "core java", "java 8", "java 11", "java 17"],
+  "javascript": ["javascript", "js", "javascript es6", "ecmascript"],
+  "typescript": ["typescript", "ts"],
+  "c_plus_plus": ["c++", "cpp"],
+  "c_sharp": ["c#", "c sharp", ".net c#"],
+  "golang": ["golang", "go language", "go lang"],
+  "rust": ["rust", "rustlang"],
+
+  "sql": ["sql", "rdbms"],
+  "mysql": ["mysql"],
+  "postgresql": ["postgres", "postgresql", "pgsql"],
+  "mongodb": ["mongodb", "mongo db"],
+  "redis": ["redis"],
+  "cassandra": ["cassandra", "apache cassandra"],
+
+  "spark": ["spark", "apache spark", "pyspark", "spark sql"],
+  "hadoop": ["hadoop", "apache hadoop", "hdfs", "mapreduce"],
+  "kafka": ["kafka", "apache kafka"],
+  "hive": ["hive", "apache hive"],
+  "flink": ["flink", "apache flink"],
+  "airflow": ["airflow", "apache airflow"],
+
+  "aws": ["aws", "amazon web services", "ec2", "s3", "lambda", "redshift"],
+  "azure": ["azure", "microsoft azure", "azure devops"],
+  "gcp": ["gcp", "google cloud", "google cloud platform", "bigquery"],
+
+  "docker": ["docker", "containerization"],
+  "kubernetes": ["kubernetes", "k8s"],
+  "ci_cd": ["ci/cd", "cicd", "continuous integration", "continuous deployment"],
+  "jenkins": ["jenkins"],
+  "terraform": ["terraform", "infrastructure as code"],
+  "git": ["git", "github", "gitlab"],
+
+  "power_bi": ["power bi", "powerbi", "dax", "power query"],
+  "tableau": ["tableau", "tableau desktop"],
+  "excel": ["excel", "microsoft excel", "advanced excel"],
+  "looker": ["looker", "lookml"],
+
+  "scikit_learn": ["scikit-learn", "sklearn"],
+  "tensorflow": ["tensorflow", "tf", "keras"],
+  "pytorch": ["pytorch", "torch"],
+  "nlp": ["nlp", "natural language processing"],
+  "computer_vision": ["computer vision", "opencv"],
+
+  "generative_ai": ["generative ai", "gen ai", "genai"],
+  "llm": ["llm", "large language model", "large language models"],
+  "rag": ["rag", "retrieval augmented generation", "retrieval-augmented generation"],
+  "langchain": ["langchain", "llamaindex", "prompt engineering"]
+}
