@@ -1,97 +1,56 @@
-# Research Questions (RQ1 – RQ5): Big Data IT Job Skill Analytics
+# Research Questions (RQ1 – RQ6): Big Data IT Job Skill Analytics & Forecasting
 
-Hệ thống đặt ra 5 câu hỏi nghiên cứu trọng tâm, mỗi câu hỏi đều có thể đo lường và trả lời trực tiếp từ dữ liệu tuyển dụng đã xử lý.
+Tài liệu này chuẩn hóa 6 câu hỏi nghiên cứu (Research Questions) theo định hướng chính thức của [FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md](file:///d:/Study/2026/Nam04_HK1/bigData_T.Ha/BigData_Job_Analy/FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md). 
 
----
-
-## RQ1: Nhu cầu tuyển dụng phân bố như thế nào giữa các nhóm vị trí CNTT?
-
-### 1. Mục tiêu
-Xác định mức độ quan tâm của thị trường lao động đối với từng vai trò CNTT và sự thay đổi tỷ trọng giữa các vị trí qua các năm (2020–2026).
-
-### 2. Phương pháp & Công thức đo lường
-- **Tỷ trọng tuyển dụng của vị trí $O_i$ trong khoảng thời gian $T$**:
-  $$P(O_i, T) = \frac{\text{Số lượng tin tuyển dụng của } O_i \text{ trong } T}{\text{Tổng số lượng tin tuyển dụng trong } T} \times 100\%$$
-- **Tốc độ tăng trưởng tuyển dụng (YoY / QoQ)**:
-  $$Growth(O_i, T_1 \to T_2) = \frac{N(O_i, T_2) - N(O_i, T_1)}{N(O_i, T_1)} \times 100\%$$
-
-### 3. Đầu vào & Đầu ra
-- **Đầu vào**: `normalized_title`, `posted_at`.
-- **Đầu ra**: Bảng phân bố tỷ lệ %, biểu đồ biến động tỷ trọng 8 nhóm nghề theo quý/năm.
+> [!IMPORTANT]
+> **Nguyên tắc cốt lõi của dự án**: Dự báo xu hướng kỹ năng **phải được thực hiện theo từng nhóm nghề (Occupation-Based)**, không dự báo chung toàn ngành CNTT khi dùng cho tư vấn nghề nghiệp. Forecast dựa trên bộ ba: `(Occupation + Skill + Time)`.
 
 ---
 
-## RQ2: Các kỹ năng cốt lõi và kỹ năng kết hợp (Skill Co-occurrence) nào là quan trọng nhất cho từng vị trí CNTT?
-
-### 1. Mục tiêu
-Xác định danh mục kỹ năng không thể thiếu (Core Skills) và các cặp kỹ năng thường xuyên xuất hiện cùng nhau (Complementary Skills) cho mỗi nghề nghiệp (ví dụ: Data Engineer cần SQL + Spark + AWS).
-
-### 2. Phương pháp & Công thức đo lường
-- **Tần suất xuất hiện kỹ năng $S_j$ trong vai trò $O_i$**:
-  $$\text{Frequency}(S_j \mid O_i) = \frac{\text{Số JD thuộc } O_i \text{ có chứa } S_j}{\text{Tổng số JD thuộc } O_i} \times 100\%$$
-- **Hệ số đồng xuất hiện (Co-occurrence / Jaccard Similarity)** giữa 2 kỹ năng $S_a$ và $S_b$:
-  $$J(S_a, S_b \mid O_i) = \frac{|JD(S_a \cap S_b \mid O_i)|}{|JD(S_a \cup S_b \mid O_i)|}$$
-
-### 3. Đầu vào & Đầu ra
-- **Đầu vào**: `normalized_title`, `skills`.
-- **Đầu ra**: Top 10 kỹ năng phổ biến nhất theo từng occupation; Ma trận đồng xuất hiện (Skill Co-occurrence Matrix) / Skill Network Graph.
+## RQ1: Những vị trí CNTT nào đang có nhu cầu tuyển dụng cao trên thị trường quốc tế?
+- **Mục tiêu**: Đo lường tỷ trọng và sự tăng trưởng nhu cầu tuyển dụng giữa 8 nhóm nghề CNTT cốt lõi trên thị trường quốc tế qua các năm (2022–2026).
+- **Công thức**:
+  $$P(O_i, T) = \frac{\text{Số tin của } O_i \text{ trong } T}{\text{Tổng số tin trong } T} \times 100\%$$
+- **Đầu ra**: Biểu đồ phân bổ tỷ trọng và tốc độ tăng trưởng (YoY / QoQ) của 8 vị trí CNTT.
 
 ---
 
-## RQ3: Nhu cầu về các kỹ năng công nghệ biến động như thế nào theo thời gian (2020–2026)?
+## RQ2: Những kỹ năng nào được yêu cầu nhiều nhất đối với từng nhóm nghề CNTT?
+- **Mục tiêu**: Xác định bộ kỹ năng cốt lõi (Core Skills) và mức độ xuất hiện cho từng nghề (ví dụ: Frontend Developer cần React, TypeScript; Data Engineer cần SQL, Spark, AWS).
+- **Công thức (Demand Rate theo Occupation)**:
+  $$\text{Demand Rate}(S_j \mid O_i, T) = \frac{\text{Số JD thuộc } O_i \text{ có chứa } S_j \text{ trong } T}{\text{Tổng số JD thuộc } O_i \text{ trong } T} \times 100\%$$
+- **Đầu ra**: Bảng xếp hạng Top kỹ năng theo từng nghề và ma trận kỹ năng kết hợp (Co-occurrence).
 
-### 1. Mục tiêu
-Theo dõi sự dịch chuyển công nghệ và phân loại kỹ năng thành 3 nhóm xu hướng:
-- **Growing**: Đang tăng trưởng mạnh mẽ (ví dụ: GenAI, LLM, RAG, Rust).
-- **Stable**: Ổn định, bền vững theo thời gian (ví dụ: SQL, Python, Git, Docker).
-- **Declining**: Đang có xu hướng suy giảm hoặc bị thay thế.
+---
 
-### 2. Phương pháp & Công thức đo lường
-- **Tỷ lệ xuất hiện của kỹ năng $S_j$ tại mốc thời gian $t$**:
-  $$R(S_j, t) = \frac{N(S_j, t)}{Total\_Jobs(t)}$$
-- **Hệ số góc xu hướng (Trend Slope $\beta$)**:
-  Ước lượng qua hồi quy tuyến tính $R(S_j, t) = \alpha + \beta t + \epsilon$:
+## RQ3: Nhu cầu kỹ năng thay đổi như thế nào theo thời gian trong từng occupation?
+- **Mục tiêu**: Theo dõi chuỗi thời gian biến thiên nhu cầu của từng kỹ năng theo tháng/quý bên trong từng vị trí công việc cụ thể.
+- **Công thức**: Chuỗi thời gian $\text{Demand Rate}(S_j \mid O_i, t)$ qua các mốc thời gian $t \in \{2022, \dots, 2026\}$.
+- **Đầu ra**: Biểu đồ Time-series xu hướng kỹ năng theo từng occupation.
+
+---
+
+## RQ4: Những kỹ năng nào đang Growing, Stable, Declining trong từng nhóm nghề?
+- **Mục tiêu**: Phân loại trạng thái xu hướng của từng kỹ năng theo từng vị trí (ví dụ: TypeScript là *Growing* với Frontend Developer; Kafka là *Growing* với Backend Developer; Angular là *Declining* với Frontend Developer).
+- **Công thức**: Dựa trên tốc độ tăng trưởng và hệ số góc hồi quy xu hướng $\beta$:
   - $\beta > \theta_{up}$: **Growing**
   - $-\theta_{down} \le \beta \le \theta_{up}$: **Stable**
   - $\beta < -\theta_{down}$: **Declining**
-
-### 3. Đầu vào & Đầu ra
-- **Đầu vào**: `skills`, `posted_at`, `normalized_title`.
-- **Đầu ra**: Biểu đồ Time-series xu hướng kỹ năng, danh sách phân loại Growing/Stable/Declining.
+- **Đầu ra**: Bảng phân loại xu hướng kỹ năng chi tiết theo từng Occupation.
 
 ---
 
-## RQ4: Làm thế nào để xây dựng mô hình Machine Learning dự báo nhu cầu kỹ năng trong tương lai?
-
-### 1. Mục tiêu
-Dự báo nhu cầu kỹ năng trong 3–6 tháng hoặc 1 năm tới dựa trên chuỗi thời gian lịch sử kết hợp với các đặc trưng trễ (lagged features) và thuộc tính công việc.
-
-### 2. Phương pháp & Mô hình
-- **Time-series Forecasting**: ARIMA / Prophet / Holt-Winters cho xu hướng tổng thể của từng kỹ năng.
-- **Supervised Machine Learning**: Random Forest Regressor / XGBoost / Spark ML GBTRegressor sử dụng:
-  - Lag features: $R(S, t-1), R(S, t-2), R(S, t-3)$.
-  - Rolling statistics: Rolling Mean, Rolling Std (3 tháng, 6 tháng).
-  - Occupation dummy features.
-- **Đánh giá**: Đo lường bằng RMSE, MAE, MAPE trên tập test thời gian (Time-based split: Train $\le 2024$, Validation $= 2025$, Test $= 2026$).
-
-### 3. Đầu vào & Đầu ra
-- **Đầu vào**: Chuỗi tỷ lệ nhu cầu kỹ năng theo tháng, các đặc trưng thống kê.
-- **Đầu ra**: Tỷ lệ nhu cầu dự báo của từng kỹ năng trong các quý tiếp theo và khoảng tin cậy.
+## RQ5: Dữ liệu tuyển dụng mới (Recent Data) có làm thay đổi xu hướng so với dữ liệu lịch sử hay không?
+- **Mục tiêu**: Kiểm tra hiện tượng dịch chuyển công nghệ (**Concept Drift**) giữa giai đoạn lịch sử (2022–2024) và giai đoạn gần đây (2025–2026) (ví dụ: sự bùng nổ đột biến của Generative AI, LLM, RAG trong các tin tuyển dụng mới).
+- **Phương pháp**: So sánh phân bố xác suất và kiểm định thống kê Kolmogorov-Smirnov / PSI giữa tập Historical và tập Recent.
+- **Đầu ra**: Báo cáo phân tích Concept Drift trên các kỹ năng công nghệ mới.
 
 ---
 
-## RQ5: Việc kết hợp dữ liệu tuyển dụng mới (Fresh Data 2026) với dữ liệu lịch sử cải thiện độ chính xác dự báo ra sao so với các mô hình đơn lẻ?
-
-### 1. Mục tiêu
-Chứng minh giá trị thực tiễn của kiến trúc kết hợp (Hybrid Architecture) và kỹ thuật gán trọng số thời gian (Recency Weighting) trong việc thích ứng với biến động nhanh chóng của thị trường CNTT (Concept Drift).
-
-### 2. Phương pháp so sánh
-So sánh 3 chiến lược:
-1. **Model A (Historical Only)**: Huấn luyện chỉ trên dữ liệu lịch sử (2020–2024), dự báo 2026.
-2. **Model B (Fresh Only)**: Huấn luyện chỉ trên dữ liệu gần đây (cuối 2025–2026), dự báo 2026+.
-3. **Model C (Hybrid with Recency Weighting)**: Huấn luyện trên toàn bộ dữ liệu lịch sử nhưng áp dụng hệ số suy giảm thời gian (Exponential Decay Weighting):
-   $$w_i = e^{-\lambda (t_{current} - t_i)}$$
-
-### 3. Tiêu chí đánh giá
-- So sánh sai số dự báo: $\Delta \text{RMSE}, \Delta \text{MAE}, \Delta \text{MAPE}$.
-- Đánh giá khả năng bắt kịp các kỹ năng mới nổi (ví dụ: các kỹ năng AI thế hệ mới xuất hiện đột biến trong 2024–2026).
+## RQ6: Việc kết hợp Historical Data với Recent Data và Recency Weighting có cải thiện khả năng dự báo xu hướng kỹ năng hay không?
+- **Mục tiêu**: Chứng minh giá trị thực nghiệm của mô hình kết hợp (Hybrid Model) so với các mô hình đơn lẻ.
+- **3 Mô hình thực nghiệm**:
+  1. **Model A (Historical Only)**: Huấn luyện trên dữ liệu lịch sử (2022–2024).
+  2. **Model B (Recent Only)**: Huấn luyện trên dữ liệu gần đây (2025–2026).
+  3. **Model C (Hybrid + Recency Weighting)**: Huấn luyện trên toàn bộ dữ liệu kèm hệ số suy giảm thời gian $w_i = e^{-\lambda \cdot age}$.
+- **Tiêu chí đánh giá**: So sánh Accuracy, Precision, Recall, F1-Score và sai số dự báo trên tập kiểm thử thời gian (Test set 2026 Q3).

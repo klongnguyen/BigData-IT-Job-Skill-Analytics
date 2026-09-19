@@ -1,24 +1,24 @@
-# Data Dictionary (Updated - 17 Fields): Big Data IT Job Skill Analytics
+# Data Dictionary (Final - 18 Fields): Big Data IT Job Skill Analytics
 
-Tài liệu này cung cấp từ điển dữ liệu (Data Dictionary) chi tiết cho từng trường trong **Unified Schema (17 trường)** theo kiến trúc **Global First, Extensible for Vietnam**.
+Tài liệu này cung cấp từ điển dữ liệu chi tiết cho từng trường trong **Unified Schema (18 trường)** theo đặc tả chính thức của [FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md](file:///d:/Study/2026/Nam04_HK1/bigData_T.Ha/BigData_Job_Analy/FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md).
 
 ---
 
-## 1. Chi tiết 17 trường trong Unified Schema
+## Chi tiết 18 trường trong Unified Schema
 
 ### 1. `job_id`
 - **Tên trường**: Job Identifier
 - **Kiểu dữ liệu**: `string` (VARCHAR 128)
 - **Bắt buộc**: `NOT NULL` (Primary Key)
-- **Mô tả**: Chuỗi định danh duy nhất cho từng tin tuyển dụng.
+- **Mô tả**: Chuỗi định danh duy nhất cho từng tin tuyển dụng trên toàn hệ thống.
 - **Ví dụ**: `"arbeitnow_senior-dev-123"`, `"remotive_1928374"`, `"hist_0042"`
 
 ### 2. `title`
 - **Tên trường**: Job Title (Original)
 - **Kiểu dữ liệu**: `string` (VARCHAR 255)
 - **Bắt buộc**: `NOT NULL`
-- **Mô tả**: Tiêu đề công việc gốc từ nhà tuyển dụng.
-- **Ví dụ**: `"Senior Data Engineer - PySpark & Cloud (Remote)"`
+- **Mô tả**: Tiêu đề công việc gốc từ bài đăng tuyển dụng.
+- **Ví dụ**: `"Senior React Developer (Remote)"`
 
 ### 3. `normalized_title`
 - **Tên trường**: Normalized Occupation Title
@@ -44,7 +44,7 @@ Tài liệu này cung cấp từ điển dữ liệu (Data Dictionary) chi tiế
 - **Tên trường**: City Name
 - **Kiểu dữ liệu**: `string` (VARCHAR 128)
 - **Bắt buộc**: `NULLABLE`
-- **Mô tả**: Tên thành phố cụ thể được bóc tách từ `location`.
+- **Mô tả**: Tên thành phố cụ thể được trích xuất từ `location`.
 - **Ví dụ**: `"San Francisco"`, `"Berlin"`, `"Austin"`
 
 ### 7. `country`
@@ -58,17 +58,14 @@ Tài liệu này cung cấp từ điển dữ liệu (Data Dictionary) chi tiế
 - **Tên trường**: Market Dimension
 - **Kiểu dữ liệu**: `string` (VARCHAR 32)
 - **Bắt buộc**: `NOT NULL`
-- **Mô tả**: Phân vùng thị trường tuyển dụng. Trong MVP hiện tại, giá trị luôn là `"GLOBAL"`. Sẵn sàng mở rộng sang `"VIETNAM"` trong giai đoạn tiếp theo.
-- **Tập giá trị**: `"GLOBAL"`, `"VIETNAM"`
-- **Ví dụ**: `"GLOBAL"`
+- **Mô tả**: Phân vùng thị trường. Trong MVP: luôn là `"GLOBAL"`.
+- **Tập giá trị**: `"GLOBAL"`, `"VIETNAM"` (Future Extension)
 
 ### 9. `work_mode`
 - **Tên trường**: Work Mode
 - **Kiểu dữ liệu**: `string` (VARCHAR 32)
 - **Bắt buộc**: `NULLABLE`
-- **Mô tả**: Hình thức làm việc của vị trí tuyển dụng.
-- **Tập giá trị chuẩn**: `"Remote"`, `"Onsite"`, `"Hybrid"`
-- **Ví dụ**: `"Remote"`
+- **Mô tả**: Hình thức làm việc: `"Remote"`, `"Onsite"`, `"Hybrid"`.
 
 ### 10. `description`
 - **Tên trường**: Job Description (Cleaned)
@@ -83,34 +80,43 @@ Tài liệu này cung cấp từ điển dữ liệu (Data Dictionary) chi tiế
 - **Tập giá trị**: `Intern`, `Junior`, `Mid`, `Senior`, `Lead`, `Principal`, `Unknown`.
 
 ### 12. `salary_min`
-- **Tên trường**: Minimum Annual Salary (USD)
+- **Tên trường**: Minimum Annual Salary
 - **Kiểu dữ liệu**: `integer` (INT)
 - **Bắt buộc**: `NULLABLE`
+- **Mô tả**: Mức lương tối thiểu hàng năm.
 
 ### 13. `salary_max`
-- **Tên trường**: Maximum Annual Salary (USD)
+- **Tên trường**: Maximum Annual Salary
 - **Kiểu dữ liệu**: `integer` (INT)
 - **Bắt buộc**: `NULLABLE`
+- **Mô tả**: Mức lương tối đa hàng năm.
 
-### 14. `posted_at`
+### 14. `currency`
+- **Tên trường**: Salary Currency
+- **Kiểu dữ liệu**: `string` (VARCHAR 16)
+- **Bắt buộc**: `NULLABLE`
+- **Mô tả**: Đơn vị tiền tệ của mức lương (mặc định `"USD"`).
+- **Ví dụ**: `"USD"`, `"EUR"`, `"GBP"`
+
+### 15. `posted_at`
 - **Tên trường**: Job Posted Timestamp (UTC)
 - **Kiểu dữ liệu**: `timestamp` (`YYYY-MM-DD HH:MM:SS`)
 - **Bắt buộc**: `NOT NULL`
 - **Mô tả**: Thời điểm bài đăng được công khai trên nền tảng tuyển dụng.
 
-### 15. `collected_at`
+### 16. `collected_at`
 - **Tên trường**: Data Ingestion Timestamp (UTC)
 - **Kiểu dữ liệu**: `timestamp` (`YYYY-MM-DD HH:MM:SS`)
 - **Bắt buộc**: `NOT NULL`
-- **Mô tả**: Thời điểm hệ thống ETL/Ingestion đọc và lưu dữ liệu.
+- **Mô tả**: Thời điểm hệ thống ETL/Ingestion đọc và nạp dữ liệu.
 
-### 16. `source`
+### 17. `source`
 - **Tên trường**: Data Source Identifier
 - **Kiểu dữ liệu**: `string` (VARCHAR 64)
 - **Bắt buộc**: `NOT NULL`
 - **Ví dụ**: `"arbeitnow"`, `"remotive"`, `"kaggle_historical_archive"`
 
-### 17. `skills`
+### 18. `skills`
 - **Tên trường**: Extracted Skill Array
 - **Kiểu dữ liệu**: `array<string>` (JSON ARRAY)
 - **Bắt buộc**: `NOT NULL`
