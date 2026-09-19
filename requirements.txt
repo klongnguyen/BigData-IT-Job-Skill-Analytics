@@ -1,0 +1,7 @@
+pyspark
+pymongo
+streamlit
+pandas
+plotly
+requests
+python-dotenv
