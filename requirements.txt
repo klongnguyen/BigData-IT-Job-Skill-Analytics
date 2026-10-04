@@ -1,7 +1,10 @@
-pyspark
+# Phase 02 execution and regression tests: versions validated on 04/10/2026.
+-r requirements-phase02.txt
+
+# Planned later-phase application dependencies; not part of Phase 02 acceptance.
 pymongo
 streamlit
 pandas
 plotly
-requests
-python-dotenv
+requests==2.34.2
+python-dotenv==1.0.1

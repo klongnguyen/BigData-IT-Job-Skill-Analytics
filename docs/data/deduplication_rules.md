@@ -1,13 +1,14 @@
 # Quy tắc định danh và khử trùng lặp
 
-Tài liệu phân biệt hành vi đã có trong mã với các quy tắc fuzzy/repost còn là thiết kế. Pipeline hiện chỉ thực thi khử trùng lặp xác định theo `job_hash`; không tuyên bố đã hợp nhất tin đa nền tảng hoặc loại tin đăng lại.
+Tài liệu phân biệt hành vi đã có trong mã với các quy tắc fuzzy/repost còn là thiết kế. Pipeline hiện khử trùng lặp xác định theo **định danh nguồn**; không tự gộp hai ID nguồn khác nhau dù `job_hash` giống nhau.
 
 ## Đã triển khai trong Spark ETL
 
 - Sinh `job_id` ổn định bằng SHA-256 từ nguồn và `source_record_id`; với archive không có ID gốc, dùng checksum dòng raw làm ID nguồn ổn định.
-- Sinh `job_hash` xác định từ nội dung đã chuẩn hóa để nhận diện các dòng cùng nội dung canonical.
-- Khi trùng `job_hash`, chọn survivor xác định theo `collected_at` mới nhất; nếu thiếu, dùng `job_id` làm tie-breaker ổn định.
+- Sinh `job_hash` từ company, title, location và ngày đăng như tín hiệu tìm cặp cần audit. `job_hash` không còn là khóa loại bản ghi.
+- Khi nhiều snapshot trùng `job_id`, chọn survivor theo `collected_at` mới nhất; tie-breaker lần lượt dùng `raw_checksum`, `job_hash`, `source_url` và `ingestion_id` để provenance vẫn xác định khi hai snapshot trùng giây và nội dung. Hai source ID khác nhau được giữ riêng.
 - Ghi provenance cho các dòng Silver còn lại. Bản ghi thiếu hoặc có `posted_at` sai định dạng, title rỗng, hoặc source record ID rỗng được quarantine, không gán giá trị giả để qua pipeline.
+- ETL chỉ đọc các Bronze run được chỉ định rõ; kiểm tra checksum và số record thực tế từng file theo manifest, rồi đối chiếu số dòng Spark đọc với tổng số dòng các manifest trước khi ghi output. Manifest ETL lưu `input_rows`, `quarantine_rows`, `identity_duplicates_removed`, `silver_rows`, `provenance_rows` và số `job_id` duy nhất.
 
 ## Chưa triển khai
 

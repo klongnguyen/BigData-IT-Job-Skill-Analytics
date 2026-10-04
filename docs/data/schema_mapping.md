@@ -28,4 +28,6 @@ Tài liệu này mô tả mapping theo header đang có trong archive và cấu 
 
 Unified Schema chỉ chứa dữ liệu phục vụ phân tích. Bảng provenance gắn 1:1 với mỗi dòng Silver còn lại cần lưu ít nhất `source_record_id`, `source_url`, `description_origin`, `skills_origin`, `taxonomy_version`, `ingestion_id`, `collected_at`, `raw_checksum` và chất lượng timestamp.
 
+Từ bản Phase 02 đã sửa, Bronze mới được chia thành các run bất biến tại `data/bronze/global/<kind>/runs/<run_id>/`, mỗi run có `manifest.json` và danh sách file JSON kèm checksum/số dòng. ETL phải nhận đường dẫn run rõ ràng; run `partial` chỉ được dùng với `--allow-partial-inputs`. Silver và provenance được tạo từ cùng tập survivor theo `job_id`; `job_hash` chỉ là tín hiệu audit, không phải khóa khử trùng lặp. Manifest ETL ghi count, checksum output và phiên bản môi trường. Các file Bronze/Silver cũ không tự động trở thành bằng chứng cho mã mới.
+
 Archive hiện có `job_title`, `job_posted_date`, `job_skills`, `company_name` và các trường nguồn khác; không có JD, native job ID hoặc source URL. Vì vậy không thể dùng archive này để định lượng độ chính xác trích xuất skill từ JD, và không thể khôi phục trường nguồn không tồn tại bằng mapping.

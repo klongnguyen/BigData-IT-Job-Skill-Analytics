@@ -1,12 +1,17 @@
 """Bronze -> Silver Spark ETL with stable IDs, provenance and timestamp quarantine."""
 
 import argparse
+import hashlib
+import json
 import os
 import shutil
 import sys
 import re
 import html
 import uuid
+from pathlib import Path
+
+import pyspark
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if BASE_DIR not in sys.path:
@@ -21,6 +26,7 @@ from pyspark.sql.types import ArrayType, BooleanType, IntegerType, StringType
 
 from src.common.schema import UNIFIED_JOB_FIELDS
 from src.common.identity import stable_job_id
+from src.common.run_manifest import load_bronze_run, sha256_file, utc_now
 from src.common.taxonomy import (
     TAXONOMY_VERSION,
     extract_skills,
@@ -86,13 +92,13 @@ def _promote_staged_outputs(staged_outputs, run_id, replace_existing):
 
 
 def create_spark_session():
-    os.environ.setdefault("JAVA_HOME", r"C:\java\jdk-17")
-    os.environ.setdefault("HADOOP_HOME", r"C:\hadoop")
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+    os.environ.setdefault("SPARK_LOCAL_IP", "127.0.0.1")
     spark = (SparkSession.builder.appName("ITJobSkill_BronzeToSilver_ETL")
-             .master("local[*]").config("spark.driver.memory", "4g")
-             .config("spark.sql.shuffle.partitions", "8")
+             .master(os.environ.get("SPARK_MASTER", "local[2]"))
+             .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "4g"))
+             .config("spark.sql.shuffle.partitions", os.environ.get("SPARK_SHUFFLE_PARTITIONS", "8"))
              .config("spark.sql.session.timeZone", "UTC")
              .config("spark.hadoop.io.native.lib", "false").getOrCreate())
     spark.sparkContext.setLogLevel("WARN")
@@ -168,9 +174,8 @@ def build_udfs():
     }
 
 
-def _historical_frame(spark, udfs):
-    path = os.path.join(BRONZE_HIST_DIR, "*.json")
-    raw = spark.read.option("multiline", "true").json(path)
+def _historical_frame(spark, udfs, paths):
+    raw = spark.read.option("multiline", "true").json(paths)
     columns = set(raw.columns)
     title = _source_column(columns, ("job_title", "title"), None)
     company = _source_column(columns, ("company_name", "job_company_name", "company"), None)
@@ -215,9 +220,8 @@ def _historical_frame(spark, udfs):
     )
 
 
-def _fresh_frame(spark, udfs):
-    path = os.path.join(BRONZE_FRESH_DIR, "*.json")
-    raw = spark.read.option("multiline", "true").json(path)
+def _fresh_frame(spark, udfs, paths):
+    raw = spark.read.option("multiline", "true").json(paths)
     columns = set(raw.columns)
     source = _source_column(columns, ("source",), "")
     source_id = _source_column(columns, ("source_record_id", "raw_id", "id"), None).cast("string")
@@ -253,20 +257,24 @@ def _fresh_frame(spark, udfs):
     )
 
 
-def _run_etl(spark, output_dirs):
+def _run_etl(spark, output_dirs, historical_files, fresh_files, expected_input_rows):
     udfs = build_udfs()
     frames = []
-    if os.path.exists(BRONZE_HIST_DIR) and os.listdir(BRONZE_HIST_DIR):
-        frames.append(_historical_frame(spark, udfs))
-    if os.path.exists(BRONZE_FRESH_DIR) and os.listdir(BRONZE_FRESH_DIR):
-        frames.append(_fresh_frame(spark, udfs))
+    if historical_files:
+        frames.append(_historical_frame(spark, udfs, historical_files))
+    if fresh_files:
+        frames.append(_fresh_frame(spark, udfs, fresh_files))
     if not frames:
-        print("[ETL] No data found in Bronze Layer.")
-        return False
+        raise ValueError("Choose at least one explicit Bronze run")
 
     combined = frames[0]
     for frame in frames[1:]:
         combined = combined.unionByName(frame)
+    input_count = combined.count()
+    if input_count != expected_input_rows:
+        raise AssertionError(
+            f"Spark input row count {input_count} does not match Bronze manifests {expected_input_rows}"
+        )
 
     processed = (combined
         .withColumn("source", when(
@@ -327,10 +335,20 @@ def _run_etl(spark, output_dirs):
         & (trim(col("source")) != "")
     )
 
-    survivor_window = Window.partitionBy("job_hash").orderBy(
-        col("collected_at").desc_nulls_last(), col("job_id").asc())
+    valid_count = valid.count()
+    # A native source identity identifies one job across repeated snapshots.
+    # Content equality across different IDs is only an audit candidate.
+    survivor_window = Window.partitionBy("job_id").orderBy(
+        col("collected_at").desc_nulls_last(),
+        col("raw_checksum").desc_nulls_last(),
+        col("job_hash").asc_nulls_last(),
+        col("source_url").asc_nulls_last(),
+        col("ingestion_id").asc_nulls_last())
     survivors = (valid.withColumn("_survivor_rank", row_number().over(survivor_window))
                  .filter(col("_survivor_rank") == 1).drop("_survivor_rank"))
+    survivor_count = survivors.count()
+    if survivors.select("job_id").distinct().count() != survivor_count:
+        raise AssertionError("Silver job_id is not unique")
 
     silver_with_parts = (survivors
         .withColumn("year", year(col("posted_at")))
@@ -344,10 +362,51 @@ def _run_etl(spark, output_dirs):
         "skills_origin", lit(TAXONOMY_VERSION).alias("taxonomy_version"), "ingestion_id", "collected_at",
         "raw_checksum", lit("posted_at_valid").alias("timestamp_quality"))
 
+    quarantine_by_source_reason = [
+        {"source": row["source"], "reason": row["quarantine_reason"], "rows": row["count"]}
+        for row in invalid.groupBy("source", "quarantine_reason").count()
+        .orderBy("source", "quarantine_reason").collect()
+    ]
+
     silver.write.mode("errorifexists").partitionBy("year", "month").parquet(output_dirs["silver"])
     provenance.write.mode("errorifexists").parquet(output_dirs["provenance"])
-    print(f"[ETL] Wrote {silver.count():,} Silver survivors; quarantined {invalid_count:,} rows with invalid posted_at.")
-    return True
+    written_silver = spark.read.parquet(output_dirs["silver"])
+    written_provenance = spark.read.parquet(output_dirs["provenance"])
+    written_quarantine = spark.read.parquet(output_dirs["quarantine"])
+    if (written_silver.count() != survivor_count or
+            written_provenance.count() != survivor_count or
+            written_quarantine.count() != invalid_count):
+        raise AssertionError("Staged output counts do not match input accounting")
+    if written_silver.select("job_id").distinct().count() != survivor_count:
+        raise AssertionError("Staged Silver job_id is not unique")
+    if written_provenance.select("job_id").distinct().count() != survivor_count:
+        raise AssertionError("Staged provenance does not map 1:1 to Silver")
+    if input_count != valid_count + invalid_count or valid_count < survivor_count:
+        raise AssertionError("ETL row accounting failed")
+    metrics = {
+        "input_rows": input_count,
+        "valid_rows": valid_count,
+        "quarantine_rows": invalid_count,
+        "identity_duplicates_removed": valid_count - survivor_count,
+        "silver_rows": survivor_count,
+        "provenance_rows": survivor_count,
+        "unique_job_ids": survivor_count,
+        "quarantine_by_source_reason": quarantine_by_source_reason,
+    }
+    print(f"[ETL] {metrics}")
+    return metrics
+
+
+def _directory_evidence(root):
+    root = Path(root)
+    entries = []
+    digest = hashlib.sha256()
+    for path in sorted(path for path in root.rglob("*") if path.is_file() and path.suffix != ".crc"):
+        relative = path.relative_to(root).as_posix()
+        checksum = sha256_file(path)
+        entries.append({"path": relative, "bytes": path.stat().st_size, "sha256": checksum})
+        digest.update(f"{relative}:{checksum}\n".encode("utf-8"))
+    return {"sha256": digest.hexdigest(), "files": entries}
 
 
 def run_etl(
@@ -355,14 +414,40 @@ def run_etl(
     provenance_dir=PROVENANCE_GLOBAL_DIR,
     quarantine_dir=QUARANTINE_GLOBAL_DIR,
     replace_existing=False,
+    historical_run=None,
+    fresh_run=None,
+    allow_partial_inputs=False,
+    manifest_dir=None,
 ):
+    if not historical_run and not fresh_run:
+        raise ValueError("Choose --historical-run and/or --fresh-run; implicit Bronze scans are disabled")
+    input_runs = []
+    historical_files = []
+    fresh_files = []
+    for kind, run_dir in (("historical", historical_run), ("fresh", fresh_run)):
+        if run_dir:
+            manifest, files, checksum = load_bronze_run(
+                run_dir, expected_kind=kind, allow_partial=allow_partial_inputs,
+            )
+            input_runs.append({"kind": kind, "run_id": manifest["run_id"],
+                               "status": manifest["status"], "rows": manifest["total_rows"],
+                               "manifest_path": str(Path(run_dir).resolve() / "manifest.json"),
+                               "manifest_sha256": checksum})
+            if kind == "historical":
+                historical_files = files
+            else:
+                fresh_files = files
+
+    run_id = uuid.uuid4().hex
+    manifest_root = Path(manifest_dir or Path(BASE_DIR) / "data" / "manifests" / "etl")
     targets = {
         "silver": os.path.abspath(silver_dir),
         "provenance": os.path.abspath(provenance_dir),
         "quarantine": os.path.abspath(quarantine_dir),
+        "manifest": os.path.abspath(manifest_root / f"etl_{run_id}.json"),
     }
     if len(set(targets.values())) != len(targets):
-        raise ValueError("Silver, provenance, and quarantine output paths must be distinct.")
+        raise ValueError("ETL output paths must be distinct.")
     paths = list(targets.values())
     for index, path in enumerate(paths):
         for other in paths[index + 1:]:
@@ -371,7 +456,7 @@ def run_etl(
             except ValueError:  # Different Windows drives cannot overlap.
                 continue
             if common in {path, other}:
-                raise ValueError("Silver, provenance, and quarantine output paths cannot contain one another.")
+                raise ValueError("ETL output paths cannot contain one another.")
 
     existing = [path for path in targets.values() if os.path.lexists(path)]
     if existing and not replace_existing:
@@ -381,7 +466,6 @@ def run_etl(
             + ", ".join(existing)
         )
 
-    run_id = uuid.uuid4().hex
     staged_paths = {
         name: f"{target}.staging-{run_id}" for name, target in targets.items()
     }
@@ -393,14 +477,47 @@ def run_etl(
             raise FileExistsError(f"ETL staging path already exists: {stage}")
         os.makedirs(os.path.dirname(stage), exist_ok=True)
 
-    spark = create_spark_session()
+    spark = None
     try:
-        written = _run_etl(spark, staged_paths)
-        if written:
-            _promote_staged_outputs(staged_outputs, run_id, replace_existing)
+        spark = create_spark_session()
+        metrics = _run_etl(
+            spark, staged_paths, historical_files, fresh_files,
+            expected_input_rows=sum(run["rows"] for run in input_runs),
+        )
+        config_root = Path(BASE_DIR) / "configs"
+        report = {
+            "schema_version": 1,
+            "run_id": run_id,
+            "status": "completed",
+            "completed_at": utc_now(),
+            "input_runs": input_runs,
+            "metrics": metrics,
+            "environment": {
+                "python": sys.version.split()[0],
+                "pyspark": pyspark.__version__,
+                "spark": spark.version,
+                "java": spark.sparkContext._jvm.java.lang.System.getProperty("java.version"),
+                "spark_master": spark.sparkContext.master,
+            },
+            "taxonomy_version": TAXONOMY_VERSION,
+            "taxonomy_config_sha256": {
+                name: sha256_file(config_root / name)
+                for name in ("job_title_mapping_v0.json", "skills_v0.json")
+            },
+            "outputs": {
+                name: {"path": targets[name], **_directory_evidence(staged_paths[name])}
+                for name in ("silver", "provenance", "quarantine")
+            },
+        }
+        with open(staged_paths["manifest"], "x", encoding="utf-8") as stream:
+            json.dump(report, stream, indent=2, ensure_ascii=False, sort_keys=True)
+            stream.write("\n")
+        _promote_staged_outputs(staged_outputs, run_id, replace_existing)
+        return report
     finally:
         try:
-            spark.stop()
+            if spark is not None:
+                spark.stop()
         finally:
             for stage in staged_paths.values():
                 _remove_path(stage)
@@ -408,9 +525,14 @@ def run_etl(
 
 def _parse_args():
     parser = argparse.ArgumentParser(description="Build Bronze-to-Silver job data with provenance.")
+    parser.add_argument("--historical-run", help="Immutable historical Bronze run directory")
+    parser.add_argument("--fresh-run", help="Immutable fresh Bronze run directory")
+    parser.add_argument("--allow-partial-inputs", action="store_true",
+                        help="Explicitly accept a scoped/partial Bronze run")
     parser.add_argument("--silver-dir", default=SILVER_GLOBAL_DIR, help="Silver Parquet output directory")
     parser.add_argument("--provenance-dir", default=PROVENANCE_GLOBAL_DIR, help="Provenance Parquet output directory")
     parser.add_argument("--quarantine-dir", default=QUARANTINE_GLOBAL_DIR, help="Quarantine Parquet output directory")
+    parser.add_argument("--manifest-dir", help="Directory for the completed ETL run manifest")
     parser.add_argument(
         "--replace-existing",
         action="store_true",
@@ -426,4 +548,8 @@ if __name__ == "__main__":
         provenance_dir=args.provenance_dir,
         quarantine_dir=args.quarantine_dir,
         replace_existing=args.replace_existing,
+        historical_run=args.historical_run,
+        fresh_run=args.fresh_run,
+        allow_partial_inputs=args.allow_partial_inputs,
+        manifest_dir=args.manifest_dir,
     )

@@ -2,7 +2,7 @@
 
 Hệ thống Big Data phục vụ **phân tích thị trường tuyển dụng CNTT quốc tế** và **dự báo xu hướng nhu cầu kỹ năng theo từng nhóm nghề**, sử dụng dữ liệu tuyển dụng lịch sử kết hợp với dữ liệu tuyển dụng mới.
 
-> **Trạng thái hiện tại:** Đã hoàn thành **Giai đoạn 1 – Data Feasibility & Project Definition** và **Giai đoạn 2 – Data Ingestion & Big Data Storage**. Silver Layer đã được tạo thành công và hệ thống sẵn sàng chuyển sang giai đoạn phân tích dữ liệu, xây dựng đặc trưng và mô hình dự báo xu hướng.
+> **Trạng thái hiện tại:** Phase 02 đã có ingestion và Spark ETL cục bộ được kiểm tra trên input cố định; **M2 vẫn mở** vì chưa có lần chạy HDFS → Spark được nghiệm thu. Kết quả local chỉ hỗ trợ thử nghiệm phân tích mô tả theo phạm vi dữ liệu quan sát được; cổng dự báo vẫn **NO-GO** theo báo cáo GO/NO-GO.
 
 ---
 
@@ -181,27 +181,28 @@ Hệ thống đồng thời sử dụng `job_hash` SHA-256 để hỗ trợ phá
 - Kiểm thử khả thi trên dữ liệu mẫu.
 - Hoàn thành Milestone 1 với quyết định **GO**.
 
-### Phase 02 – Data Ingestion & Big Data Storage ✅
+### Phase 02 – Data Ingestion & Big Data Storage (local đã kiểm tra; M2/HDFS đang mở)
 
 Môi trường xử lý dữ liệu đã được thiết lập với:
 
 ```text
-Python 3.11
+Python 3.11.9
 PySpark 4.2.0
-OpenJDK 17 LTS
-Hadoop Winutils
+OpenJDK 17.0.10
+Hadoop Winutils (không phải dịch vụ HDFS)
 ```
 
-Pipeline ingestion hiện đã xử lý:
+Lần chạy local ngày 04/10/2026 trên **50.000 dòng đầu của CSV lịch sử** và **snapshot API 666 dòng có phạm vi giới hạn** (`arbeitnow`: 650 dòng/2 trang, `remotive`: 16 dòng/1 trang):
 
 ```text
-Historical Data : 50,000 records
-Fresh Data 2026 :    267 records
+Historical Data : 50,000 records (scoped)
+Fresh Data 2026 :    666 records (partial/scoped)
 --------------------------------
-Bronze Input    : 50,267 records
-Duplicates      :    180 records
+Bronze Input    : 50,666 records
+ID duplicates  :      7 records
 --------------------------------
-Silver Output   : 50,087 records
+Silver Output   : 50,659 records
+Provenance      : 50,659 records
 ```
 
 Silver Layer hiện được lưu dưới dạng:
@@ -212,7 +213,9 @@ Parquet
 + Partition theo year / month
 ```
 
-Dữ liệu đã được chuẩn hóa về đúng Unified Schema và sẵn sàng cho bước Analytics / Machine Learning.
+ETL đã kiểm tra số dòng, `job_id` duy nhất và provenance 1:1 trên output local mới trong `tmp/phase02_acceptance/`. Manifest của Bronze và ETL ghi checksum, phạm vi nguồn, phiên bản môi trường và số dòng. Kết quả cũ **50.087** dòng Silver không còn là số liệu nghiệm thu. M2 chưa hoàn tất vì chưa có bằng chứng HDFS → Spark; dữ liệu này chưa đủ cơ sở để mở dự báo.
+
+Chạy kiểm thử Phase 02: `python -m pytest -q`. Trên Windows của phiên chạy này, Spark cần `TEMP` và `TMP` trỏ tới một thư mục ngắn có thể ghi (ví dụ `C:\jtmp`) để Java khởi tạo được SparkContext. Luồng HDFS thật dùng `python -m src.processing.hdfs_smoke --bronze-run <run-dir> --hdfs-root hdfs://<host>:<port>/<path>`; chỉ khi có evidence thành công mới nghiệm thu M2.
 
 ---
 
@@ -293,7 +296,7 @@ Có thể bổ sung Kafka hoặc Docker nếu phù hợp với tiến độ và 
 | Giai đoạn | Nội dung | Trạng thái |
 |---|---|---|
 | Phase 01 | Data Feasibility & Project Definition | ✅ Hoàn thành |
-| Phase 02 | Data Ingestion & Big Data Storage | ✅ Hoàn thành |
+| Phase 02 | Data Ingestion & Big Data Storage | 🔄 Local đã kiểm tra; M2/HDFS đang mở |
 | Phase 03 | Data Processing / Analytics Preparation | 🔜 Tiếp theo |
 | Phase 04 | Skill Demand Analytics | ⏳ Chưa thực hiện |
 | Phase 05 | Feature Engineering & Trend Modeling | ⏳ Chưa thực hiện |
@@ -306,11 +309,11 @@ Có thể bổ sung Kafka hoặc Docker nếu phù hợp với tiến độ và 
 ```text
 Raw Data
    ↓
-Bronze Layer       ✅
+Bronze Layer       ✅ Run bất biến + manifest
    ↓
-Spark ETL          ✅
+Spark ETL          ✅ Local fixture và scoped input
    ↓
-Silver Layer       ✅
+Silver Layer       ✅ Local; HDFS chưa nghiệm thu
    ↓
 Skill Analytics    🔜
    ↓
@@ -321,7 +324,7 @@ Gold Layer         ⏳
 Dashboard          ⏳
 ```
 
-**Nền tảng dữ liệu Silver Layer đã hoàn thiện và sẵn sàng cho giai đoạn tiếp theo.**
+**Nền tảng Silver local đã được kiểm tra, nhưng chưa hoàn tất M2 và chưa đủ bằng chứng cho dự báo.**
 
 ---
 
@@ -329,6 +332,7 @@ Dashboard          ⏳
 
 - **[Kế hoạch dự án chính](FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md)**
 - **[Tổng kết Phase 01 & 02](docs/planning/phase_01_02_summary.md)**
+- [Runbook Phase 02](docs/planning/phase02_runbook.md)
 - [Project Scope](docs/planning/project_scope.md)
 - [Research Questions](docs/planning/research_questions.md)
 - [GO / NO-GO Report](docs/planning/go_no_go_report.md)
@@ -342,7 +346,7 @@ Dashboard          ⏳
 
 ## 11. Bước tiếp theo
 
-Sau khi hoàn thành Phase 01 và Phase 02, trọng tâm tiếp theo của dự án là sử dụng **Silver Dataset** để xây dựng các tập dữ liệu phân tích theo:
+Trong khi hoàn tất cổng M2/HDFS và quality gate dữ liệu, bước phân tích tiếp theo có thể dùng **Silver Dataset local đã kiểm tra** để xây dựng các tập dữ liệu mô tả theo:
 
 ```text
 BigData-IT-Job-Skill-Analytics/
