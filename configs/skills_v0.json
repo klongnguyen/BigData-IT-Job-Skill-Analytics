@@ -1,14 +1,19 @@
 {
-  "python": ["python", "python3", "py"],
+  "python": ["python", "python3"],
   "java": ["java", "core java", "java 8", "java 11", "java 17"],
-  "javascript": ["javascript", "js", "javascript es6", "ecmascript"],
-  "typescript": ["typescript", "ts"],
+  "javascript": ["javascript", "javascript es6", "ecmascript"],
+  "typescript": ["typescript"],
+  "react": ["react", "react.js", "reactjs"],
+  "next_js": ["next.js", "nextjs"],
+  "html_css": ["html/css", "html", "css"],
   "c_plus_plus": ["c++", "cpp"],
   "c_sharp": ["c#", "c sharp", ".net c#"],
   "golang": ["golang", "go language", "go lang"],
   "rust": ["rust", "rustlang"],
 
   "sql": ["sql", "rdbms"],
+  "pandas": ["pandas"],
+  "numpy": ["numpy"],
   "mysql": ["mysql"],
   "postgresql": ["postgres", "postgresql", "pgsql"],
   "mongodb": ["mongodb", "mongo db"],
@@ -39,7 +44,7 @@
   "looker": ["looker", "lookml"],
 
   "scikit_learn": ["scikit-learn", "sklearn"],
-  "tensorflow": ["tensorflow", "tf", "keras"],
+  "tensorflow": ["tensorflow", "keras"],
   "pytorch": ["pytorch", "torch"],
   "nlp": ["nlp", "natural language processing"],
   "computer_vision": ["computer vision", "opencv"],
@@ -47,5 +52,6 @@
   "generative_ai": ["generative ai", "gen ai", "genai"],
   "llm": ["llm", "large language model", "large language models"],
   "rag": ["rag", "retrieval augmented generation", "retrieval-augmented generation"],
-  "langchain": ["langchain", "llamaindex", "prompt engineering"]
+  "langchain": ["langchain", "llamaindex"],
+  "prompt_engineering": ["prompt engineering", "prompt design"]
 }

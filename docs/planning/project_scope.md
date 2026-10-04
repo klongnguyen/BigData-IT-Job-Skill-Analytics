@@ -1,7 +1,9 @@
 # Project Scope: Big Data IT Job Skill Analytics
 
 ## 1. Tổng quan đề tài
-Dự án **Big Data IT Job Skill Analytics** xây dựng một hệ thống phân tích dữ liệu lớn nhằm thu thập, lưu trữ, xử lý và dự báo xu hướng nhu cầu kỹ năng trong ngành Công nghệ Thông tin (CNTT). Hệ thống kết hợp dữ liệu tuyển dụng lịch sử (2020–2025) và dữ liệu tuyển dụng cập nhật năm 2026 để nắm bắt sự biến động nhanh chóng của thị trường lao động công nghệ.
+Dự án **Big Data IT Job Skill Analytics** hướng tới hệ thống phân tích dữ liệu tuyển dụng CNTT và nghiên cứu xu hướng nhu cầu kỹ năng. Các năm bên dưới mô tả mục tiêu nghiên cứu, không phải coverage dữ liệu hiện có.
+
+> **Coverage đã kiểm kê (Phase 01):** archive hiện có 785.741 dòng từ 2023-01 đến 2023-12, có source tags nhưng không có JD; fresh data hiện là snapshot đã lưu. Dữ liệu này chưa chứng minh chuỗi lịch sử 2020–2025 hay đủ điều kiện forecast. Xem [audit](../data/phase01_data_audit.json) và [GO/NO-GO](go_no_go_report.md).
 
 ---
 
@@ -14,11 +16,13 @@ Dự án **Big Data IT Job Skill Analytics** xây dựng một hệ thống phâ
    - Đo lường sự biến thiên của nhu cầu kỹ năng theo các mốc thời gian (tháng, quý, năm).
    - Phân loại trạng thái kỹ năng thành 3 nhóm: **Growing** (Đang tăng trưởng), **Stable** (Ổn định), **Declining** (Suy giảm).
 3. **Dự báo tương lai (Forecasting)**:
-   - Xây dựng mô hình dự báo nhu cầu kỹ năng trong các giai đoạn tiếp theo (ngắn hạn: 3–6 tháng; trung hạn: 1 năm).
-   - So sánh 3 phương pháp tiếp cận:
+   - Đích MVP là dự báo kỳ tháng kế tiếp từ tỷ lệ nhu cầu kỹ năng theo occupation; chỉ bật khi cổng dữ liệu và rolling backtest trong Final Plan đạt.
+   - So sánh 4 nhánh trên cùng future test:
      - Baseline 1: Chỉ sử dụng dữ liệu lịch sử.
      - Baseline 2: Chỉ sử dụng dữ liệu mới gần đây.
-     - Hybrid Model: Mô hình kết hợp có trọng số thời gian (Recency Weighting) và xử lý Concept Drift.
+     - Hybrid Model có Recency Weighting.
+     - Hybrid Model không trọng số để tách tác dụng của dữ liệu mới khỏi weighting.
+   - Nếu quality gate chưa đạt, chỉ báo analytics/observed trend và `Insufficient evidence`; không công bố nhãn forecast.
 4. **Trực quan hóa**:
    - Cung cấp Dashboard tương tác (Streamlit) cho người dùng khám phá xu hướng kỹ năng và đưa ra quyết định định hướng nghề nghiệp.
 
@@ -34,11 +38,11 @@ Dự án **Big Data IT Job Skill Analytics** xây dựng một hệ thống phâ
 ## 4. Phạm vi hệ thống (Scope)
 
 ### 4.1. Phạm vi dữ liệu & Địa lý
-- **Thị trường trọng tâm (Chính)**: Thị trường Toàn cầu / Tiếng Anh (Mỹ, Châu Âu, Remote). Nguồn dữ liệu phong phú, mốc thời gian liên tục từ 2020–2025, định dạng chuẩn hóa cao.
-- **Thị trường bổ trợ**: Thị trường Việt Nam (thu thập bổ sung từ các nền tảng tuyển dụng CNTT trong nước để làm phong phú và địa phương hóa bài toán).
+- **Thị trường trọng tâm (Chính)**: Mục tiêu là thị trường Toàn cầu / Tiếng Anh (Mỹ, Châu Âu, Remote). Nguồn archive hiện có chỉ bao phủ năm 2023; không giả định có chuỗi liên tục 2020–2025.
+- **Thị trường bổ trợ**: Việt Nam đang **FROZEN** trong MVP; chỉ mở rộng sau khi hoàn tất cổng dữ liệu và nghiệm thu riêng.
 - **Khoảng thời gian**:
-  - Historical Data: 2020 – 2025 (dữ liệu lịch sử).
-  - Fresh Data: Năm 2026 (dữ liệu mới cập nhật qua API/Crawler).
+  - Historical Data — cần các kỳ thật liên tiếp, có thể so sánh để phân tích/forecast; repository hiện chỉ kiểm kê được năm 2023.
+  - Fresh Data — snapshot lưu năm 2026; chưa xác nhận collector chạy liên tục.
 
 ### 4.2. Nhóm nghề nghiệp CNTT (Occupations)
 Hệ thống tập trung vào 8 nhóm nghề trọng điểm:
@@ -67,4 +71,4 @@ Hệ thống theo dõi 8 nhóm kỹ năng công nghệ chính:
 ## 5. Giới hạn đề tài (Limitations & Out-of-Scope)
 - **Chất lượng văn bản JD**: Độ chính xác trích xuất kỹ năng phụ thuộc vào chất lượng mô tả công việc (Job Description). Các JD quá ngắn hoặc không mô tả rõ yêu cầu kỹ thuật sẽ bị lọc bỏ.
 - **Khác biệt ngôn ngữ**: Ngôn ngữ xử lý chính là tiếng Anh. Đối với tin tuyển dụng tiếng Việt, hệ thống áp dụng từ điển thuật ngữ kỹ thuật tiếng Anh được nhúng trong bài đăng.
-- **Dự báo ngắn/trung hạn**: Mô hình dự báo xu hướng kỹ năng tập trung vào xu thế thị trường trong 3–12 tháng tới dựa trên các đặc trưng thống kê và chuỗi thời gian, không khẳng định chắc chắn 100% các biến động đột biến không thể dự báo trước của ngành công nghệ.
+- **Horizon dự báo MVP**: Chỉ dự báo kỳ tháng kế tiếp theo rolling-origin khi quality gate dữ liệu đạt. Horizon dài hơn là future work, chỉ xem xét sau khi có đủ chuỗi thời gian và đánh giá ngoài mẫu; không xem đây là cam kết hiện tại.

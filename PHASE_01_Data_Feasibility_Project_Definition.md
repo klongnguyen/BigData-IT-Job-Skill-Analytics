@@ -1,5 +1,7 @@
 # GIAI ĐOẠN 1 – DATA FEASIBILITY & PROJECT DEFINITION
 
+> **Trạng thái cập nhật 04/10/2026 — nội dung dưới đây là kế hoạch gốc, các tiêu chí GO cũ đã được supersede.** Archive đang kiểm kê có 785.741 dòng trong năm 2023, có source tags nhưng không có JD/native job ID. Unified Schema hiện hành có 18 trường. Quyết định hiện tại: **GO prototype, CONDITIONAL GO descriptive analytics, NO-GO predictive claims; QUALITY GATE REOPENED**. Xem [audit](docs/data/phase01_data_audit.json), [GO/NO-GO](docs/planning/go_no_go_report.md) và [remediation](docs/reviews/PHASE_01_REMEDIATION.md).
+
 ## Dự án: Big Data IT Job Skill Analytics
 
 ### Mục tiêu giai đoạn
@@ -28,10 +30,10 @@ Mục tiêu chính:
 | ID | Công việc | Nội dung thực hiện | Kết quả đầu ra | Tiêu chí hoàn thành |
 |---|---|---|---|---|
 | P1-01 | Chốt mục tiêu đề tài | Xác định rõ hệ thống phân tích thị trường tuyển dụng CNTT và dự báo xu hướng kỹ năng | `project_scope.md` | Có mục tiêu, đối tượng sử dụng, phạm vi và giới hạn |
-| P1-02 | Chốt Research Questions | Chuẩn hóa các câu hỏi nghiên cứu RQ1–RQ5 | `research_questions.md` | Mỗi RQ có thể trả lời bằng dữ liệu |
+| P1-02 | Chốt Research Questions | Chuẩn hóa các câu hỏi nghiên cứu RQ1–RQ6 | `research_questions.md` | Mỗi RQ có thể trả lời khi đủ dữ liệu |
 | P1-03 | Chốt nhóm nghề CNTT | Giữ khoảng 6–8 nhóm nghề chính | Danh sách occupation chính thức | Không mở rộng quá nhiều job title |
 | P1-04 | Chốt nhóm kỹ năng | Xác định các nhóm Programming, Database, Big Data, Cloud, DevOps, BI, AI/ML | `skill_scope.md` | Có taxonomy ban đầu |
-| P1-05 | Khảo sát Historical Dataset | Tìm dataset tuyển dụng 2024–2025 hoặc dài hơn | Danh sách candidate dataset | Có ít nhất 2–3 nguồn để so sánh |
+| P1-05 | Khảo sát Historical Dataset | Đánh giá coverage thật; tìm nguồn nhiều năm/JD nếu cần thêm | Danh sách candidate dataset | URL, version, coverage và điều khoản được lưu |
 | P1-06 | Đánh giá Historical Dataset | Kiểm tra số record, schema, timestamp, description, location, salary, license | `historical_data_evaluation.md` | Chọn được 1 dataset chính |
 | P1-07 | Khảo sát Fresh Data 2026 | Tìm API, open dataset hoặc nguồn crawl hợp lệ | Danh sách nguồn fresh data | Có ít nhất 1 nguồn khả thi |
 | P1-08 | Kiểm tra API | Gọi thử API, kiểm tra giới hạn request, schema và số lượng record | Sample JSON / CSV | Thu được dữ liệu thật năm 2026 |
@@ -252,47 +254,19 @@ Giai đoạn 1 chỉ được xem là hoàn thành khi hệ thống xác nhận 
 
 ---
 
-# 8. Tiêu chí GO / NO-GO
+# 8. Tiêu chí GO / NO-GO — trạng thái kiểm kê hiện hành
 
-Trước khi chuyển sang xây dựng HDFS và Spark Pipeline cần kiểm tra:
+Các điều kiện YES trong bản kế hoạch gốc **không còn là quy tắc đủ để đóng Phase 01**. Dùng decision gate ở [`docs/planning/go_no_go_report.md`](docs/planning/go_no_go_report.md):
 
-```text
-1. Có Historical Dataset đủ lớn?
-             ↓
-            YES
+| Điều kiện | Bằng chứng hiện tại | Kết luận |
+|---|---|---|
+| Historical dataset đủ độ dài và coverage | 785.741 dòng năm 2023; chưa xác nhận chuỗi nhiều năm | Chưa đủ cho forecast |
+| Timestamp | `job_posted_date` có trong archive; giá trị thiếu/sai cần giữ null và quarantine | Dùng theo các tháng quan sát được |
+| Fresh source | Có snapshot đã lưu năm 2026; chưa chứng minh collector chạy liên tục | GO có điều kiện cho prototype |
+| Taxonomy | Có matcher xác định và coverage; chưa có nhãn đánh giá độc lập | Chưa được gọi là accuracy |
+| Historical JD | Raw archive không có cột `job_description` | Không đo extraction accuracy trên archive |
 
-2. Dataset có posted_at / timestamp?
-             ↓
-            YES
-
-3. Có nguồn Fresh Data 2026?
-             ↓
-            YES
-
-4. Có thể normalize Job Title + Skill?
-             ↓
-            YES
-```
-
-Nếu cả bốn tiêu chí đều đạt:
-
-```text
-GO
-```
-
-Có thể chuyển sang:
-
-```text
-Data Ingestion
-      ↓
-HDFS Bronze Layer
-      ↓
-Spark ETL
-      ↓
-Silver Dataset
-```
-
-Nếu dữ liệu không có timestamp phù hợp hoặc Fresh Data không khả thi, cần điều chỉnh phạm vi đề tài trước khi tiếp tục.
+**Quyết định:** GO cho prototype; CONDITIONAL GO cho descriptive analytics giới hạn; NO-GO cho predictive claims; QUALITY GATE REOPENED. Missing month là chưa quan sát, không phải nhu cầu bằng 0. Không nội suy năm 2024–2025 hoặc tạo dữ liệu để vượt gate.
 
 ---
 

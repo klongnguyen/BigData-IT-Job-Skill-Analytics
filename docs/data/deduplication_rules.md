@@ -1,89 +1,29 @@
-# Deduplication Strategy & Rules: Big Data IT Job Skill Analytics
+# Quy tắc định danh và khử trùng lặp
 
-Tài liệu này quy định chiến lược, quy tắc nhận diện và xử lý dữ liệu trùng lặp (Deduplication Rules) trước khi nạp vào Silver Layer và huấn luyện mô hình Machine Learning.
+Tài liệu phân biệt hành vi đã có trong mã với các quy tắc fuzzy/repost còn là thiết kế. Pipeline hiện chỉ thực thi khử trùng lặp xác định theo `job_hash`; không tuyên bố đã hợp nhất tin đa nền tảng hoặc loại tin đăng lại.
 
----
+## Đã triển khai trong Spark ETL
 
-## 1. Các dạng trùng lặp dữ liệu tuyển dụng
+- Sinh `job_id` ổn định bằng SHA-256 từ nguồn và `source_record_id`; với archive không có ID gốc, dùng checksum dòng raw làm ID nguồn ổn định.
+- Sinh `job_hash` xác định từ nội dung đã chuẩn hóa để nhận diện các dòng cùng nội dung canonical.
+- Khi trùng `job_hash`, chọn survivor xác định theo `collected_at` mới nhất; nếu thiếu, dùng `job_id` làm tie-breaker ổn định.
+- Ghi provenance cho các dòng Silver còn lại. Bản ghi thiếu hoặc có `posted_at` sai định dạng, title rỗng, hoặc source record ID rỗng được quarantine, không gán giá trị giả để qua pipeline.
 
-Trong thực tế, tin tuyển dụng thường bị trùng lặp dưới 3 hình thức chính:
+## Chưa triển khai
 
-1. **Trùng lặp tuyệt đối (Exact Duplicates)**:
-   - Cùng một tin tuyển dụng được hệ thống cào/gọi API nhiều lần trong các chu kỳ ETL khác nhau.
-   - Giống nhau 100% về `title`, `company`, `location`, `posted_at`, `description`.
+### Tin gần trùng đa nền tảng
 
-2. **Trùng lặp đa nền tảng (Cross-platform Duplicates)**:
-   - Một công ty đăng cùng một vị trí tuyển dụng trên nhiều trang khác nhau (ví dụ: đăng đồng thời trên LinkedIn, Arbeitnow, Remotive).
-   - `title`, `company` giống nhau; `description` tương tự nhưng `job_id` và định dạng HTML khác nhau.
+Chưa có fuzzy matching theo công ty, title, khoảng cách thời gian hay độ tương tự mô tả; chưa hợp nhất nguồn hoặc chấm điểm độ tin cậy. Đây là hạng mục cần dữ liệu JD và đánh giá thủ công trước khi dùng cho analytics.
 
-3. **Tin đăng lại / Gia hạn (Re-posted Jobs)**:
-   - Nhà tuyển dụng làm mới tin (refresh/re-post) sau 14 hoặc 30 ngày để tăng tương tác mà không thay đổi bản chất công việc.
+### Tin đăng lại
 
----
+Chưa có phân loại repost theo cửa sổ 14/30 ngày và tương tự JD. Chưa loại repost khỏi chỉ số nhu cầu.
 
-## 2. Thiết kế định danh băm `job_hash`
+## Cổng trước khi bật fuzzy/repost
 
-Để nhận diện trùng lặp nhanh chóng ở quy mô Big Data (trên Apache Spark), hệ thống áp dụng cơ chế sinh mã băm chuẩn `job_hash` (SHA-256):
+1. Thu thập JD/source URL và giữ lineage đầy đủ.
+2. Tạo tập cặp tin được gán nhãn độc lập (duplicate/repost/non-duplicate).
+3. Chốt ngưỡng trên validation set, báo precision/recall và phân tích sai số.
+4. Chạy so sánh chỉ số có/không fuzzy hoặc repost filter; lưu audit trail cho quyết định hợp nhất.
 
-```python
-import hashlib
-import re
-
-def compute_job_hash(company: str, title: str, location: str, posted_date: str) -> str:
-    # 1. Chuẩn hóa chuỗi (Lowercase, xóa ký tự đặc biệt, trim khoảng trắng)
-    norm_company = re.sub(r'[^a-z0-9]', '', (company or "").lower())
-    norm_title = re.sub(r'[^a-z0-9]', '', (title or "").lower())
-    norm_loc = re.sub(r'[^a-z0-9]', '', (location or "").lower())
-    # Chỉ lấy phần ngày YYYY-MM-DD (bỏ qua giờ để bắt tin re-post cùng ngày)
-    norm_date = (posted_date or "")[:10]
-    
-    # 2. Tạo chuỗi khóa tổng hợp
-    composite_key = f"{norm_company}|{norm_title}|{norm_loc}|{norm_date}"
-    
-    # 3. Tính mã SHA-256 (lấy 16 hoặc 32 ký tự hex)
-    return hashlib.sha256(composite_key.encode('utf-8')).hexdigest()
-```
-
----
-
-## 3. Quy tắc khử trùng lặp (Deduplication Rules)
-
-### Quy tắc 1: Khử trùng lặp tuyệt đối qua `job_id` và `job_hash`
-- Nếu hai bản ghi có cùng `job_id` hoặc cùng `job_hash`:
-  - **Hành động**: Chỉ giữ lại **01 bản ghi duy nhất** có thời điểm thu thập gần nhất (`collected_at` lớn nhất).
-
-### Quy tắc 2: Khử trùng lặp đa nền tảng (Cross-platform Fuzzy Matching)
-- **Điều kiện**:
-  - `norm_company` giống nhau 100%.
-  - `norm_title` có độ tương đồng Jaccard $\ge 0.85$.
-  - Khoảng cách thời điểm đăng $|posted\_at_1 - posted\_at_2| \le 7 \text{ ngày}$.
-- **Hành động**:
-  - Hợp nhất thành 1 bản ghi.
-  - Ghi nhận `source` dạng liên kết (ví dụ: `"arbeitnow+remotive"`).
-  - Ưu tiên bản ghi có `description` dài hơn và trường `salary` không null.
-
-### Quy tắc 3: Xử lý tin đăng lại (Re-posted Jobs trong vòng 30 ngày)
-- **Điều kiện**:
-  - Cùng `company` và `normalized_title`.
-  - $|posted\_at_{new} - posted\_at_{old}| \le 30 \text{ ngày}$.
-  - Độ tương đồng cosine của TF-IDF vector giữa 2 JD $\ge 0.90$.
-- **Hành động**:
-  - Đánh dấu bản ghi mới là `is_repost = true`.
-  - Khi tính toán **nhu cầu kỹ năng thị trường (RQ1, RQ2, RQ3)**: Loại bỏ các bản ghi repost để tránh thổi phồng (artificially inflating) nhu cầu thực tế của một vị trí.
-
----
-
-## 4. Vị trí thực thi trong Pipeline Big Data
-
-```mermaid
-flowchart TD
-    Raw[Raw Ingestion / Bronze Layer] --> Step1[Parse & Clean Text]
-    Step1 --> Step2[Compute job_hash]
-    Step2 --> Step3[Spark dropDuplicates by job_hash]
-    Step3 --> Step4[Window Partition by Company + Title + 30-day Lag]
-    Step4 --> Step5[Filter Reposts]
-    Step5 --> Silver[Silver Layer Storage / Parquet]
-```
-
-- Khử trùng lặp được thực thi hoàn toàn trong **Apache Spark ETL Pipeline** (giữa Bronze và Silver Layer).
-- Sử dụng hàm tích hợp sẵn của PySpark: `df.dropDuplicates(["job_hash"])` kết hợp Spark Window Functions để tối ưu hóa hiệu năng tính toán phân tán.
+Không dùng `dropDuplicates()` không có thứ tự xác định làm tiêu chí chọn survivor. Hành vi và ngưỡng phải được kiểm chứng lại khi mở rộng deduplication.

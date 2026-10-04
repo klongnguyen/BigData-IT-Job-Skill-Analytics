@@ -1,8 +1,5 @@
 import urllib.request
 import json
-import ssl
-
-ssl_context = ssl._create_unverified_context()
 
 print("--- 1. Testing Arbeitnow API ---")
 try:
@@ -10,7 +7,7 @@ try:
         "https://www.arbeitnow.com/api/job-board-api",
         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     )
-    with urllib.request.urlopen(req, timeout=15, context=ssl_context) as resp:
+    with urllib.request.urlopen(req, timeout=15) as resp:
         data = json.loads(resp.read().decode())
         jobs = data.get("data", [])
         print(f"Status: SUCCESS, Total jobs returned: {len(jobs)}")
@@ -31,7 +28,7 @@ try:
         "https://remotive.com/api/remote-jobs?category=software-dev&limit=10",
         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     )
-    with urllib.request.urlopen(req, timeout=15, context=ssl_context) as resp:
+    with urllib.request.urlopen(req, timeout=15) as resp:
         data = json.loads(resp.read().decode())
         jobs = data.get("jobs", [])
         print(f"Status: SUCCESS, Total jobs returned: {len(jobs)}")

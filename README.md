@@ -12,7 +12,7 @@ Các mục tiêu chính:
 - Xác định các kỹ năng quan trọng đối với từng vị trí CNTT.
 - Theo dõi sự thay đổi nhu cầu kỹ năng theo thời gian.
 - Phân loại xu hướng kỹ năng thành **Growing**, **Stable** hoặc **Declining**.
-- So sánh ba phương án dự báo: chỉ dùng dữ liệu lịch sử, chỉ dùng dữ liệu gần đây và mô hình kết hợp.
+- Khi quality gate cho phép, so sánh bốn nhánh A/B/C/D trên cùng future test và baseline `Stable`.
 - Xây dựng dashboard trực quan phục vụ phân tích thị trường việc làm và nhu cầu kỹ năng CNTT.
 
 ## Công nghệ dự kiến
@@ -69,7 +69,9 @@ Dữ liệu lịch sử + Dữ liệu tuyển dụng mới
 ```text
 BigData-IT-Job-Skill-Analytics/
 ├── configs/
-│   └── skills.json
+│   ├── job_title_mapping_v0.json
+│   ├── skills_v0.json       (runtime taxonomy)
+│   └── skills.json          (legacy)
 ├── dashboard/
 │   └── app.py
 ├── data/
@@ -83,7 +85,10 @@ BigData-IT-Job-Skill-Analytics/
 │       ├── job_stats/
 │       └── predictions/
 ├── docs/
-│   └── PROJECT_PLAN.md
+│   ├── PROJECT_PLAN.md       (legacy; see current Final Plan)
+│   ├── data/
+│   ├── planning/
+│   └── reviews/
 ├── notebooks/
 ├── src/
 │   ├── collection/
@@ -102,10 +107,12 @@ BigData-IT-Job-Skill-Analytics/
 
 ## Kế hoạch dự án
 
-Kế hoạch chi tiết bao gồm câu hỏi nghiên cứu, kiến trúc hệ thống, chiến lược dữ liệu, lộ trình 10 tuần, thí nghiệm Machine Learning, phạm vi dashboard, rủi ro và tiêu chí GO / NO-GO được trình bày tại:
+Kế hoạch chuẩn hiện tại, gồm câu hỏi nghiên cứu, kiến trúc hệ thống, chiến lược dữ liệu, lộ trình, thí nghiệm Machine Learning, phạm vi dashboard, rủi ro và tiêu chí GO / NO-GO:
 
-**[Xem kế hoạch dự án đầy đủ →](docs/PROJECT_PLAN.md)**
+**[Xem Final Plan →](FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md)**
+
+`docs/PROJECT_PLAN.md` là tài liệu lập kế hoạch ban đầu được giữ lại để tham khảo lịch sử; nội dung này đã được thay thế bởi Final Plan.
 
 ## Trạng thái hiện tại
 
-Đã hoàn thành cấu trúc repository ban đầu. Bước tiếp theo là khảo sát và xác thực nguồn dữ liệu lịch sử, nguồn dữ liệu tuyển dụng mới, đồng thời hoàn thiện Unified Job Schema trước khi triển khai pipeline thu thập dữ liệu và Spark ETL.
+Phase 01 đã được review lại dựa trên archive trong repository: 785.741 dòng thuộc năm 2023, có source tags nhưng không có job description. Sample historical được lấy trực tiếp từ archive; fixture synthetic đã tách riêng. Quyết định hiện tại là GO cho prototype, conditional GO cho descriptive analytics giới hạn và NO-GO cho forecasting đến khi có dữ liệu nhiều năm, provenance/license và đánh giá taxonomy độc lập. Xem [báo cáo GO/NO-GO](docs/planning/go_no_go_report.md), [audit dữ liệu](docs/data/phase01_data_audit.json) và [review Phase 01](docs/reviews/PHASE_01_SYSTEM_REVIEW.md).

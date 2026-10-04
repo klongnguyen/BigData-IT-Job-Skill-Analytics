@@ -6,6 +6,8 @@ Tài liệu này xác lập đặc tả **Unified Schema chuẩn (18 trường)*
 
 ## 1. Cấu trúc Unified Schema chuẩn (18 trường)
 
+Đây là schema đích cho Silver. Không phải mọi nguồn đều có đủ mọi trường: giá trị không có bằng chứng phải để `null`, không được tổng hợp JD, ngày đăng, quốc gia hoặc lương để làm đầy dữ liệu.
+
 ```json
 {
   "job_id": "string",
@@ -17,13 +19,13 @@ Tài liệu này xác lập đặc tả **Unified Schema chuẩn (18 trường)*
   "country": "string",
   "market": "string",
   "work_mode": "string",
-  "description": "string",
+  "description": "string | null",
   "experience_level": "string",
   "salary_min": "integer",
   "salary_max": "integer",
   "currency": "string",
-  "posted_at": "timestamp",
-  "collected_at": "timestamp",
+  "posted_at": "timestamp | null",
+  "collected_at": "timestamp | null",
   "source": "string",
   "skills": ["string"]
 }
@@ -44,19 +46,21 @@ Tài liệu này xác lập đặc tả **Unified Schema chuẩn (18 trường)*
 | 3 | `normalized_title` | `StringType()` | `VARCHAR(64)` | **Không** | Tên vị trí đã chuẩn hóa về 8 nhóm nghề chính |
 | 4 | `company` | `StringType()` | `VARCHAR(255)` | Có | Tên công ty đăng tuyển |
 | 5 | `location` | `StringType()` | `VARCHAR(255)` | Có | Địa điểm làm việc nguyên bản (Thành phố, Bang hoặc Remote) |
-| 6 | `city` | `StringType()` | `VARCHAR(128)` | Có | Tên thành phố cụ thể (nếu trích xuất được) |
-| 7 | `country` | `StringType()` | `VARCHAR(64)` | Có | Quốc gia tuyển dụng (United States, UK, Germany, Worldwide...) |
+| 6 | `city` | `StringType()` | `VARCHAR(128)` | Có | Tên thành phố chỉ khi nguồn có trường city đáng tin cậy; không cắt location tùy tiện |
+| 7 | `country` | `StringType()` | `VARCHAR(64)` | Có | Quốc gia tuyển dụng nếu xác định được; nhãn vùng như Worldwide/Europe để null |
 | 8 | `market` | `StringType()` | `VARCHAR(32)` | **Không** | Phân vùng thị trường: `"GLOBAL"` (MVP) hoặc `"VIETNAM"` (Future) |
-| 9 | `work_mode` | `StringType()` | `VARCHAR(32)` | Có | Hình thức làm việc: `"Remote"`, `"Onsite"`, `"Hybrid"` |
-| 10 | `description` | `StringType()` | `TEXT` | **Không** | Toàn văn mô tả công việc (đã strip HTML tags) |
+| 9 | `work_mode` | `StringType()` | `VARCHAR(32)` | Có | Hình thức làm việc khi nguồn/chuỗi location chỉ rõ `Remote`, `Onsite` hoặc `Hybrid`; nếu không thì null |
+| 10 | `description` | `StringType()` | `TEXT` | Có | JD đã làm sạch nếu nguồn cung cấp; archive 2023 hiện tại không có JD |
 | 11 | `experience_level` | `StringType()` | `VARCHAR(32)` | Có | Cấp bậc kinh nghiệm (Junior, Mid, Senior, Lead, Unknown) |
 | 12 | `salary_min` | `IntegerType()` | `INT` | Có | Mức lương tối thiểu quy đổi theo năm |
 | 13 | `salary_max` | `IntegerType()` | `INT` | Có | Mức lương tối đa quy đổi theo năm |
-| 14 | `currency` | `StringType()` | `VARCHAR(16)` | Có | Đơn vị tiền tệ (mặc định `"USD"`) |
-| 15 | `posted_at` | `TimestampType()`| `TIMESTAMP` | **Không** | Thời điểm đăng tin (`YYYY-MM-DD HH:MM:SS` UTC) |
-| 16 | `collected_at` | `TimestampType()`| `TIMESTAMP` | **Không** | Thời điểm hệ thống thu thập tin (`YYYY-MM-DD HH:MM:SS` UTC) |
+| 14 | `currency` | `StringType()` | `VARCHAR(16)` | Có | Đơn vị tiền tệ theo nguồn; thiếu bằng chứng thì null |
+| 15 | `posted_at` | `TimestampType()`| `TIMESTAMP` | Có | Thời điểm đăng tin UTC; thiếu/sai thì quarantine khỏi phân tích theo thời gian |
+| 16 | `collected_at` | `TimestampType()`| `TIMESTAMP` | Có | Thời điểm thu thập có trong provenance; archive lịch sử không tự có thời điểm này |
 | 17 | `source` | `StringType()` | `VARCHAR(64)` | **Không** | Nguồn gốc tin (`arbeitnow`, `remotive`, `kaggle_historical`...) |
-| 18 | `skills` | `ArrayType(StringType())` | `JSON / ARRAY` | **Không** | Mảng danh sách các kỹ năng chuẩn hóa trích xuất được |
+| 18 | `skills` | `ArrayType(StringType())` | `JSON / ARRAY` | **Không** | Kỹ năng chuẩn hóa từ `job_skills` của archive hoặc trích từ JD fresh; nguồn gốc nằm trong provenance |
+
+`job_id`, `title`, `normalized_title`, `market`, `source` và `skills` là trường bắt buộc trong Silver. ID được sinh xác định từ nguồn và mã dòng nguồn ổn định (hoặc checksum bản ghi khi nguồn không có ID gốc), không dùng counter tăng theo thứ tự chạy.
 
 ---
 
@@ -78,13 +82,13 @@ unified_job_schema = StructType([
     StructField("country", StringType(), True),
     StructField("market", StringType(), False),
     StructField("work_mode", StringType(), True),
-    StructField("description", StringType(), False),
+    StructField("description", StringType(), True),
     StructField("experience_level", StringType(), True),
     StructField("salary_min", IntegerType(), True),
     StructField("salary_max", IntegerType(), True),
     StructField("currency", StringType(), True),
-    StructField("posted_at", TimestampType(), False),
-    StructField("collected_at", TimestampType(), False),
+    StructField("posted_at", TimestampType(), True),
+    StructField("collected_at", TimestampType(), True),
     StructField("source", StringType(), False),
     StructField("skills", ArrayType(StringType()), False)
 ])

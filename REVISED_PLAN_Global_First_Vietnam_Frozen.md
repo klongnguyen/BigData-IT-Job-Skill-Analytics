@@ -1,3 +1,5 @@
+> **LEGACY / SUPERSEDED (04/10/2026):** Bản revised plan này được giữ lại để tham khảo lịch sử và không còn là tài liệu chuẩn. Dùng [Final Plan](FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md) cùng [GO/NO-GO report](docs/planning/go_no_go_report.md) và [Phase 01 audit](docs/data/phase01_data_audit.json) để biết phạm vi và trạng thái hiện hành.
+
 # REVISED PLAN — BIG DATA IT JOB MARKET SKILL FORECASTING
 
 ## Trạng thái cập nhật

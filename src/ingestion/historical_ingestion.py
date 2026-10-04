@@ -8,7 +8,8 @@ import os
 import csv
 import json
 import uuid
-from datetime import datetime
+import hashlib
+from datetime import datetime, timezone
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW_CSV_PATH = os.path.join(BASE_DIR, "data", "raw", "data_jobs.csv")
@@ -22,20 +23,26 @@ def ingest_historical_data(batch_size: int = 100000, limit: int = None):
         raise FileNotFoundError(f"Raw historical file not found at {RAW_CSV_PATH}!")
 
     ingestion_id = str(uuid.uuid4())
-    collected_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    collected_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
     total_rows = 0
     batch_num = 1
     current_batch = []
 
-    with open(RAW_CSV_PATH, "r", encoding="utf-8", errors="ignore") as f:
+    with open(RAW_CSV_PATH, "r", encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            raw_record = json.dumps(row, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+            raw_checksum = hashlib.sha256(raw_record.encode("utf-8")).hexdigest()
             # Attach Bronze Layer metadata
             row["ingestion_id"] = ingestion_id
             row["collected_at"] = collected_at
             row["market"] = "GLOBAL"
             row["source"] = "kaggle_historical_archive"
+            # The source has no native job ID; use a deterministic content fingerprint.
+            row["source_record_id"] = raw_checksum
+            row["raw_checksum"] = raw_checksum
+            row["source_url"] = None
             
             current_batch.append(row)
             total_rows += 1

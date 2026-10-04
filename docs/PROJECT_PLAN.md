@@ -1,3 +1,5 @@
+> **LEGACY / SUPERSEDED (04/10/2026):** Đây là bản kế hoạch ban đầu được giữ lại để tham khảo lịch sử. Tài liệu chuẩn hiện tại là [Final Plan](../FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md); các cổng dữ liệu và quyết định hiện tại được ghi tại [GO/NO-GO](planning/go_no_go_report.md) và [Phase 01 audit](data/phase01_data_audit.json). Không dùng các giả định cũ trong tài liệu này làm trạng thái nghiệm thu.
+
 # PLAN ĐỒ ÁN BIG DATA  
 ## Xây dựng hệ thống Big Data phân tích thị trường tuyển dụng và dự báo xu hướng nhu cầu kỹ năng CNTT
 
