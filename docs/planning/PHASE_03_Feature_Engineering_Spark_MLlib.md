@@ -1,131 +1,50 @@
-# Kế hoạch Triển khai Giai đoạn 3: Feature Engineering & Spark MLlib Analytics
+# Phase 03 — Gold mô tả và kiểm toán cổng dự báo
 
-## 1. Mục tiêu Giai đoạn 3
+**Trạng thái:** triển khai analytics trên một ETL run Phase 02 được chỉ định rõ; phần feature engineering, Spark MLlib và dự báo vẫn bị khóa theo [GO/NO-GO hiện hành](go_no_go_report.md). Tên file được giữ để các liên kết cũ không bị gãy. Bản kế hoạch trước đây dùng 50.087 Silver và chia train 2023/test 2026 đã lỗi thời; không dùng các số hoặc phép chia đó làm bằng chứng.
 
-Giai đoạn 3 tập trung vào việc khai thác dữ liệu sạch từ **Silver Layer (50.087 bản ghi Parquet)** để thực hiện phân tích chuyên sâu và huấn luyện mô hình Machine Learning dự báo xu hướng kỹ năng theo đặc tả chính thức của [FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md](file:///d:/Study/2026/Nam04_HK1/bigData_T.Ha/BigData_Job_Analy/FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md).
+## Quan hệ với Final Plan
 
-```mermaid
-flowchart TD
-    Silver["Silver Layer (50,087 records Parquet)<br/>data/silver/global/"] --> Step1[1. Occupation-Skill Aggregation]
-    
-    subgraph S1["Tầng 1: Analytics & Demand Aggregation"]
-        Step1 --> A1["Macro IT Market Stats<br/>(RQ1: Top Occupations, Growth)"]
-        Step1 --> A2["Occupation-Based Demand Rate<br/>(RQ2: Demand Rate theo từng nghề)"]
-        Step1 --> A3["Skill Co-occurrence Matrix<br/>(Kỹ năng bổ trợ cho từng nghề)"]
-    end
+[Final Plan](../../FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md) đặt cổng dữ liệu tại mục 21: ít nhất 30 tin duy nhất cho nghề–tháng, 12 tháng liên tiếp có thể so sánh, ít nhất 3 cutoff có nhãn, nguồn có phạm vi so sánh được và rolling-origin future test. Mục 16–20 chỉ áp dụng khi cổng này đạt. Trong repository hiện có archive 2023 và snapshot API 2026 rời rạc; khoảng 2024–2025 không có quan sát. M2/HDFS Phase 02 vẫn mở. Vì vậy công việc hiện tại xây Gold mô tả, không gán nhãn Growing/Stable/Declining và không huấn luyện A/B/C/D.
 
-    subgraph S2["Tầng 2: Feature Engineering & Labeling"]
-        A2 --> F1["Growth Rate: (Rate_t - Rate_t-1) / Rate_t-1"]
-        F1 --> F2["Lag Features: lag_1, lag_2, lag_3 (1, 2, 3 tháng trước)"]
-        F2 --> F3["Rolling Stats: 3-month Rolling Mean, Std"]
-        F3 --> F4["Recency Weighting: w = exp(-lambda * age)"]
-        F4 --> F5["Label Generation: Growing / Stable / Declining"]
-    end
+Final Plan gọi Phase 3 là ETL/Silver và Phase 4–5 là skill extraction/analytics. Tài liệu công việc này dùng tên “Phase 03” theo nhịp thực hiện hiện có của repository; các milestone M3/M4/M5 chỉ được nghiệm thu theo bằng chứng của từng milestone, không tự đóng bằng tên file.
 
-    subgraph S3["Tầng 3: Spark MLlib Modeling & RQ6 Experiments"]
-        F5 --> Split["Time-Based Split (Train: 2023, Test: 2026)"]
-        Split --> M_A["Model A: Historical Only"]
-        Split --> M_B["Model B: Recent Only"]
-        Split --> M_C["Model C: Hybrid + Recency Weighting"]
-        M_A & M_B & M_C --> Eval["Model Evaluation & Comparison<br/>(Accuracy, Precision, Recall, F1-Score)"]
-    end
+## Input bắt buộc
 
-    subgraph S4["Tầng 4: Gold Layer Storage"]
-        A1 --> G1["data/gold/global/occupation_stats/"]
-        A2 & A3 --> G2["data/gold/global/skill_stats/"]
-        F5 --> G3["data/gold/global/trends/"]
-        Eval --> G4["data/gold/global/predictions/"]
-    end
+- Một ETL manifest `status=completed`, SHA-256 kỳ vọng được truyền tường minh. Không quét mặc định thư mục Silver cũ.
+- Kiểm tra checksum từng output Silver/provenance, số dòng khai báo, `job_id` duy nhất và nối 1:1 trước khi xây Gold.
+- Bronze input `partial` cần cờ `--allow-scoped-inputs`. Kết quả phải ghi rõ phạm vi source và trạng thái coverage.
+- Dùng `skills_origin` và `taxonomy_version` trong provenance để không trộn source tags lịch sử với kỹ năng trích từ JD mới thành cùng một phép đo.
+
+## Gold mô tả
+
+Chạy `python -m src.analytics.phase03_gold` để tạo một run bất biến trong `data/gold/global/runs/<run_id>/`:
+
+| Bảng | Khóa | Diễn giải |
+|---|---|---|
+| `market_stats` | source, month | Số tin đã quan sát, công ty phân biệt, coverage country/work mode/experience/skill. |
+| `occupation_stats` | source, month, occupation | Tin duy nhất của nghề, tổng tin cùng source–month, tỷ trọng nghề. `Other IT` giữ riêng để báo coverage taxonomy. |
+| `skill_evidence_stats` | source, month, occupation, skills_origin, taxonomy_version | Số job theo nguồn chứng cứ, số job có ít nhất một skill và coverage. Gồm cả nhóm không có skill. |
+| `skill_stats` | thêm skill | `skill_job_count / occupation_job_count`; mẫu số gồm cả job thiếu skill. Skill đã xuất hiện trong một series có tỷ lệ 0 ở tháng cùng scope có quan sát nhưng không có skill đó; tháng không quan sát vẫn vắng mặt. |
+| `skill_trends` | như `skill_stats` | `observed_delta_pp` chỉ có khi tháng quan sát trước liền kề và cùng source/occupation/evidence scope. Tháng thiếu không được điền 0. |
+
+Mỗi run có `manifest.json` chứa input ETL/run/checksum, taxonomy/config checksum, số dòng và checksum Gold, source scope, môi trường Spark/Java/Python, quyết định cổng dự báo. `docs/data/phase03_analytics_audit.json` là bản tóm tắt nhỏ có thể commit và giữ cả phiên bản taxonomy, config/policy checksum, môi trường, bộ lọc và loại phân tích; Parquet lớn vẫn là artifact local. Không ghi vào `data/gold/.../predictions`.
+
+## Cổng dự báo
+
+`src.analytics.predictive_gate.assess_predictive_gate` kiểm toán source × occupation × month, số tháng liên tiếp đạt ngưỡng và khoảng trống không quan sát. Kết quả **NO_GO** khi chính sách hiện hành chưa mở dự báo hoặc chưa có future test đại diện. `require_predictive_go` phải được gọi bởi mọi entrypoint feature/model/prediction về sau; nếu gate chưa là `GO`, chương trình dừng trước khi ghi artifact. Audit không sinh nhãn `t+1` hay chỉ số model.
+
+## Chạy và kiểm thử
+
+```powershell
+$env:TEMP = 'C:\jtmp'; $env:TMP = 'C:\jtmp'
+python -m src.analytics.phase03_gold `
+  --etl-manifest <path-to-completed-etl-manifest.json> `
+  --etl-manifest-sha256 <verified-sha256> `
+  --allow-scoped-inputs `
+  --output-root data/gold/global/runs `
+  --audit-json docs/data/phase03_analytics_audit.json
+python -m pytest -q
+git diff --check
 ```
 
----
-
-## 2. Các điểm cần xác nhận (User Review Required)
-
-> [!IMPORTANT]
-> 1. **Ngưỡng phân loại xu hướng kỹ năng (Thresholds for Growing / Stable / Declining)**:
->    - Khi tính toán tốc độ tăng trưởng nhu cầu kỹ năng trong tương lai ($\Delta DemandRate$), chúng ta phân loại như sau:
->      - **Growing**: Tăng trưởng $> +5\%$
->      - **Stable**: Biến động trong khoảng $[-5\%, +5\%]$
->      - **Declining**: Suy giảm $< -5\%$
-> 2. **Thuật toán Machine Learning chính trong Spark MLlib**:
->    - Để dự báo nhãn (Growing, Stable, Declining) dựa trên các đặc trưng trễ và occupation, chúng tôi đề xuất sử dụng **Random Forest Classifier** và **Logistic Regression (Multinomial)** của Spark MLlib.
->    - Cấu trúc: **1 Global Model** có `occupation` làm categorical feature (qua `StringIndexer` + `OneHotEncoder`) theo đúng khuyến nghị trong Final Plan (Mục 18).
-
----
-
-## 3. Nội dung thực hiện chi tiết (Proposed Changes)
-
-### 3.1. Phân tích Nhu cầu Kỹ năng theo Nghề (RQ1, RQ2, RQ3)
-- Tạo module `src/analytics/demand_analytics.py`:
-  - **Layer 1 - Macro Market Analytics (RQ1)**:
-    - Thống kê tổng số tin tuyển dụng, phân bố theo quốc gia (`country`), hình thức làm việc (`work_mode`), cấp bậc kinh nghiệm (`experience_level`).
-    - Tính toán tỷ trọng tuyển dụng của từng nghề: $P(O_i, T)$.
-  - **Layer 2 - Occupation-Based Demand Analytics (RQ2, RQ3)**:
-    - Tính **Demand Rate** cho từng kỹ năng trong từng occupation theo từng tháng:
-      $$\text{Demand Rate}(S_j \mid O_i, t) = \frac{\text{Số jobs thuộc } O_i \text{ có } S_j \text{ trong tháng } t}{\text{Tổng số jobs thuộc } O_i \text{ trong tháng } t}$$
-    - Tính toán **Ma trận đồng xuất hiện kỹ năng (Skill Co-occurrence)** cho mỗi occupation (ví dụ: xác suất một Frontend Developer cần cả React và TypeScript).
-  - Xuất kết quả vào `data/gold/global/occupation_stats/` và `data/gold/global/skill_stats/`.
-
-### 3.2. Xây dựng Bộ Đặc trưng & Gán nhãn (Feature Engineering)
-- Tạo module `src/ml/feature_engineering.py`:
-  - Đọc chuỗi thời gian `(occupation, skill, year, month, demand_rate)`.
-  - Sinh các đặc trưng trễ (Lag Features) bằng Spark Window functions:
-    - `lag_1`: Demand rate tháng $t-1$.
-    - `lag_2`: Demand rate tháng $t-2$.
-    - `lag_3`: Demand rate tháng $t-3$.
-    - `growth_rate_1m`: $\frac{\text{lag\_1} - \text{lag\_2}}{\text{lag\_2} + \epsilon}$.
-    - `rolling_mean_3m`: Trung bình trượt 3 tháng gần nhất.
-    - `rolling_std_3m`: Độ lệch chuẩn trượt 3 tháng gần nhất.
-  - **Tính trọng số thời gian (Recency Weighting)**:
-    $$w(t) = \exp(-\lambda \cdot (t_{max} - t))$$
-    Trong đó các mốc thời gian gần (2025–2026) được gán trọng số lớn hơn để phản ánh sự thay đổi nhanh chóng của công nghệ.
-  - **Gán nhãn mục tiêu (Target Label Generation)**:
-    - So sánh nhu cầu tại thời điểm dự báo với hiện tại để gán nhãn: `0: Declining`, `1: Stable`, `2: Growing`.
-  - Xuất dataset đã tạo đặc trưng vào `data/gold/global/trends/feature_matrix.parquet`.
-
-### 3.3. Huấn luyện Mô hình Spark MLlib & Thực nghiệm RQ6
-- Tạo module `src/ml/train_models.py`:
-  - Xây dựng Spark ML Pipeline:
-    - `StringIndexer` & `OneHotEncoder` cho `occupation`.
-    - `VectorAssembler` gộp toàn bộ feature trễ, rolling stats, và occupation vector thành cột `features`.
-    - `StandardScaler` chuẩn hóa vector đặc trưng.
-  - **Thực hiện 3 thí nghiệm so sánh (RQ6)**:
-    1. **Model A (Historical Only)**: Huấn luyện trên dữ liệu năm 2023.
-    2. **Model B (Recent Only)**: Huấn luyện trên dữ liệu gần đây năm 2026.
-    3. **Model C (Hybrid + Recency Weighting)**: Huấn luyện trên toàn bộ dữ liệu lịch sử và dữ liệu mới với cột `weightCol = "recency_weight"`.
-  - **Đánh giá mô hình**:
-    - Sử dụng `MulticlassClassificationEvaluator` của Spark MLlib đo lường:
-      - Weighted Precision
-      - Weighted Recall
-      - Weighted F1-Score
-      - Accuracy
-    - Đánh giá trên tập kiểm thử thời gian (Time-based Test Set 2026).
-  - Xuất bảng so sánh mô hình và lưu mô hình tốt nhất vào `data/gold/global/predictions/models/`.
-
-### 3.4. Xuất Dự báo Tương lai cho Từng Nghề (RQ4)
-- Tạo module `src/ml/predict_trends.py`:
-  - Áp dụng mô hình Hybrid tốt nhất để dự báo xu hướng tiếp theo cho từng cặp `(occupation, skill)`.
-  - Xuất bảng kết quả dự báo ra JSON / Parquet tại `data/gold/global/predictions/skill_forecast_by_occupation.json` để phục vụ trực tiếp cho Dashboard và Recommendation Engine ở Giai đoạn 4.
-
----
-
-## 4. Kế hoạch Kiểm tra & Xác minh (Verification Plan)
-
-### Kiểm tra tự động (Automated Verification)
-1. **Kiểm tra Demand Analytics**:
-   - Chạy `python src/analytics/demand_analytics.py`.
-   - Xác nhận bảng thống kê `occupation_skill_monthly_stats` có đủ 8 occupation, demand rate nằm trong đoạn $[0.0, 1.0]$.
-2. **Kiểm tra Feature Engineering**:
-   - Chạy `python src/ml/feature_engineering.py`.
-   - Kiểm tra `feature_matrix.parquet` có đầy đủ các cột: `lag_1`, `lag_2`, `lag_3`, `rolling_mean_3m`, `recency_weight`, `label`.
-   - Xác nhận không có giá trị NaN / vô cùng.
-3. **Kiểm tra Huấn luyện Mô hình**:
-   - Chạy `python src/ml/train_models.py`.
-   - Xác nhận cả 3 Model A, Model B, Model C huấn luyện thành công và xuất ra bảng so sánh Accuracy, F1-Score.
-4. **Kiểm tra Dự báo Tương lai**:
-   - Chạy `python src/ml/predict_trends.py`.
-   - Kiểm tra file `skill_forecast_by_occupation.json` có dự báo Growing/Stable/Declining cho từng nghề (ví dụ: Frontend -> TypeScript, React; Backend -> Java, SQL, Kafka).
-
-### Kiểm tra thủ công (Manual Verification)
-- Người dùng duyệt bảng so sánh độ chính xác của 3 mô hình (Model A vs B vs C) và kết quả phân loại xu hướng kỹ năng trước khi chuyển sang xây dựng MongoDB & Streamlit Dashboard (Giai đoạn 4).
+Xem [báo cáo Phase 03](../reviews/PHASE_03_ANALYTICS_REPORT.md) cho run, thống kê và kết quả kiểm thử đã xác minh. Chỉ xét lại ML/dự báo sau khi có dữ liệu mới, kiểm toán nguồn/taxonomy và rolling-origin backtest theo Final Plan.

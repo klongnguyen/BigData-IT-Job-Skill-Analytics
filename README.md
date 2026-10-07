@@ -2,7 +2,61 @@
 
 Hệ thống Big Data phục vụ **phân tích thị trường tuyển dụng CNTT quốc tế** và **dự báo xu hướng nhu cầu kỹ năng theo từng nhóm nghề**, sử dụng dữ liệu tuyển dụng lịch sử kết hợp với dữ liệu tuyển dụng mới.
 
-> **Trạng thái hiện tại:** Phase 02 đã có ingestion và Spark ETL cục bộ được kiểm tra trên input cố định; **M2 vẫn mở** vì chưa có lần chạy HDFS → Spark được nghiệm thu. Kết quả local chỉ hỗ trợ thử nghiệm phân tích mô tả theo phạm vi dữ liệu quan sát được; cổng dự báo vẫn **NO-GO** theo báo cáo GO/NO-GO.
+> **Trạng thái ngày 07/10/2026:** Silver **786.300 tin** và **5 bảng Gold mô tả** đã được kiểm chứng local theo báo cáo chạy ngày 04/10/2026. **M2/HDFS vẫn mở**, cổng dự báo **NO-GO**; serving và dashboard chưa hoàn thành.
+
+## Tiến độ hiện tại — 07/10/2026
+
+[Báo cáo tiến độ và việc cần làm tiếp theo](docs/planning/PROJECT_PROGRESS_2026-10-07.md) · [Bằng chứng Phase 03](docs/reviews/PHASE_03_ANALYTICS_REPORT.md)
+
+Sơ đồ thể hiện bằng chứng hiện có, không phải phần trăm hoàn thành. Các milestone M2–M10 theo [Final Plan](FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md).
+
+```mermaid
+flowchart TD
+    P1["Phase 01 · Prototype GO<br/>Quality gate: REOPENED"]
+    H["Archive 2023: 785.741 tin"]
+    F["Fresh 2026: 666 tin<br/>snapshot partial"]
+    B["Bronze bất biến + manifest<br/>LOCAL VERIFIED"]
+    E["Spark ETL + kiểm tra chất lượng<br/>LOCAL VERIFIED"]
+    S["Silver + provenance 1:1<br/>786.300 tin · LOCAL VERIFIED"]
+    G["Gold mô tả: 5 bảng<br/>LOCAL VERIFIED"]
+    A["Xu hướng đã quan sát<br/>LOCAL VERIFIED"]
+    M2["M2 · HDFS → Spark<br/>OPEN"]
+    M3["M3 · Silver sạch<br/>bằng chứng local; cần chốt nghiệm thu"]
+    M4["M4 · Đánh giá taxonomy/skill<br/>OPEN"]
+    M5["M5 · Analytics<br/>bằng chứng local; còn kiểm định"]
+    PG["Cổng dự báo: NO_GO<br/>thiếu chuỗi liên tục và future test"]
+    M6["M6 · ML dataset / feature<br/>BLOCKED"]
+    M7["M7 · NO-GO có bằng chứng<br/>chờ nghiệm thu; model BLOCKED"]
+    SERVE["M8 · Serving / MongoDB<br/>PENDING"]
+    DASH["M9 · Dashboard demo<br/>PENDING"]
+    FINAL["M10 · Tích hợp / báo cáo cuối<br/>PENDING"]
+
+    H --> B
+    F --> B
+    B --> E --> S --> G --> A
+    P1 -. "nguồn và quality gate" .-> B
+    B -. "thiếu lần chạy HDFS thật" .-> M2
+    S -. "cần biên bản nghiệm thu" .-> M3
+    S -. "cần nhãn độc lập" .-> M4
+    A -. "cần kiểm định phạm vi" .-> M5
+    A --> PG
+    PG --> M6
+    PG --> M7
+    G --> SERVE --> DASH --> FINAL
+
+    classDef local fill:#dff5e8,stroke:#27845b,color:#153d2b;
+    classDef open fill:#fff2d5,stroke:#b87600,color:#513500;
+    classDef blocked fill:#fde4e4,stroke:#b83b3b,color:#5b1e1e;
+    classDef pending fill:#e9edf3,stroke:#67778d,color:#263448;
+    class H,F,B,E,S,G,A local;
+    class P1,M2,M3,M4,M5,M7 open;
+    class PG,M6 blocked;
+    class SERVE,DASH,FINAL pending;
+```
+
+**Chú giải:** 🟩 `LOCAL VERIFIED`: đã kiểm chứng local; 🟨 `OPEN`: còn điều kiện nghiệm thu; 🟥 `BLOCKED`: bị chặn bởi cổng dữ liệu; ⬜ `PENDING`: chưa có đầu ra bàn giao.
+
+**M7:** đã có bằng chứng cho nhánh NO-GO, còn chờ nghiệm thu; huấn luyện và công bố model vẫn bị chặn. Có thể tiếp tục dashboard mô tả từ Gold trong khi hoàn tất HDFS, kiểm định taxonomy và bổ sung dữ liệu.
 
 ---
 
@@ -295,12 +349,12 @@ Có thể bổ sung Kafka hoặc Docker nếu phù hợp với tiến độ và 
 
 | Giai đoạn | Nội dung | Trạng thái |
 |---|---|---|
-| Phase 01 | Data Feasibility & Project Definition | ✅ Hoàn thành |
+| Phase 01 | Data Feasibility & Project Definition | 🔄 GO prototype; quality gate dự báo còn mở |
 | Phase 02 | Data Ingestion & Big Data Storage | 🔄 Local đã kiểm tra; M2/HDFS đang mở |
-| Phase 03 | Data Processing / Analytics Preparation | 🔜 Tiếp theo |
-| Phase 04 | Skill Demand Analytics | ⏳ Chưa thực hiện |
-| Phase 05 | Feature Engineering & Trend Modeling | ⏳ Chưa thực hiện |
-| Phase 06 | Model Evaluation / Hybrid Experiment | ⏳ Chưa thực hiện |
+| Phase 03 | Gold mô tả / kiểm toán cổng dự báo | ✅ Local đã chạy và kiểm thử; forecast vẫn NO-GO |
+| Phase 04 | Skill Demand Analytics | 🔄 Bảng mô tả đã có; đánh giá taxonomy/M4 còn mở |
+| Phase 05 | Feature Engineering & Trend Modeling | ⛔ Chặn bởi cổng dữ liệu NO-GO |
+| Phase 06 | Model Evaluation / Hybrid Experiment | ⛔ Chưa chạy vì predictive gate NO-GO |
 | Phase 07 | MongoDB & Dashboard | ⏳ Chưa thực hiện |
 | Phase 08 | Integration / Testing / Final Report | ⏳ Chưa thực hiện |
 
@@ -315,24 +369,27 @@ Spark ETL          ✅ Local fixture và scoped input
    ↓
 Silver Layer       ✅ Local; HDFS chưa nghiệm thu
    ↓
-Skill Analytics    🔜
+Skill Analytics    ✅ Mô tả local theo source/tháng
    ↓
-Trend Modeling     ⏳
+Gold Layer         ✅ Bảng observed, không có prediction mới
    ↓
-Gold Layer         ⏳
+Predictive Gate    ⛔ NO-GO → chưa train / dự báo
    ↓
 Dashboard          ⏳
 ```
 
-**Nền tảng Silver local đã được kiểm tra, nhưng chưa hoàn tất M2 và chưa đủ bằng chứng cho dự báo.**
+**Silver và Gold mô tả local đã được kiểm tra trên các run có manifest; M2/HDFS vẫn mở và dự báo tiếp tục NO-GO.** Không nối archive 2023 với snapshot 2026 thành chuỗi liên tục.
 
 ---
 
 ## 10. Tài liệu dự án
 
+- **[Tiến độ dự án ngày 07/10/2026 và việc cần làm](docs/planning/PROJECT_PROGRESS_2026-10-07.md)**
 - **[Kế hoạch dự án chính](FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md)**
 - **[Tổng kết Phase 01 & 02](docs/planning/phase_01_02_summary.md)**
 - [Runbook Phase 02](docs/planning/phase02_runbook.md)
+- [Kế hoạch Phase 03 có cổng dữ liệu](docs/planning/PHASE_03_Feature_Engineering_Spark_MLlib.md)
+- [Báo cáo Phase 03: thống kê và kiểm thử](docs/reviews/PHASE_03_ANALYTICS_REPORT.md)
 - [Project Scope](docs/planning/project_scope.md)
 - [Research Questions](docs/planning/research_questions.md)
 - [GO / NO-GO Report](docs/planning/go_no_go_report.md)
@@ -346,46 +403,14 @@ Dashboard          ⏳
 
 ## 11. Bước tiếp theo
 
-Trong khi hoàn tất cổng M2/HDFS và quality gate dữ liệu, bước phân tích tiếp theo có thể dùng **Silver Dataset local đã kiểm tra** để xây dựng các tập dữ liệu mô tả theo:
+1. Hoàn tất bằng chứng HDFS → Spark để xét nghiệm thu M2.
+2. Xác minh nguồn/license và đánh giá taxonomy trên mẫu JD được gán nhãn độc lập.
+3. Kiểm định 5 bảng Gold; xây serving và dashboard mô tả với bộ lọc nguồn, nghề, tháng và giới hạn dữ liệu.
+4. Bổ sung dữ liệu dài hạn và chốt hồ sơ M7 theo nhánh NO-GO; chỉ mở feature/model khi cổng dự báo được xét lại thành GO.
 
-```text
-BigData-IT-Job-Skill-Analytics/
-├── configs/
-│   ├── job_title_mapping_v0.json
-│   ├── skills_v0.json       (runtime taxonomy)
-│   └── skills.json          (legacy)
-├── dashboard/
-│   └── app.py
-├── data/
-│   ├── bronze/
-│   │   ├── historical/
-│   │   └── fresh/
-│   ├── silver/
-│   │   └── normalized_jobs/
-│   └── gold/
-│       ├── skill_stats/
-│       ├── job_stats/
-│       └── predictions/
-├── docs/
-│   ├── PROJECT_PLAN.md       (legacy; see current Final Plan)
-│   ├── data/
-│   ├── planning/
-│   └── reviews/
-├── notebooks/
-├── src/
-│   ├── collection/
-│   ├── etl/
-│   ├── skills/
-│   ├── analytics/
-│   ├── ml/
-│   └── common/
-├── tests/
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
+Xem thứ tự ưu tiên, đầu ra và điều kiện hoàn thành trong [Project Progress](docs/planning/PROJECT_PROGRESS_2026-10-07.md#tiếp-theo-cần-làm-gì).
 
-> Các thư mục trong `data/` thể hiện kiến trúc dữ liệu logic theo mô hình Bronze - Silver - Gold. Các bộ dữ liệu có dung lượng lớn nên được lưu trên HDFS hoặc hệ thống lưu trữ phù hợp và không đưa trực tiếp lên GitHub.
+---
 
 ## Kế hoạch dự án
 

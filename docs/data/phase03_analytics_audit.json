@@ -1,0 +1,1381 @@
+{
+  "analysis_type": "observed_descriptive_only",
+  "completed_at": "2026-10-04T11:02:29Z",
+  "environment": {
+    "java": "17.0.10",
+    "python": "3.11.9",
+    "spark": "4.2.0",
+    "spark_master": "local[2]"
+  },
+  "filters": {
+    "dedup": "one survivor per job_id",
+    "posted_at": "valid Phase 02 Silver only"
+  },
+  "input": {
+    "allow_scoped_inputs": true,
+    "bronze_runs": [
+      {
+        "kind": "historical",
+        "manifest_path": "D:\\Study\\2026\\Nam04_HK1\\bigData_T.Ha\\BigData_Job_Analy\\tmp\\phase03_acceptance\\historical_full\\runs\\20261004T103235056713Z-0811f6613d3c\\manifest.json",
+        "manifest_sha256": "48492bae64ab9e68a0ab93bc96814ced958a6ca7cc78af0e26e21bbd4207480a",
+        "rows": 785741,
+        "run_id": "20261004T103235056713Z-0811f6613d3c",
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "D:\\Study\\2026\\Nam04_HK1\\bigData_T.Ha\\BigData_Job_Analy\\tmp\\phase02_acceptance\\fresh\\runs\\20261004T075332383635Z-c9fddef628d7\\manifest.json",
+        "manifest_sha256": "a9f14604497ca92f9579c71ff96f4e440565ac454c2f3f87de7cc91d5cc95b51",
+        "rows": 666,
+        "run_id": "20261004T075332383635Z-c9fddef628d7",
+        "status": "partial"
+      }
+    ],
+    "etl_manifest_path": "D:\\Study\\2026\\Nam04_HK1\\bigData_T.Ha\\BigData_Job_Analy\\tmp\\phase03_acceptance\\etl_manifests\\etl_8c8a0ca26b38404a96a9b97fa8fd6e02.json",
+    "etl_manifest_sha256": "7d767fca4ed3b728892dcac3a2d5bfbb57dfd5cc4601b14e889149dc403acb4c",
+    "etl_run_id": "8c8a0ca26b38404a96a9b97fa8fd6e02",
+    "provenance_rows": 786300,
+    "provenance_sha256": "54c353af0beda17680f0147d6900fd9d4aadce179c5d3f9329efdf6e5042fc0e",
+    "silver_rows": 786300,
+    "silver_sha256": "1f57f5d35b380d4c4d8340d5bfc8545b2719426e11e1390b05ee193cd3fe1ee9"
+  },
+  "manifest_path": "D:\\Study\\2026\\Nam04_HK1\\bigData_T.Ha\\BigData_Job_Analy\\data\\gold\\global\\runs\\20261004T110131548191Z-e38fa7303cf4\\manifest.json",
+  "manifest_sha256": "2b37892022882e834b5437555c5c567aa2ab31103dc1d581b9b2f18cd9e7c74d",
+  "outputs": {
+    "market_stats": {
+      "rows": 15,
+      "sha256": "b9158f24bbdef70f3568c62f3f8fd9f5f5993065f423fe9e827ef56408cc8007"
+    },
+    "occupation_stats": {
+      "rows": 127,
+      "sha256": "01215ae60057c600745513e619c87c1b4001e28de22e9b814be23b3a1d00e8b3"
+    },
+    "skill_evidence_stats": {
+      "rows": 234,
+      "sha256": "238ae0890cdad7154c8c35ace682f6eab86d2ab76b782df9b1ff058ea3a71edb"
+    },
+    "skill_stats": {
+      "rows": 4538,
+      "sha256": "fc1b169e0caa7eeffd8ee5dee448e63fe7cb31f60bb7280844b86e604774596c"
+    },
+    "skill_trends": {
+      "rows": 4538,
+      "sha256": "9776edbd6c105ca9d378d81f0e6cae63402223c2465509ff15d4633a48cfd96b"
+    }
+  },
+  "policy_sha256": "f4766fe6b7fcb5ee2e8c6032a1658e378283e8c8b51286051e15dc59645222e8",
+  "predictive_gate": {
+    "checks": [
+      {
+        "detail": "Current GO/NO-GO decision: NO_GO",
+        "id": "policy_decision",
+        "status": "FAIL"
+      },
+      {
+        "detail": "32 months without observed input between first and last month",
+        "id": "calendar_continuity",
+        "status": "FAIL"
+      },
+      {
+        "detail": "0 overlapping observed months across sources; no source-mix adjustment established",
+        "id": "source_comparability",
+        "status": "FAIL"
+      },
+      {
+        "detail": "8 source-occupation series meet basic month/count support",
+        "id": "occupation_support",
+        "status": "PASS"
+      },
+      {
+        "detail": "1 selected Bronze runs are partial/scoped",
+        "id": "input_scope",
+        "status": "FAIL"
+      },
+      {
+        "detail": "No representative fixed future test, uncertainty-qualified labels, or rolling-origin comparison was run",
+        "id": "rolling_origin_future_test",
+        "status": "NOT_ELIGIBLE"
+      }
+    ],
+    "decision": "NO_GO",
+    "missing_months_between_first_and_last": [
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11",
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08"
+    ],
+    "observed_months": [
+      "2023-01",
+      "2023-02",
+      "2023-03",
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2026-09",
+      "2026-10"
+    ],
+    "occupation_months_below_30": 19,
+    "predictive_claims": "Insufficient evidence",
+    "source_months": [
+      {
+        "jobs": 41,
+        "month": "2026-09",
+        "source": "arbeitnow"
+      },
+      {
+        "jobs": 604,
+        "month": "2026-10",
+        "source": "arbeitnow"
+      },
+      {
+        "jobs": 91816,
+        "month": "2023-01",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 64571,
+        "month": "2023-02",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 64073,
+        "month": "2023-03",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 62916,
+        "month": "2023-04",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 52101,
+        "month": "2023-05",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 61566,
+        "month": "2023-06",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 63767,
+        "month": "2023-07",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 75145,
+        "month": "2023-08",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 62350,
+        "month": "2023-09",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 66600,
+        "month": "2023-10",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 64443,
+        "month": "2023-11",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 56291,
+        "month": "2023-12",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 16,
+        "month": "2026-09",
+        "source": "remotive"
+      }
+    ],
+    "source_occupation_series": [
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 2,
+        "occupation": "Backend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Data Analyst",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Data Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 2,
+        "occupation": "Data Scientist",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 2,
+        "occupation": "DevOps Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Frontend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Machine Learning Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 2,
+        "occupation": "Other IT",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 2,
+        "occupation": "Software Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "Backend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "Data Analyst",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "Data Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "Data Scientist",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "DevOps Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 6,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 10,
+        "observed_months": 12,
+        "occupation": "Frontend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 2,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "Machine Learning Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "Other IT",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 12,
+        "meets_minimum_support": true,
+        "months_at_least_30_jobs": 12,
+        "observed_months": 12,
+        "occupation": "Software Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 8,
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Backend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Data Scientist",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Machine Learning Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Other IT",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Software Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      }
+    ],
+    "thresholds": {
+      "min_consecutive_months": 12,
+      "min_jobs_per_occupation_month": 30,
+      "min_labeled_cutoffs": 3
+    }
+  },
+  "run_id": "20261004T110131548191Z-e38fa7303cf4",
+  "schema_version": 1,
+  "skill_evidence_summary": [
+    {
+      "denominator_jobs": 5,
+      "evidence_jobs": 5,
+      "occupation": "Backend Developer",
+      "origin_jobs": 5,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 1,
+      "evidence_jobs": 1,
+      "occupation": "Data Analyst",
+      "origin_jobs": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 6,
+      "evidence_jobs": 6,
+      "occupation": "Data Engineer",
+      "origin_jobs": 6,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 7,
+      "evidence_jobs": 6,
+      "occupation": "Data Scientist",
+      "origin_jobs": 7,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 9,
+      "evidence_jobs": 8,
+      "occupation": "DevOps Engineer",
+      "origin_jobs": 9,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 1,
+      "evidence_jobs": 1,
+      "occupation": "Frontend Developer",
+      "origin_jobs": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 11,
+      "evidence_jobs": 8,
+      "occupation": "Machine Learning Engineer",
+      "origin_jobs": 11,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 558,
+      "evidence_jobs": 204,
+      "occupation": "Other IT",
+      "origin_jobs": 558,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 47,
+      "evidence_jobs": 45,
+      "occupation": "Software Engineer",
+      "origin_jobs": 47,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "denominator_jobs": 2813,
+      "evidence_jobs": 0,
+      "occupation": "Backend Developer",
+      "origin_jobs": 156,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 2813,
+      "evidence_jobs": 2593,
+      "occupation": "Backend Developer",
+      "origin_jobs": 2657,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 184410,
+      "evidence_jobs": 0,
+      "occupation": "Data Analyst",
+      "origin_jobs": 29710,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 184410,
+      "evidence_jobs": 144040,
+      "occupation": "Data Analyst",
+      "origin_jobs": 154700,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 200880,
+      "evidence_jobs": 0,
+      "occupation": "Data Engineer",
+      "origin_jobs": 13407,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 200880,
+      "evidence_jobs": 183490,
+      "occupation": "Data Engineer",
+      "origin_jobs": 187473,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 181591,
+      "evidence_jobs": 0,
+      "occupation": "Data Scientist",
+      "origin_jobs": 24452,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 181591,
+      "evidence_jobs": 151791,
+      "occupation": "Data Scientist",
+      "origin_jobs": 157139,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 8436,
+      "evidence_jobs": 0,
+      "occupation": "DevOps Engineer",
+      "origin_jobs": 781,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 8436,
+      "evidence_jobs": 7273,
+      "occupation": "DevOps Engineer",
+      "origin_jobs": 7655,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 489,
+      "evidence_jobs": 0,
+      "occupation": "Frontend Developer",
+      "origin_jobs": 39,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 489,
+      "evidence_jobs": 444,
+      "occupation": "Frontend Developer",
+      "origin_jobs": 450,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 9027,
+      "evidence_jobs": 0,
+      "occupation": "Machine Learning Engineer",
+      "origin_jobs": 665,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 9027,
+      "evidence_jobs": 8255,
+      "occupation": "Machine Learning Engineer",
+      "origin_jobs": 8362,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 180251,
+      "evidence_jobs": 0,
+      "occupation": "Other IT",
+      "origin_jobs": 46339,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 180251,
+      "evidence_jobs": 116128,
+      "occupation": "Other IT",
+      "origin_jobs": 133912,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 17742,
+      "evidence_jobs": 0,
+      "occupation": "Software Engineer",
+      "origin_jobs": 1436,
+      "skills_origin": "missing",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 17742,
+      "evidence_jobs": 15750,
+      "occupation": "Software Engineer",
+      "origin_jobs": 16306,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "denominator_jobs": 1,
+      "evidence_jobs": 1,
+      "occupation": "Backend Developer",
+      "origin_jobs": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "denominator_jobs": 1,
+      "evidence_jobs": 1,
+      "occupation": "Data Scientist",
+      "origin_jobs": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "denominator_jobs": 2,
+      "evidence_jobs": 2,
+      "occupation": "Machine Learning Engineer",
+      "origin_jobs": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "denominator_jobs": 10,
+      "evidence_jobs": 5,
+      "occupation": "Other IT",
+      "origin_jobs": 10,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "denominator_jobs": 2,
+      "evidence_jobs": 1,
+      "occupation": "Software Engineer",
+      "origin_jobs": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    }
+  ],
+  "source_occupation_jobs": [
+    {
+      "jobs": 5,
+      "occupation": "Backend Developer",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 1,
+      "occupation": "Data Analyst",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 6,
+      "occupation": "Data Engineer",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 7,
+      "occupation": "Data Scientist",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 9,
+      "occupation": "DevOps Engineer",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 1,
+      "occupation": "Frontend Developer",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 11,
+      "occupation": "Machine Learning Engineer",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 558,
+      "occupation": "Other IT",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 47,
+      "occupation": "Software Engineer",
+      "source": "arbeitnow"
+    },
+    {
+      "jobs": 2813,
+      "occupation": "Backend Developer",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 184410,
+      "occupation": "Data Analyst",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 200880,
+      "occupation": "Data Engineer",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 181591,
+      "occupation": "Data Scientist",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 8436,
+      "occupation": "DevOps Engineer",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 489,
+      "occupation": "Frontend Developer",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 9027,
+      "occupation": "Machine Learning Engineer",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 180251,
+      "occupation": "Other IT",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 17742,
+      "occupation": "Software Engineer",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "jobs": 1,
+      "occupation": "Backend Developer",
+      "source": "remotive"
+    },
+    {
+      "jobs": 1,
+      "occupation": "Data Scientist",
+      "source": "remotive"
+    },
+    {
+      "jobs": 2,
+      "occupation": "Machine Learning Engineer",
+      "source": "remotive"
+    },
+    {
+      "jobs": 10,
+      "occupation": "Other IT",
+      "source": "remotive"
+    },
+    {
+      "jobs": 2,
+      "occupation": "Software Engineer",
+      "source": "remotive"
+    }
+  ],
+  "taxonomy_config_sha256": {
+    "job_title_mapping_v0.json": "4aacd9a32d30af2dcb30e83d2fd41c63dafdccb28dfd0e33447ca204e6681ebd",
+    "skills_v0.json": "69b835d7649108632a61f04341ce79fd26994fc2900053588883faa001cc459e"
+  },
+  "taxonomy_version": "v0.1",
+  "top_skills_by_count": [
+    {
+      "occupation": "Backend Developer",
+      "rank": 1,
+      "skill": "aws",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 2,
+      "skill": "golang",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 3,
+      "skill": "kubernetes",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Analyst",
+      "rank": 1,
+      "skill": "airflow",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Analyst",
+      "rank": 2,
+      "skill": "git",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Analyst",
+      "rank": 3,
+      "skill": "python",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Engineer",
+      "rank": 1,
+      "skill": "sql",
+      "skill_job_count": 6,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Engineer",
+      "rank": 2,
+      "skill": "python",
+      "skill_job_count": 5,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Engineer",
+      "rank": 3,
+      "skill": "docker",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 5,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 2,
+      "skill": "sql",
+      "skill_job_count": 4,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 3,
+      "skill": "pytorch",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "DevOps Engineer",
+      "rank": 1,
+      "skill": "azure",
+      "skill_job_count": 5,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "DevOps Engineer",
+      "rank": 2,
+      "skill": "terraform",
+      "skill_job_count": 5,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "DevOps Engineer",
+      "rank": 3,
+      "skill": "ci_cd",
+      "skill_job_count": 4,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Frontend Developer",
+      "rank": 1,
+      "skill": "html_css",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Frontend Developer",
+      "rank": 2,
+      "skill": "javascript",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Frontend Developer",
+      "rank": 3,
+      "skill": "mongodb",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 8,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 2,
+      "skill": "git",
+      "skill_job_count": 4,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 3,
+      "skill": "llm",
+      "skill_job_count": 4,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 74,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 2,
+      "skill": "excel",
+      "skill_job_count": 35,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 3,
+      "skill": "ci_cd",
+      "skill_job_count": 29,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 28,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 2,
+      "skill": "typescript",
+      "skill_job_count": 19,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 3,
+      "skill": "aws",
+      "skill_job_count": 14,
+      "skills_origin": "extracted_from_jd",
+      "source": "arbeitnow"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 1594,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 2,
+      "skill": "aws",
+      "skill_job_count": 1055,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 3,
+      "skill": "sql",
+      "skill_job_count": 901,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Analyst",
+      "rank": 1,
+      "skill": "sql",
+      "skill_job_count": 96213,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Analyst",
+      "rank": 2,
+      "skill": "excel",
+      "skill_job_count": 65568,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Analyst",
+      "rank": 3,
+      "skill": "python",
+      "skill_job_count": 56765,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Engineer",
+      "rank": 1,
+      "skill": "sql",
+      "skill_job_count": 131898,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Engineer",
+      "rank": 2,
+      "skill": "python",
+      "skill_job_count": 124828,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Engineer",
+      "rank": 3,
+      "skill": "aws",
+      "skill_job_count": 77133,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 132392,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 2,
+      "skill": "sql",
+      "skill_job_count": 87521,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 3,
+      "skill": "spark",
+      "skill_job_count": 34469,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "DevOps Engineer",
+      "rank": 1,
+      "skill": "aws",
+      "skill_job_count": 3848,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "DevOps Engineer",
+      "rank": 2,
+      "skill": "python",
+      "skill_job_count": 3574,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "DevOps Engineer",
+      "rank": 3,
+      "skill": "azure",
+      "skill_job_count": 3207,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Frontend Developer",
+      "rank": 1,
+      "skill": "javascript",
+      "skill_job_count": 274,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Frontend Developer",
+      "rank": 2,
+      "skill": "react",
+      "skill_job_count": 260,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Frontend Developer",
+      "rank": 3,
+      "skill": "typescript",
+      "skill_job_count": 210,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 7292,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 2,
+      "skill": "tensorflow",
+      "skill_job_count": 3595,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 3,
+      "skill": "pytorch",
+      "skill_job_count": 3460,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 1,
+      "skill": "sql",
+      "skill_job_count": 60067,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 2,
+      "skill": "python",
+      "skill_job_count": 46328,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 3,
+      "skill": "excel",
+      "skill_job_count": 36919,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 1,
+      "skill": "python",
+      "skill_job_count": 8057,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 2,
+      "skill": "java",
+      "skill_job_count": 6390,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 3,
+      "skill": "aws",
+      "skill_job_count": 5894,
+      "skills_origin": "source_tags",
+      "source": "kaggle_historical_archive"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 1,
+      "skill": "c_plus_plus",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 2,
+      "skill": "c_sharp",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Backend Developer",
+      "rank": 3,
+      "skill": "golang",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 1,
+      "skill": "c_plus_plus",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 2,
+      "skill": "c_sharp",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Data Scientist",
+      "rank": 3,
+      "skill": "golang",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 1,
+      "skill": "llm",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 2,
+      "skill": "c_plus_plus",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Machine Learning Engineer",
+      "rank": 3,
+      "skill": "c_sharp",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 1,
+      "skill": "docker",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 2,
+      "skill": "git",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Other IT",
+      "rank": 3,
+      "skill": "html_css",
+      "skill_job_count": 2,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 1,
+      "skill": "c_plus_plus",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 2,
+      "skill": "c_sharp",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    },
+    {
+      "occupation": "Software Engineer",
+      "rank": 3,
+      "skill": "golang",
+      "skill_job_count": 1,
+      "skills_origin": "extracted_from_jd",
+      "source": "remotive"
+    }
+  ]
+}
