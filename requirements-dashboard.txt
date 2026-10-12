@@ -1,0 +1,5 @@
+# Standalone UI environment; does not require Spark, Java or MongoDB.
+streamlit==1.65.0
+pandas==3.0.6
+pyarrow==25.0.1
+plotly==7.1.0

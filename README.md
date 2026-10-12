@@ -2,11 +2,25 @@
 
 Hệ thống Big Data phục vụ **phân tích thị trường tuyển dụng CNTT quốc tế** và **dự báo xu hướng nhu cầu kỹ năng theo từng nhóm nghề**, sử dụng dữ liệu tuyển dụng lịch sử kết hợp với dữ liệu tuyển dụng mới.
 
-> **Trạng thái ngày 07/10/2026:** Silver **786.300 tin** và **5 bảng Gold mô tả** đã được kiểm chứng local theo báo cáo chạy ngày 04/10/2026. **M2/HDFS vẫn mở**, cổng dự báo **NO-GO**; serving và dashboard chưa hoàn thành.
+> **Trạng thái ngày 12/10/2026:** Silver **786.300 tin**, **5 bảng Gold mô tả**, và **dashboard Streamlit đọc Gold Parquet** đã chạy local. **M2/HDFS vẫn mở**, cổng dự báo **NO-GO**; MongoDB và nghiệm thu tích hợp M8/M9 còn mở.
 
-## Tiến độ hiện tại — 07/10/2026
+## Xem giao diện web
 
-[Báo cáo tiến độ và việc cần làm tiếp theo](docs/planning/PROJECT_PROGRESS_2026-10-07.md) · [Bằng chứng Phase 03](docs/reviews/PHASE_03_ANALYTICS_REPORT.md)
+Dashboard **JobScope** có Tổng quan, Nhóm nghề, Kỹ năng & xu hướng, So sánh nghề, Dự báo & bằng chứng. Chạy từ thư mục repository:
+
+```powershell
+python -m venv .venv-dashboard
+./.venv-dashboard/Scripts/python.exe -m pip install -r requirements-dashboard.txt
+./run_dashboard.ps1
+```
+
+Mở <http://127.0.0.1:8501>. Những lần sau chỉ cần `./run_dashboard.ps1`. Web cần Gold run local được khóa trong audit; clone mới chưa có Parquet sẽ hiện hướng dẫn khôi phục dữ liệu.
+
+[Hướng dẫn chạy và demo](docs/planning/dashboard_runbook.md) · [Tiến độ cập nhật 12/10/2026](docs/planning/PROJECT_PROGRESS_2026-10-12.md)
+
+## Tiến độ hiện tại — 12/10/2026
+
+[Báo cáo tiến độ và việc cần làm tiếp theo](docs/planning/PROJECT_PROGRESS_2026-10-12.md) · [Bằng chứng Phase 03](docs/reviews/PHASE_03_ANALYTICS_REPORT.md)
 
 Sơ đồ thể hiện bằng chứng hiện có, không phải phần trăm hoàn thành. Các milestone M2–M10 theo [Final Plan](FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md).
 
@@ -27,8 +41,8 @@ flowchart TD
     PG["Cổng dự báo: NO_GO<br/>thiếu chuỗi liên tục và future test"]
     M6["M6 · ML dataset / feature<br/>BLOCKED"]
     M7["M7 · NO-GO có bằng chứng<br/>chờ nghiệm thu; model BLOCKED"]
-    SERVE["M8 · Serving / MongoDB<br/>PENDING"]
-    DASH["M9 · Dashboard demo<br/>PENDING"]
+    SERVE["M8 · Parquet serving LOCAL<br/>MongoDB / nghiệm thu OPEN"]
+    DASH["M9 · Dashboard demo LOCAL<br/>nghiệm thu tích hợp OPEN"]
     FINAL["M10 · Tích hợp / báo cáo cuối<br/>PENDING"]
 
     H --> B
@@ -51,7 +65,8 @@ flowchart TD
     class H,F,B,E,S,G,A local;
     class P1,M2,M3,M4,M5,M7 open;
     class PG,M6 blocked;
-    class SERVE,DASH,FINAL pending;
+    class SERVE,DASH open;
+    class FINAL pending;
 ```
 
 **Chú giải:** 🟩 `LOCAL VERIFIED`: đã kiểm chứng local; 🟨 `OPEN`: còn điều kiện nghiệm thu; 🟥 `BLOCKED`: bị chặn bởi cổng dữ liệu; ⬜ `PENDING`: chưa có đầu ra bàn giao.
@@ -122,13 +137,7 @@ Hai nguồn API đã được kiểm thử thành công để lấy dữ liệu 
 - Arbeitnow API
 - Remotive API
 
-Kết quả kiểm định Phase 1 trên **567 bản ghi mẫu**:
-
-```text
-Trung bình kỹ năng trích xuất: 5.57 skills / job description
-Khoảng thời gian dữ liệu kiểm thử: 50 tháng (2022 → 2026)
-Kết quả GO / NO-GO: GO
-```
+Kết quả audit hiện hành: archive có **785.741 dòng năm 2023**, không có JD gốc; fresh snapshot có **666 dòng** và phạm vi giới hạn. Các con số prototype cũ về 50 tháng không phải bằng chứng cho một chuỗi quan sát liên tục. Quyết định là **GO cho prototype**, mô tả trong phạm vi dữ liệu đã thu thập, và **NO-GO cho forecasting**.
 
 Chi tiết xem tại:
 
@@ -233,7 +242,7 @@ Hệ thống đồng thời sử dụng `job_hash` SHA-256 để hỗ trợ phá
 - Thiết kế Unified Schema 18 trường.
 - Thiết kế quy tắc Deduplication bằng SHA-256.
 - Kiểm thử khả thi trên dữ liệu mẫu.
-- Hoàn thành Milestone 1 với quyết định **GO**.
+- Có kết quả prototype **GO**; quality gate đã được mở lại sau audit nguồn và chưa cho phép dự báo.
 
 ### Phase 02 – Data Ingestion & Big Data Storage (local đã kiểm tra; M2/HDFS đang mở)
 
@@ -331,6 +340,7 @@ BigData-IT-Job-Skill-Analytics/
 - OpenJDK 17
 - Hadoop / Winutils
 - Parquet
+- Streamlit / Plotly (dashboard descriptive local)
 - Snappy Compression
 - Git / GitHub
 
@@ -338,8 +348,6 @@ BigData-IT-Job-Skill-Analytics/
 
 - Spark MLlib
 - MongoDB
-- Streamlit
-- Plotly
 
 Có thể bổ sung Kafka hoặc Docker nếu phù hợp với tiến độ và phạm vi MVP.
 
@@ -355,7 +363,7 @@ Có thể bổ sung Kafka hoặc Docker nếu phù hợp với tiến độ và 
 | Phase 04 | Skill Demand Analytics | 🔄 Bảng mô tả đã có; đánh giá taxonomy/M4 còn mở |
 | Phase 05 | Feature Engineering & Trend Modeling | ⛔ Chặn bởi cổng dữ liệu NO-GO |
 | Phase 06 | Model Evaluation / Hybrid Experiment | ⛔ Chưa chạy vì predictive gate NO-GO |
-| Phase 07 | MongoDB & Dashboard | ⏳ Chưa thực hiện |
+| Phase 07 | MongoDB & Dashboard | 🔄 Dashboard + Parquet serving đã chạy local; MongoDB/nghiệm thu tích hợp còn mở |
 | Phase 08 | Integration / Testing / Final Report | ⏳ Chưa thực hiện |
 
 ### Hiện trạng hệ thống
@@ -375,7 +383,7 @@ Gold Layer         ✅ Bảng observed, không có prediction mới
    ↓
 Predictive Gate    ⛔ NO-GO → chưa train / dự báo
    ↓
-Dashboard          ⏳
+Dashboard          ✅ Demo mô tả local · M8/M9 chưa nghiệm thu tích hợp
 ```
 
 **Silver và Gold mô tả local đã được kiểm tra trên các run có manifest; M2/HDFS vẫn mở và dự báo tiếp tục NO-GO.** Không nối archive 2023 với snapshot 2026 thành chuỗi liên tục.
@@ -384,7 +392,7 @@ Dashboard          ⏳
 
 ## 10. Tài liệu dự án
 
-- **[Tiến độ dự án ngày 07/10/2026 và việc cần làm](docs/planning/PROJECT_PROGRESS_2026-10-07.md)**
+- **[Tiến độ dự án ngày 12/10/2026 và việc cần làm](docs/planning/PROJECT_PROGRESS_2026-10-12.md)**
 - **[Kế hoạch dự án chính](FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md)**
 - **[Tổng kết Phase 01 & 02](docs/planning/phase_01_02_summary.md)**
 - [Runbook Phase 02](docs/planning/phase02_runbook.md)
@@ -405,10 +413,10 @@ Dashboard          ⏳
 
 1. Hoàn tất bằng chứng HDFS → Spark để xét nghiệm thu M2.
 2. Xác minh nguồn/license và đánh giá taxonomy trên mẫu JD được gán nhãn độc lập.
-3. Kiểm định 5 bảng Gold; xây serving và dashboard mô tả với bộ lọc nguồn, nghề, tháng và giới hạn dữ liệu.
+3. Nghiệm thu dashboard mô tả và serving Parquet đã chạy local; bổ sung MongoDB nếu thuộc tiêu chí môn học.
 4. Bổ sung dữ liệu dài hạn và chốt hồ sơ M7 theo nhánh NO-GO; chỉ mở feature/model khi cổng dự báo được xét lại thành GO.
 
-Xem thứ tự ưu tiên, đầu ra và điều kiện hoàn thành trong [Project Progress](docs/planning/PROJECT_PROGRESS_2026-10-07.md#tiếp-theo-cần-làm-gì).
+Xem thứ tự ưu tiên, đầu ra và điều kiện hoàn thành trong [Project Progress](docs/planning/PROJECT_PROGRESS_2026-10-12.md).
 
 ---
 

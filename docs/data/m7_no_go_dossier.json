@@ -1,0 +1,237 @@
+{
+  "acceptance_status": "ready_for_review_not_accepted",
+  "branch": "no_go_evidence",
+  "data_support": {
+    "basic_support_series": [
+      {
+        "occupation": "Backend Developer",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "occupation": "Data Analyst",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "occupation": "Data Engineer",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "occupation": "Data Scientist",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "occupation": "DevOps Engineer",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "occupation": "Machine Learning Engineer",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "occupation": "Other IT",
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "occupation": "Software Engineer",
+        "source": "kaggle_historical_archive"
+      }
+    ],
+    "basic_support_series_count": 8,
+    "missing_month_count": 32,
+    "missing_months": [
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11",
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08"
+    ],
+    "observed_months": [
+      "2023-01",
+      "2023-02",
+      "2023-03",
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2026-09",
+      "2026-10"
+    ],
+    "occupation_months_below_30": 19,
+    "source_scope": [
+      {
+        "jobs": 645,
+        "observed_months": [
+          "2026-09",
+          "2026-10"
+        ],
+        "skills_origins": [
+          "extracted_from_jd"
+        ],
+        "source": "arbeitnow"
+      },
+      {
+        "jobs": 785639,
+        "observed_months": [
+          "2023-01",
+          "2023-02",
+          "2023-03",
+          "2023-04",
+          "2023-05",
+          "2023-06",
+          "2023-07",
+          "2023-08",
+          "2023-09",
+          "2023-10",
+          "2023-11",
+          "2023-12"
+        ],
+        "skills_origins": [
+          "source_tags"
+        ],
+        "source": "kaggle_historical_archive"
+      },
+      {
+        "jobs": 16,
+        "observed_months": [
+          "2026-09"
+        ],
+        "skills_origins": [
+          "extracted_from_jd"
+        ],
+        "source": "remotive"
+      }
+    ],
+    "thresholds": {
+      "min_consecutive_months": 12,
+      "min_jobs_per_occupation_month": 30,
+      "min_labeled_cutoffs": 3
+    }
+  },
+  "decision": "NO_GO",
+  "evidence_source": {
+    "audit": "docs/data/phase03_analytics_audit.json",
+    "audit_sha256": "4655c11eb24ec1f51fac66f6449c22dc1aa28cc2828c486bca00737cfd4b210f",
+    "bronze_runs": [
+      {
+        "kind": "historical",
+        "manifest_sha256": "48492bae64ab9e68a0ab93bc96814ced958a6ca7cc78af0e26e21bbd4207480a",
+        "rows": 785741,
+        "run_id": "20261004T103235056713Z-0811f6613d3c",
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_sha256": "a9f14604497ca92f9579c71ff96f4e440565ac454c2f3f87de7cc91d5cc95b51",
+        "rows": 666,
+        "run_id": "20261004T075332383635Z-c9fddef628d7",
+        "status": "partial"
+      }
+    ],
+    "etl_run_id": "8c8a0ca26b38404a96a9b97fa8fd6e02",
+    "gold_manifest_sha256": "2b37892022882e834b5437555c5c567aa2ab31103dc1d581b9b2f18cd9e7c74d",
+    "gold_run_id": "20261004T110131548191Z-e38fa7303cf4",
+    "output_tables": {
+      "market_stats": {
+        "rows": 15,
+        "sha256": "b9158f24bbdef70f3568c62f3f8fd9f5f5993065f423fe9e827ef56408cc8007"
+      },
+      "occupation_stats": {
+        "rows": 127,
+        "sha256": "01215ae60057c600745513e619c87c1b4001e28de22e9b814be23b3a1d00e8b3"
+      },
+      "skill_evidence_stats": {
+        "rows": 234,
+        "sha256": "238ae0890cdad7154c8c35ace682f6eab86d2ab76b782df9b1ff058ea3a71edb"
+      },
+      "skill_stats": {
+        "rows": 4538,
+        "sha256": "fc1b169e0caa7eeffd8ee5dee448e63fe7cb31f60bb7280844b86e604774596c"
+      },
+      "skill_trends": {
+        "rows": 4538,
+        "sha256": "9776edbd6c105ca9d378d81f0e6cae63402223c2465509ff15d4633a48cfd96b"
+      }
+    },
+    "policy": "docs/planning/go_no_go_report.md",
+    "policy_sha256": "f4766fe6b7fcb5ee2e8c6032a1658e378283e8c8b51286051e15dc59645222e8",
+    "taxonomy_version": "v0.1"
+  },
+  "forecast_model_status": "blocked",
+  "gate_checks": [
+    {
+      "detail": "Current GO/NO-GO decision: NO_GO",
+      "id": "policy_decision",
+      "status": "FAIL"
+    },
+    {
+      "detail": "32 months without observed input between first and last month",
+      "id": "calendar_continuity",
+      "status": "FAIL"
+    },
+    {
+      "detail": "0 overlapping observed months across sources; no source-mix adjustment established",
+      "id": "source_comparability",
+      "status": "FAIL"
+    },
+    {
+      "detail": "8 source-occupation series meet basic month/count support",
+      "id": "occupation_support",
+      "status": "PASS"
+    },
+    {
+      "detail": "1 selected Bronze runs are partial/scoped",
+      "id": "input_scope",
+      "status": "FAIL"
+    },
+    {
+      "detail": "No representative fixed future test, uncertainty-qualified labels, or rolling-origin comparison was run",
+      "id": "rolling_origin_future_test",
+      "status": "NOT_ELIGIBLE"
+    }
+  ],
+  "m6_status": "blocked",
+  "milestone": "M7",
+  "predictive_claims": "Insufficient evidence",
+  "publication_scope": "observed analytics only, with source/month/n and provenance",
+  "reassessment_requirements": [
+    "Verify source licenses and provenance for each new dataset",
+    "Acquire comparable real observations across missing months",
+    "Validate taxonomy and skill extraction on independent labels",
+    "Check occupation-skill label uncertainty and representative future cutoffs",
+    "Run leakage-safe rolling-origin backtest against fixed baselines",
+    "Update the GO/NO-GO policy and regenerate Gold gate evidence"
+  ],
+  "schema_version": 1
+}

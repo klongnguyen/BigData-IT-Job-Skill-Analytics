@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv-dashboard/
 venv/
 env/
 
@@ -46,6 +47,9 @@ data/**/*.gz
 # Model artifacts
 artifacts/
 models/
+
+# Reproducible local Gold runs are referenced by committed audit summaries.
+data/gold/global/runs/
 
 # Streamlit secrets
 .streamlit/secrets.toml
