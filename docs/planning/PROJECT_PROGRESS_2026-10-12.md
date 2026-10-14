@@ -29,10 +29,16 @@
 
 Đây là **demo descriptive local**, chưa phải tuyên bố hoàn tất toàn bộ đồ án hoặc nghiệm thu M8/M9. Bản snapshot ngày 07/10 được giữ làm lịch sử. Các thay đổi Phase 03 chưa commit có sẵn được bảo toàn.
 
-## Tiếp theo
+## Tiếp theo tại thời điểm 12/10
 
 1. Hoàn tất đường chạy HDFS → Spark với evidence để đóng M2 theo tiêu chí môn học.
 2. Xác minh nguồn/license; đánh giá taxonomy trên tập gán nhãn độc lập, nhất là tỷ lệ Other IT cao ở API.
 3. Chốt nghiệm thu serving/dashboard cùng nhóm; bổ sung MongoDB nếu cần truy vấn serving trong tiêu chí chấm.
 4. Thu thập fresh định kỳ, bổ sung dữ liệu thật cho các tháng thiếu; chuẩn bị hồ sơ M7 theo nhánh NO-GO.
 5. Hoàn thiện báo cáo tích hợp và demo cuối. Chỉ triển khai model khi gate được xét lại thành GO bằng dữ liệu mới.
+
+## Cập nhật 13/10/2026 — hồ sơ M7 nhánh NO-GO
+
+Đã tạo [biên bản đề xuất nghiệm thu M7](../reviews/M7_NO_GO_ACCEPTANCE.md) và [dossier JSON có SHA-256 nguồn](../data/m7_no_go_dossier.json) từ audit Phase 03. Hồ sơ khóa Gold run, chính sách GO/NO-GO, taxonomy, sáu gate checks và các số liệu **32 tháng thiếu / 19 occupation-month dưới ngưỡng / 8 chuỗi đạt hỗ trợ cơ bản**. Trạng thái là **sẵn sàng để xét nghiệm thu**, không phải M7 đã được nhóm/giảng viên chấp thuận hoặc có model dự báo.
+
+Kiểm thử mới: **11 test dossier đạt**; regression Spark/pipeline **26 passed, 1 skipped** (HDFS live); dashboard **13 passed** trong môi trường UI riêng. `PHASE02_HDFS_URI` chưa được cấu hình, vì vậy **M2 vẫn OPEN**. M4 còn chờ tập nhãn độc lập; nhánh model của M7 và M6 vẫn bị khóa bởi gate `NO_GO`.

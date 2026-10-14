@@ -54,6 +54,8 @@ Không công bố dự báo Growing/Stable/Declining, điểm mô hình, nhận 
 
 ## 5. Kiểm thử và mục còn mở
 
-`python -m pytest -q tests/test_m7_no_go_dossier.py`: **11 passed**. Test dùng audit thật để đối chiếu 32/19/8, xác nhận output tái lập, và từ chối gate bị đổi sang GO, thiếu claim/check, ngưỡng sai, output prediction, phạm vi input bị che, lịch thiếu không nhất quán, cờ basic support sai hoặc file chính sách bị sửa. Kết quả regression toàn dự án được cập nhật sau khi chạy lại.
+`python -m pytest -q tests/test_m7_no_go_dossier.py`: **11 passed**. Test dùng audit thật để đối chiếu 32/19/8, xác nhận output tái lập, và từ chối gate bị đổi sang GO, thiếu claim/check, ngưỡng sai, output prediction, phạm vi input bị che, lịch thiếu không nhất quán, cờ basic support sai hoặc file chính sách bị sửa.
+
+Regression ngày 13/10/2026: môi trường Spark chạy `python -m pytest -q tests --ignore=tests/test_dashboard.py` với **26 passed, 1 skipped** (skip HDFS live), 3 cảnh báo PySpark/Pandas/Arrow; môi trường `.venv-dashboard` chạy `python -m pytest -q tests/test_dashboard.py` với **13 passed**. Tổng cộng **39 test đạt, 1 test HDFS live chưa chạy**. Hai môi trường được tách vì Python/Spark hiện tại không cài Streamlit. Log local ở `tmp/m7_pipeline_regression.log` và `tmp/m7_dashboard_regression.log`.
 
 Preflight ngày 13/10: `PHASE02_HDFS_URI` chưa được cấu hình; Docker CLI có nhưng daemon chưa chạy. Không có round-trip `hdfs://` mới, nên **M2 vẫn OPEN**. M4 còn mở vì chưa có tập gán nhãn độc lập; nguồn/license chưa được xác minh. Hồ sơ này **không thay thế biên bản nghiệm thu chính thức** của nhóm/giảng viên.
