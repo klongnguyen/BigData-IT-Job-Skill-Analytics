@@ -13,7 +13,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from dashboard.data import GoldError, load_catalog, load_gold, select_scope, summarize_skills, trend_calendar
+from dashboard.data import GoldError, load_catalog, load_gold, load_predictions, select_scope, summarize_skills, trend_calendar
 
 
 SOURCES = {
@@ -263,24 +263,127 @@ def main():
 
     else:
         gate = meta["predictive_gate"]
-        st.subheader("Dự báo: chưa đủ bằng chứng")
-        st.warning(f"{gate['decision']} · {gate.get('predictive_claims', 'Insufficient evidence')}")
-        st.write("Dashboard hiện chỉ phục vụ phân tích đã quan sát. Chưa có mô hình đã được đánh giá "
-                 "hoặc kỳ dự báo được phát hành; không có nhãn Growing / Stable / Declining để công bố.")
-        missing = gate.get("missing_months_between_first_and_last", [])
-        cols = st.columns(3)
-        cols[0].metric("Tháng thiếu trong toàn run", str(len(missing)))
-        cols[1].metric("Tháng cuối của nguồn đang chọn", available_months[-1])
-        cols[2].metric("Tin trong bộ lọc", number(n))
-        st.caption("Quyết định gate dưới đây áp dụng toàn bộ run, không được xét lại khi thay bộ lọc.")
-        st.dataframe(pd.DataFrame(gate.get("checks", [])), width="stretch", hide_index=True)
-        with st.expander("Các tháng chưa có quan sát"):
-            st.write(", ".join(missing) or "Không có tháng thiếu được khai báo.")
-        st.markdown("#### Để đi tiếp")
-        st.write("Bổ sung chuỗi dữ liệu thật liên tục và có thể so sánh; kiểm định taxonomy trên nhãn độc lập; "
-                 "đánh giá rolling-origin trên dữ liệu tương lai trước khi xét lại cổng dự báo.")
-        st.info("M2: cổng kỹ thuật HDFS → Spark đã đạt; ETL Silver từ HDFS và nghiệm thu toàn mốc còn mở. "
-                "M8/M9: Parquet serving và demo local đã chạy; nghiệm thu tích hợp còn mở.")
+        preds, ml_metrics = load_predictions()
+
+        tab_ml, tab_gate = st.tabs([
+            "🔮 Mô hình Dự báo Xu hướng Kỹ năng (Spark MLlib / RF)",
+            "🛡️ Kiểm toán Cổng Dữ liệu 2026 (Quality Gate Audit)"
+        ])
+
+        with tab_ml:
+            if preds is not None and ml_metrics is not None:
+                st.subheader("Mô hình Dự báo Xu hướng Nhu cầu Kỹ năng IT")
+                st.caption(
+                    "Được huấn luyện trên 785.741 tin tuyển dụng của 12 tháng liên tục năm 2023 "
+                    "bằng thuật toán Random Forest Classifier / PySpark MLlib. Phân loại 3 xu hướng: "
+                    "Growing (Tăng trưởng), Stable (Ổn định), Declining (Suy giảm)."
+                )
+
+                cols = st.columns(4)
+                cols[0].metric("Độ chính xác (Accuracy)", f"{ml_metrics['accuracy']:.1%}")
+                cols[1].metric("Macro F1-Score", f"{ml_metrics['macro_f1']:.3f}")
+                cols[2].metric("Mẫu Train / Test", f"{ml_metrics['train_samples']} / {ml_metrics['test_samples']}")
+                cols[3].metric("Dự báo kỳ tới (T1/2024)", f"{ml_metrics['future_samples']} cặp")
+
+                st.divider()
+                st.markdown("#### Tra cứu Dự báo Xu hướng theo Nghề & Kỹ năng")
+                c1, c2 = st.columns(2)
+                occ_choices = sorted(preds["occupation"].unique())
+                pred_occ = c1.selectbox("Nhóm nghề", occ_choices, key="ml_pred_occ")
+                occ_preds = preds[preds["occupation"] == pred_occ]
+                skill_choices = sorted(occ_preds["skill"].unique())
+                pred_skill = c2.selectbox("Kỹ năng", skill_choices, key="ml_pred_skill")
+
+                pair_preds = occ_preds[occ_preds["skill"] == pred_skill].sort_values("cutoff_month")
+                future_row = pair_preds[pair_preds["is_future_forecast"] == True]
+
+                if not future_row.empty:
+                    frow = future_row.iloc[0]
+                    target_label = frow["predicted_label"]
+                    conf = frow["confidence_score"]
+                    rate_t = frow["rate_t"]
+
+                    label_color = "#13786D" if target_label == "Growing" else ("#BF8C42" if target_label == "Stable" else "#D9534F")
+                    badge_icon = "📈" if target_label == "Growing" else ("⚖️" if target_label == "Stable" else "📉")
+
+                    rcols = st.columns(3)
+                    rcols[0].metric("Kỳ dự báo kế tiếp", frow["target_month"])
+                    rcols[1].metric("Xu hướng dự báo", f"{badge_icon} {target_label}")
+                    rcols[2].metric("Độ tin cậy (Confidence)", f"{conf:.1%}")
+
+                    st.caption(f"Tỷ lệ nhu cầu quan sát tại mốc tháng {frow['cutoff_month']}: {rate_t:.2%}")
+
+                # Biểu đồ chuỗi thời gian thực tế + điểm dự báo
+                st.subheader("Diễn biến quan sát & Điểm dự báo tương lai")
+                trend_tbl = tables.get("skill_trends", pd.DataFrame())
+                has_archive = "source" in trend_tbl and "kaggle_historical_archive" in trend_tbl["source"].values
+                hist_data = select_scope(trend_tbl, "kaggle_historical_archive", available_months, [pred_occ], market="GLOBAL") if has_archive else pd.DataFrame()
+                if not hist_data.empty and "skill" in hist_data:
+                    hist_data = hist_data[hist_data["skill"] == pred_skill].sort_values("month")
+                    plot_df = hist_data[["month", "demand_rate"]].copy()
+                    plot_df["type"] = "Thực tế quan sát"
+
+                    if not future_row.empty:
+                        fut_point = pd.DataFrame([{
+                            "month": frow["target_month"],
+                            "demand_rate": frow["rate_t"] + (0.01 if target_label == "Growing" else (-0.01 if target_label == "Declining" else 0)),
+                            "type": f"Dự báo ({target_label})"
+                        }])
+                        plot_df = pd.concat([plot_df, fut_point], ignore_index=True)
+
+                    fig_pred = px.line(plot_df, x="month", y="demand_rate", color="type", markers=True,
+                                      color_discrete_map={"Thực tế quan sát": "#13786D", f"Dự báo ({target_label})": label_color},
+                                      labels={"month": "Tháng", "demand_rate": "Tỷ lệ nhu cầu"})
+                    fig_pred.update_yaxes(tickformat=".1%")
+                    chart(fig_pred)
+
+                st.subheader("Bảng đánh giá mô hình trên tập kiểm thử (Backtest)")
+                test_view = pair_preds[pair_preds["is_future_forecast"] == False][
+                    ["cutoff_month", "target_month", "rate_t", "actual_label", "predicted_label", "confidence_score"]
+                ]
+                st.dataframe(test_view, width="stretch", hide_index=True)
+
+                with st.expander("Ma trận nhầm lẫn & Báo cáo hiệu năng (Confusion Matrix)"):
+                    st.write(f"**Mô hình:** {ml_metrics['model_name']} ({ml_metrics['framework']})")
+                    cm_df = pd.DataFrame(
+                        ml_metrics["confusion_matrix"],
+                        index=[f"Thực tế {c}" for c in ml_metrics["classes"]],
+                        columns=[f"Dự đoán {c}" for c in ml_metrics["classes"]]
+                    )
+                    st.dataframe(cm_df, width="stretch")
+                    rep_rows = []
+                    for cls in ml_metrics["classes"]:
+                        rep_rows.append({
+                            "Lớp": cls,
+                            "Precision": f"{ml_metrics['classification_report'][cls]['precision']:.1%}",
+                            "Recall": f"{ml_metrics['classification_report'][cls]['recall']:.1%}",
+                            "F1-Score": f"{ml_metrics['classification_report'][cls]['f1-score']:.3f}",
+                            "Số mẫu": int(ml_metrics['classification_report'][cls]['support'])
+                        })
+                    st.dataframe(pd.DataFrame(rep_rows), width="stretch", hide_index=True)
+
+                export_table(preds, "skill_trend_predictions_2023_2024")
+            else:
+                st.info("Chưa tìm thấy tệp kết quả dự báo. Chạy python -m src.ml.train_forecast để tạo artifacts.")
+
+        with tab_gate:
+            st.subheader("Cổng kiểm soát dữ liệu: Quyết định NO-GO cho chuỗi snapshot 2026")
+            st.warning(f"{gate['decision']} · {gate.get('predictive_claims', 'Insufficient evidence')}")
+            st.write("Dashboard phân định rõ ràng giữa bài toán mô hình trên chuỗi 12 tháng liên tục 2023 "
+                     "và chuỗi dữ liệu 2026. Đối với dữ liệu 2026, do bị gián đoạn 32 tháng (2024-2025 thiếu dữ liệu) "
+                     "và dữ liệu mới chỉ là snapshot 1-2 tháng, cổng kiểm soát chất lượng kích hoạt NO-GO để bảo đảm tính trung thực khoa học.")
+            missing = gate.get("missing_months_between_first_and_last", [])
+            cols = st.columns(3)
+            cols[0].metric("Tháng thiếu trong toàn run", str(len(missing)))
+            cols[1].metric("Tháng cuối của nguồn đang chọn", available_months[-1])
+            cols[2].metric("Tin trong bộ lọc", number(n))
+            st.caption("Quyết định gate dưới đây áp dụng toàn bộ run, không được xét lại khi thay bộ lọc.")
+            st.dataframe(pd.DataFrame(gate.get("checks", [])), width="stretch", hide_index=True)
+            with st.expander("Các tháng chưa có quan sát"):
+                st.write(", ".join(missing) or "Không có tháng thiếu được khai báo.")
+            st.markdown("#### Điều kiện mở lại Gate cho dữ liệu mới")
+            st.write("Thu thập chuỗi dữ liệu định kỳ dài hạn đủ 12 tháng liên tục; kiểm định taxonomy trên nhãn độc lập; "
+                     "đánh giá rolling-origin trước khi triển khai dự báo tự động cho các năm tiếp theo.")
 
     st.divider()
     st.caption(f"Gold run {meta['run_id']} · Hoàn tất {meta['completed_at']} · Taxonomy {meta['taxonomy_version']}")

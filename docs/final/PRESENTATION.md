@@ -56,10 +56,14 @@ Tài liệu này là bản nội dung chi tiết bám sát [đề cương 10 sli
   * Khám phá phân bổ kỹ năng, nhóm nghề, tương quan nhu cầu tuyển dụng.
 * **Xử lý thiếu bằng chứng:** Với nguồn USAJOBS chưa có trích xuất kỹ năng chuẩn hóa, hệ thống hiển thị trạng thái thiếu chứng cứ minh bạch, tuyệt đối không tạo tỷ lệ giả.
 
-## Slide 9: Kiểm soát Dự báo — Quyết định NO-GO có cơ sở
-* **Tiêu chuẩn cổng dữ liệu (Quality Gate):** Yêu cầu chuỗi thời gian tối thiểu 12 tháng liên tục và ít nhất 30 tin/nghề/tháng.
-* **Thực trạng dữ liệu thực tế:** Dữ liệu snapshot 2026 có độ gián đoạn thời gian (gap 2024–2025); nguồn liên bang không đại diện cho thị trường tư nhân.
-* **Quyết định khoa học:** **`NO_GO` cho nhánh Machine Learning dự báo**. Đồ án kiên quyết không xuất nhãn xu hướng (Growing/Stable/Declining) hoặc dựng mô hình khi chưa đủ cơ sở dữ liệu tin cậy.
+## Slide 9: Mô hình Dự báo Máy học (Spark MLlib) & Kiểm soát Cổng Dữ liệu
+* **Mô hình Dự báo Xu hướng Kỹ năng (Spark MLlib / RF Pipeline):**
+  * Huấn luyện mô hình Random Forest trên 785.741 tin tuyển dụng của chuỗi 12 tháng liên tục năm 2023.
+  * Trích xuất các đặc trưng chuỗi thời gian: Lags ($t, t-1, t-2, t-3$), trung bình trượt 3 tháng, độ dốc xu hướng (rolling slope) và động lượng (momentum).
+  * Đánh giá kiểm thử Rolling-Origin (T9–T11/2023): Đạt **Độ chính xác (Accuracy): 64,0%**, **Macro F1-Score: 0,623** cho bài toán phân loại 3 lớp: `Growing` (Tăng trưởng), `Stable` (Ổn định), `Declining` (Suy giảm).
+  * Dự báo kỳ kế tiếp (T1/2024) cho 349 cặp nghề–kỹ năng hiển thị trực tiếp trên Dashboard.
+* **Kiểm soát Cổng Dữ liệu 2026 (Quality Gate Audit):**
+  * Với dữ liệu 2026, do bị gián đoạn 32 tháng (2024–2025 không có dữ liệu) và nguồn mới chỉ là snapshot ngắn hạn, hệ thống kích hoạt quyết định **`NO_GO`** để bảo đảm tính trung thực khoa học, không tạo số liệu dự báo giả.
 
 ## Slide 10: Tổng kết Đồ án & Đóng góp
 * **Kết quả đạt được:**

@@ -1,0 +1,78 @@
+{
+  "model_name": "RandomForest_TimeLag_v1",
+  "framework": "PySpark MLlib / Scikit-Learn Hybrid",
+  "n_estimators": 100,
+  "max_depth": 6,
+  "train_samples": 1745,
+  "test_samples": 1047,
+  "future_samples": 349,
+  "accuracy": 0.6399,
+  "macro_f1": 0.6229,
+  "classes": [
+    "Declining",
+    "Growing",
+    "Stable"
+  ],
+  "confusion_matrix": [
+    [
+      153,
+      100,
+      14
+    ],
+    [
+      67,
+      182,
+      29
+    ],
+    [
+      51,
+      116,
+      335
+    ]
+  ],
+  "classification_report": {
+    "Declining": {
+      "precision": 0.5645756457564576,
+      "recall": 0.5730337078651685,
+      "f1-score": 0.5687732342007435,
+      "support": 267.0
+    },
+    "Growing": {
+      "precision": 0.457286432160804,
+      "recall": 0.6546762589928058,
+      "f1-score": 0.5384615384615384,
+      "support": 278.0
+    },
+    "Stable": {
+      "precision": 0.8862433862433863,
+      "recall": 0.6673306772908366,
+      "f1-score": 0.7613636363636364,
+      "support": 502.0
+    },
+    "accuracy": 0.6399235912129895,
+    "macro avg": {
+      "precision": 0.636035154720216,
+      "recall": 0.6316802147162703,
+      "f1-score": 0.6228661363419729,
+      "support": 1047.0
+    },
+    "weighted avg": {
+      "precision": 0.6903166241182976,
+      "recall": 0.6399235912129895,
+      "f1-score": 0.653065240380565,
+      "support": 1047.0
+    }
+  },
+  "feature_importances": {
+    "rate_t": 0.15470777160046562,
+    "rate_t_1": 0.07048688484078808,
+    "rate_t_2": 0.07590779378397798,
+    "rate_t_3": 0.04950437745677349,
+    "rolling_mean_3m": 0.11334691049273016,
+    "rolling_slope_3m": 0.15307117714594887,
+    "momentum": 0.12004743804095319,
+    "acceleration": 0.05153943613521527,
+    "log_occ_jobs": 0.13797104911195718,
+    "log_skill_jobs": 0.07341716139119023
+  }
+}

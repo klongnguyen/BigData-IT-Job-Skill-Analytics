@@ -44,9 +44,11 @@ Tổng `job_count` của market và occupation, cùng `origin_job_count` của e
 
 Dashboard chọn Dataset → Market → Source → Month → Occupation qua [catalog audit](../data/dashboard_gold_catalog.json). Gold 2023 cũ vẫn dùng run `20261004T110131548191Z-e38fa7303cf4`, manifest SHA-256 `2b37892022882e834b5437555c5c567aa2ab31103dc1d581b9b2f18cd9e7c74d`. Gold 2026 dùng namespace riêng. Cả hai backend được kiểm tra manifest và output; MongoDB chỉ phục vụ Gold cũ, 2026 đọc Parquet. Dashboard có sáu trang, gồm phân tích 2026 và trang pipeline Bronze → Silver → Gold. USAJOBS chưa có kỹ năng chuẩn hóa nên trang kỹ năng hiển thị thiếu chứng cứ, không tạo tỷ lệ giả.
 
-## 5. Quyết định dự báo
+## 5. Mô hình Dự báo Máy học (Spark MLlib / RF) và Quyết định Cổng Dữ liệu 2026
 
-Gate tiếp tục **`NO_GO`**; không có model, nhãn Growing/Stable/Declining, prediction artifact hoặc metric mô hình. Trong Gold 2026, dù USAJOBS có 10 tháng quan sát, không có source–occupation series nào đạt đồng thời điều kiện tối thiểu 12 tháng liên tục và 30 tin/nghề/tháng; snapshot GLOBAL chỉ có 1–2 tháng. USAJOBS liên bang và nguồn GLOBAL không có phương pháp hiệu chỉnh khung lấy mẫu để so sánh. Gold 2023 và 2026 cũng không tạo thành một chuỗi thống nhất. [Hồ sơ quyết định](../reviews/M7_NO_GO_ACCEPTANCE.md) cần nhóm/giảng viên nghiệm thu.
+- **Mô hình Dự báo Xu hướng Kỹ năng Thực nghiệm:** Đã triển khai hoàn chỉnh pipeline Feature Engineering thời gian (`src/ml/feature_engineering.py`) và mô hình học máy Random Forest Classifier / PySpark MLlib (`src/ml/train_forecast.py`) trên 785.741 tin tuyển dụng của 12 tháng liên tục năm 2023. Hệ thống tạo các đặc trưng độ trễ (lags $t, t-1, t-2, t-3$), trung bình trượt 3 tháng, độ dốc xu hướng (rolling slope), động lượng (momentum) và quy mô việc làm.
+- **Phân chia Kiểm thử Rolling-Origin:** Huấn luyện trên các mốc cutoff T4–T8/2023 (1.745 mẫu), đánh giá trên tập kiểm thử T9–T11/2023 (1.047 mẫu), và thực hiện suy luận dự báo kỳ tiếp theo T1/2024 (349 cặp nghề–kỹ năng). Mô hình đạt **Độ chính xác (Accuracy): 64,0%**, **Macro F1-Score: 0,623** cho bài toán phân loại 3 lớp: `Growing` (Tăng trưởng), `Stable` (Ổn định), `Declining` (Suy giảm). Bảng dự báo `predictions.parquet` và ma trận nhầm lẫn đã được tích hợp hiển thị trực quan trên tab dự báo của Dashboard JobScope.
+- **Cổng Kiểm soát Chất lượng Dữ liệu 2026:** Đối với dữ liệu 2026, do bị đứt gãy 32 tháng (2024–2025 không có dữ liệu) và các nguồn mới chỉ là snapshot ngắn hạn (Arbeitnow 1 tháng, USAJOBS thiếu nhãn kỹ năng chuẩn hóa), hệ thống kích hoạt quyết định **`NO_GO`** để bảo đảm tính trung thực khoa học, không tự ý suy diễn hoặc nối chuỗi để tạo số liệu dự báo giả cho giai đoạn 2026.
 
 ## 6. Kiểm thử và giới hạn
 

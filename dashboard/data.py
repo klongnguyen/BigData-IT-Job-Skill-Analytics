@@ -234,3 +234,19 @@ def trend_calendar(frame, start, end):
         # Never display a change without a verified consecutive observation.
         result.loc[~result.consecutive_observed_month.eq(True), "observed_delta_pp"] = float("nan")
     return result
+
+
+PREDICTIONS_PATH = Path("data/gold/predictions/predictions.parquet")
+METRICS_PATH = Path("data/gold/predictions/model_metrics.json")
+
+
+def load_predictions(root=ROOT):
+    """Load machine learning skill trend forecast predictions and metrics."""
+    root = Path(root).resolve()
+    parquet_path = root / PREDICTIONS_PATH
+    metrics_path = root / METRICS_PATH
+    if not parquet_path.is_file() or not metrics_path.is_file():
+        return None, None
+    preds = pd.read_parquet(parquet_path)
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+    return preds, metrics
