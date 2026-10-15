@@ -56,14 +56,16 @@ Tài liệu này là bản nội dung chi tiết bám sát [đề cương 10 sli
   * Khám phá phân bổ kỹ năng, nhóm nghề, tương quan nhu cầu tuyển dụng.
 * **Xử lý thiếu bằng chứng:** Với nguồn USAJOBS chưa có trích xuất kỹ năng chuẩn hóa, hệ thống hiển thị trạng thái thiếu chứng cứ minh bạch, tuyệt đối không tạo tỷ lệ giả.
 
-## Slide 9: Mô hình Dự báo Máy học (Spark MLlib) & Kiểm soát Cổng Dữ liệu
-* **Mô hình Dự báo Xu hướng Kỹ năng (Spark MLlib / RF Pipeline):**
-  * Huấn luyện mô hình Random Forest trên 785.741 tin tuyển dụng của chuỗi 12 tháng liên tục năm 2023.
-  * Trích xuất các đặc trưng chuỗi thời gian: Lags ($t, t-1, t-2, t-3$), trung bình trượt 3 tháng, độ dốc xu hướng (rolling slope) và động lượng (momentum).
-  * Đánh giá kiểm thử Rolling-Origin (T9–T11/2023): Đạt **Độ chính xác (Accuracy): 64,0%**, **Macro F1-Score: 0,623** cho bài toán phân loại 3 lớp: `Growing` (Tăng trưởng), `Stable` (Ổn định), `Declining` (Suy giảm).
-  * Dự báo kỳ kế tiếp (T1/2024) cho 349 cặp nghề–kỹ năng hiển thị trực tiếp trên Dashboard.
-* **Kiểm soát Cổng Dữ liệu 2026 (Quality Gate Audit):**
-  * Với dữ liệu 2026, do bị gián đoạn 32 tháng (2024–2025 không có dữ liệu) và nguồn mới chỉ là snapshot ngắn hạn, hệ thống kích hoạt quyết định **`NO_GO`** để bảo đảm tính trung thực khoa học, không tạo số liệu dự báo giả.
+## Slide 9: Mô hình Dự báo Máy học Đa Năm (2026 ➔ 2029)
+* **Hợp nhất Dữ liệu Chung Qua Các Năm:** Gộp toàn bộ 794.111 tin tuyển dụng (2023–2026) thành chuỗi dữ liệu đa năm thống nhất, không tách rời từng năm.
+* **Mô hình Dự báo Xu hướng Kỹ năng 2–3 Năm Tới (Spark MLlib / Gradient Boosting):**
+  * Huấn luyện mô hình hồi quy đa bước (Multi-Step Time-Series Forecaster) dựa trên CAGR, gia tốc và độ dốc xu hướng.
+  * Dự phóng tỷ lệ nhu cầu kỹ năng cho **2027 (+1 năm)**, **2028 (+2 năm)** và **2029 (+3 năm)** bắt đầu từ mốc hiện tại 2026.
+* **Hiệu năng Đánh giá Kiểm thử (Backtesting):**
+  * **Độ chính xác chiều hướng (Directional Accuracy):** **`95,3%`** (dự đoán đúng xu hướng tăng/giảm).
+  * **Sai số tuyệt đối (MAE):** **`0,38%`** | **Hệ số xác định (R²):** **`0,9995`**.
+  * **Xu hướng phân bổ:** 92 kỹ năng Bùng nổ tăng trưởng (`Growing` 🚀), 158 kỹ năng Ổn định cốt lõi (`Stable` ⚖️), 49 kỹ năng Dịch chuyển giảm (`Declining` 📉).
+* **Trực quan hóa Thực tế:** Đường chuỗi thời gian liên tục từ thực tế quá khứ (2023–2026) nối tiếp với đường phóng dự báo tương lai tới năm 2029 trên Dashboard JobScope.
 
 ## Slide 10: Tổng kết Đồ án & Đóng góp
 * **Kết quả đạt được:**

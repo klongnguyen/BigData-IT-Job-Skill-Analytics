@@ -45,6 +45,7 @@ data/**/*.gz
 !data/sample/historical/historical_sample_300.csv
 !data/fixtures/synthetic/phase01_historical_sample_300.csv
 !data/gold/predictions/predictions.parquet
+!data/gold/predictions/multi_year_predictions.parquet
 
 # Model artifacts
 artifacts/

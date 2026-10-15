@@ -250,3 +250,19 @@ def load_predictions(root=ROOT):
     preds = pd.read_parquet(parquet_path)
     metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
     return preds, metrics
+
+
+MULTI_YEAR_PREDICTIONS_PATH = Path("data/gold/predictions/multi_year_predictions.parquet")
+MULTI_YEAR_METRICS_PATH = Path("data/gold/predictions/multi_year_metrics.json")
+
+
+def load_multi_year_forecast(root=ROOT):
+    """Load unified multi-year forecast predictions (2026 -> 2029) and metrics."""
+    root = Path(root).resolve()
+    parquet_path = root / MULTI_YEAR_PREDICTIONS_PATH
+    metrics_path = root / MULTI_YEAR_METRICS_PATH
+    if not parquet_path.is_file() or not metrics_path.is_file():
+        return None, None
+    preds = pd.read_parquet(parquet_path)
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+    return preds, metrics

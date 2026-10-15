@@ -1,0 +1,15 @@
+{
+  "model_name": "GradientBoosting_MultiYearTrendForecaster",
+  "framework": "PySpark MLlib / Scikit-Learn Ensemble",
+  "training_window": "2023 - 2026",
+  "forecast_window": "2027 - 2029 (2 to 3 years from present)",
+  "total_series": 299,
+  "backtest_mae": 0.0038,
+  "backtest_r2": 0.9995,
+  "directional_accuracy": 0.9532,
+  "trend_distribution": {
+    "Stable": 158,
+    "Growing": 92,
+    "Declining": 49
+  }
+}

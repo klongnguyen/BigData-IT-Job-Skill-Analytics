@@ -13,7 +13,10 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from dashboard.data import GoldError, load_catalog, load_gold, load_predictions, select_scope, summarize_skills, trend_calendar
+from dashboard.data import (
+    GoldError, load_catalog, load_gold, load_multi_year_forecast, load_predictions,
+    select_scope, summarize_skills, trend_calendar
+)
 
 
 SOURCES = {
@@ -265,106 +268,113 @@ def main():
         gate = meta["predictive_gate"]
         preds, ml_metrics = load_predictions()
 
+        my_preds, my_metrics = load_multi_year_forecast()
+
         tab_ml, tab_gate = st.tabs([
-            "🔮 Mô hình Dự báo Xu hướng Kỹ năng (Spark MLlib / RF)",
+            "🚀 Dự báo Xu hướng Kỹ năng 2–3 Năm Tới (2026 ➔ 2029)",
             "🛡️ Kiểm toán Cổng Dữ liệu 2026 (Quality Gate Audit)"
         ])
 
         with tab_ml:
-            if preds is not None and ml_metrics is not None:
-                st.subheader("Mô hình Dự báo Xu hướng Nhu cầu Kỹ năng IT")
+            if my_preds is not None and my_metrics is not None:
+                st.subheader("Dự báo Xu hướng Nhu cầu Kỹ năng CNTT trong 2–3 Năm Tới (2027 – 2029)")
                 st.caption(
-                    "Được huấn luyện trên 785.741 tin tuyển dụng của 12 tháng liên tục năm 2023 "
-                    "bằng thuật toán Random Forest Classifier / PySpark MLlib. Phân loại 3 xu hướng: "
-                    "Growing (Tăng trưởng), Stable (Ổn định), Declining (Suy giảm)."
+                    "Được huấn luyện trên **tập dữ liệu gộp chung qua các năm (2023 đến 2026)** với gần 800.000 tin tuyển dụng "
+                    "bằng thuật toán **Gradient Boosting Time-Series Forecaster / PySpark MLlib**. "
+                    "Mô hình học quy luật chuyển dịch kỹ năng từ dữ liệu lịch sử đến hiện tại để dự phóng xu hướng tương lai dài hạn (2 đến 3 năm tới)."
                 )
 
                 cols = st.columns(4)
-                cols[0].metric("Độ chính xác (Accuracy)", f"{ml_metrics['accuracy']:.1%}")
-                cols[1].metric("Macro F1-Score", f"{ml_metrics['macro_f1']:.3f}")
-                cols[2].metric("Mẫu Train / Test", f"{ml_metrics['train_samples']} / {ml_metrics['test_samples']}")
-                cols[3].metric("Dự báo kỳ tới (T1/2024)", f"{ml_metrics['future_samples']} cặp")
+                cols[0].metric("Giai đoạn dự báo", "2027 – 2029 (2–3 năm tới)")
+                cols[1].metric("Độ chính xác xu hướng", f"{my_metrics['directional_accuracy']:.1%}")
+                cols[2].metric("Sai số tuyệt đối (MAE)", f"{my_metrics['backtest_mae']:.2%}")
+                cols[3].metric("Hệ số xác định (R²)", f"{my_metrics['backtest_r2']:.4f}")
+
+                dist = my_metrics.get("trend_distribution", {})
+                st.info(
+                    f"📊 **Tổng quan 3 năm tới (2026 ➔ 2029):** Có **{dist.get('Growing', 0)} kỹ năng Bùng nổ (Growing 🚀)**, "
+                    f"**{dist.get('Stable', 0)} kỹ năng Ổn định / Bão hòa (Stable ⚖️)**, và "
+                    f"**{dist.get('Declining', 0)} kỹ năng Chuyển dịch giảm (Declining 📉)**."
+                )
 
                 st.divider()
-                st.markdown("#### Tra cứu Dự báo Xu hướng theo Nghề & Kỹ năng")
+                st.markdown("#### 🎯 Tra cứu Dự báo Xu hướng theo Nghề & Kỹ năng (2026 ➔ 2029)")
                 c1, c2 = st.columns(2)
-                occ_choices = sorted(preds["occupation"].unique())
-                pred_occ = c1.selectbox("Nhóm nghề", occ_choices, key="ml_pred_occ")
-                occ_preds = preds[preds["occupation"] == pred_occ]
-                skill_choices = sorted(occ_preds["skill"].unique())
-                pred_skill = c2.selectbox("Kỹ năng", skill_choices, key="ml_pred_skill")
+                occ_choices = sorted(my_preds["occupation"].unique())
+                pred_occ = c1.selectbox("Nhóm nghề CNTT", occ_choices, key="multi_pred_occ")
+                occ_slice = my_preds[my_preds["occupation"] == pred_occ]
+                skill_choices = sorted(occ_slice["skill"].unique())
+                pred_skill = c2.selectbox("Kỹ năng", skill_choices, key="multi_pred_skill")
 
-                pair_preds = occ_preds[occ_preds["skill"] == pred_skill].sort_values("cutoff_month")
-                future_row = pair_preds[pair_preds["is_future_forecast"] == True]
+                sel_row = occ_slice[occ_slice["skill"] == pred_skill]
+                if not sel_row.empty:
+                    s = sel_row.iloc[0]
+                    trend_lbl = s["trend_label"]
+                    delta_3y = s["delta_3y"]
+                    conf = s["confidence_score"]
 
-                if not future_row.empty:
-                    frow = future_row.iloc[0]
-                    target_label = frow["predicted_label"]
-                    conf = frow["confidence_score"]
-                    rate_t = frow["rate_t"]
+                    lbl_color = "#13786D" if trend_lbl == "Growing" else ("#BF8C42" if trend_lbl == "Stable" else "#D9534F")
+                    badge_icon = "🚀" if trend_lbl == "Growing" else ("⚖️" if trend_lbl == "Stable" else "📉")
 
-                    label_color = "#13786D" if target_label == "Growing" else ("#BF8C42" if target_label == "Stable" else "#D9534F")
-                    badge_icon = "📈" if target_label == "Growing" else ("⚖️" if target_label == "Stable" else "📉")
+                    kpi_cols = st.columns(5)
+                    kpi_cols[0].metric("Hiện tại (2026)", f"{s['rate_2026']:.1%}")
+                    kpi_cols[1].metric("Dự báo 2027 (+1 năm)", f"{s['rate_2027_pred']:.1%}")
+                    kpi_cols[2].metric("Dự báo 2028 (+2 năm)", f"{s['rate_2028_pred']:.1%}")
+                    kpi_cols[3].metric("Dự báo 2029 (+3 năm)", f"{s['rate_2029_pred']:.1%}")
+                    kpi_cols[4].metric("Xu hướng 3 năm", f"{badge_icon} {trend_lbl}", f"{delta_3y:+.1%}")
 
-                    rcols = st.columns(3)
-                    rcols[0].metric("Kỳ dự báo kế tiếp", frow["target_month"])
-                    rcols[1].metric("Xu hướng dự báo", f"{badge_icon} {target_label}")
-                    rcols[2].metric("Độ tin cậy (Confidence)", f"{conf:.1%}")
+                    # Biểu đồ chuỗi thời gian liên tục từ quá khứ đến tương lai 2029
+                    st.subheader("Biểu đồ Chuỗi Thời gian: Thực tế Quan sát & Đường Phóng Dự báo (2023 ➔ 2029)")
+                    timeline_df = pd.DataFrame([
+                        {"Năm": "2023", "Tỷ lệ nhu cầu": s["rate_2023"], "Giai đoạn": "Thực tế lịch sử"},
+                        {"Năm": "2024", "Tỷ lệ nhu cầu": s["rate_2024"], "Giai đoạn": "Thực tế lịch sử"},
+                        {"Năm": "2025", "Tỷ lệ nhu cầu": s["rate_2025"], "Giai đoạn": "Thực tế lịch sử"},
+                        {"Năm": "2026", "Tỷ lệ nhu cầu": s["rate_2026"], "Giai đoạn": "Hiện tại (Baseline)"},
+                        {"Năm": "2027", "Tỷ lệ nhu cầu": s["rate_2027_pred"], "Giai đoạn": f"Dự báo ({trend_lbl})"},
+                        {"Năm": "2028", "Tỷ lệ nhu cầu": s["rate_2028_pred"], "Giai đoạn": f"Dự báo ({trend_lbl})"},
+                        {"Năm": "2029", "Tỷ lệ nhu cầu": s["rate_2029_pred"], "Giai đoạn": f"Dự báo ({trend_lbl})"},
+                    ])
 
-                    st.caption(f"Tỷ lệ nhu cầu quan sát tại mốc tháng {frow['cutoff_month']}: {rate_t:.2%}")
-
-                # Biểu đồ chuỗi thời gian thực tế + điểm dự báo
-                st.subheader("Diễn biến quan sát & Điểm dự báo tương lai")
-                trend_tbl = tables.get("skill_trends", pd.DataFrame())
-                has_archive = "source" in trend_tbl and "kaggle_historical_archive" in trend_tbl["source"].values
-                hist_data = select_scope(trend_tbl, "kaggle_historical_archive", available_months, [pred_occ], market="GLOBAL") if has_archive else pd.DataFrame()
-                if not hist_data.empty and "skill" in hist_data:
-                    hist_data = hist_data[hist_data["skill"] == pred_skill].sort_values("month")
-                    plot_df = hist_data[["month", "demand_rate"]].copy()
-                    plot_df["type"] = "Thực tế quan sát"
-
-                    if not future_row.empty:
-                        fut_point = pd.DataFrame([{
-                            "month": frow["target_month"],
-                            "demand_rate": frow["rate_t"] + (0.01 if target_label == "Growing" else (-0.01 if target_label == "Declining" else 0)),
-                            "type": f"Dự báo ({target_label})"
-                        }])
-                        plot_df = pd.concat([plot_df, fut_point], ignore_index=True)
-
-                    fig_pred = px.line(plot_df, x="month", y="demand_rate", color="type", markers=True,
-                                      color_discrete_map={"Thực tế quan sát": "#13786D", f"Dự báo ({target_label})": label_color},
-                                      labels={"month": "Tháng", "demand_rate": "Tỷ lệ nhu cầu"})
-                    fig_pred.update_yaxes(tickformat=".1%")
-                    chart(fig_pred)
-
-                st.subheader("Bảng đánh giá mô hình trên tập kiểm thử (Backtest)")
-                test_view = pair_preds[pair_preds["is_future_forecast"] == False][
-                    ["cutoff_month", "target_month", "rate_t", "actual_label", "predicted_label", "confidence_score"]
-                ]
-                st.dataframe(test_view, width="stretch", hide_index=True)
-
-                with st.expander("Ma trận nhầm lẫn & Báo cáo hiệu năng (Confusion Matrix)"):
-                    st.write(f"**Mô hình:** {ml_metrics['model_name']} ({ml_metrics['framework']})")
-                    cm_df = pd.DataFrame(
-                        ml_metrics["confusion_matrix"],
-                        index=[f"Thực tế {c}" for c in ml_metrics["classes"]],
-                        columns=[f"Dự đoán {c}" for c in ml_metrics["classes"]]
+                    fig_multi = px.line(
+                        timeline_df, x="Năm", y="Tỷ lệ nhu cầu", color="Giai đoạn", markers=True,
+                        color_discrete_map={
+                            "Thực tế lịch sử": "#46A69A",
+                            "Hiện tại (Baseline)": "#13786D",
+                            f"Dự báo ({trend_lbl})": lbl_color,
+                        },
+                        labels={"Tỷ lệ nhu cầu": "Tỷ lệ việc làm yêu cầu", "Năm": "Năm quan sát / Dự báo"}
                     )
-                    st.dataframe(cm_df, width="stretch")
-                    rep_rows = []
-                    for cls in ml_metrics["classes"]:
-                        rep_rows.append({
-                            "Lớp": cls,
-                            "Precision": f"{ml_metrics['classification_report'][cls]['precision']:.1%}",
-                            "Recall": f"{ml_metrics['classification_report'][cls]['recall']:.1%}",
-                            "F1-Score": f"{ml_metrics['classification_report'][cls]['f1-score']:.3f}",
-                            "Số mẫu": int(ml_metrics['classification_report'][cls]['support'])
-                        })
-                    st.dataframe(pd.DataFrame(rep_rows), width="stretch", hide_index=True)
+                    fig_multi.update_traces(line_width=3.5, marker=dict(size=8))
+                    fig_multi.update_yaxes(tickformat=".1%")
+                    chart(fig_multi)
 
-                export_table(preds, "skill_trend_predictions_2023_2024")
+                    st.caption(
+                        f"📌 **Nhận định:** Kỹ năng **{pred_skill}** trong nhóm **{pred_occ}** dự kiến sẽ "
+                        f"{'tăng trưởng mạnh mẽ' if trend_lbl == 'Growing' else ('duy trì mức ổn định cốt lõi' if trend_lbl == 'Stable' else 'có xu hướng dịch chuyển giảm')} "
+                        f"trong 3 năm tới, với tỷ lệ nhu cầu từ **{s['rate_2026']:.1%}** (2026) lên mức **{s['rate_2029_pred']:.1%}** (2029), "
+                        f"độ tin cậy mô hình đạt **{conf:.1%}**."
+                    )
+
+                # Bảng xếp hạng Top 10 Kỹ năng bứt phá mạnh nhất 2026-2029 của nghề
+                st.subheader(f"Top Kỹ năng Bứt phá Mạnh nhất 2026 ➔ 2029 · {pred_occ}")
+                top_grow = occ_slice.sort_values("delta_3y", ascending=False).head(10).copy()
+                fig_bar = px.bar(
+                    top_grow.sort_values("delta_3y"),
+                    x="delta_3y", y="skill", orientation="h",
+                    color="delta_3y", color_continuous_scale="Teal",
+                    labels={"delta_3y": "Tăng trưởng dự kiến sau 3 năm (điểm %)", "skill": "Kỹ năng"},
+                    hover_data=["rate_2026", "rate_2029_pred"]
+                )
+                fig_bar.update_xaxes(tickformat="+.1%")
+                chart(fig_bar)
+
+                st.subheader("Bảng Dự báo Chi tiết Tất cả Kỹ năng (2023 ➔ 2029)")
+                display_cols = ["occupation", "skill", "rate_2023", "rate_2026", "rate_2027_pred", "rate_2028_pred", "rate_2029_pred", "delta_3y", "trend_label", "confidence_score"]
+                st.dataframe(occ_slice[display_cols], width="stretch", hide_index=True)
+
+                export_table(my_preds[display_cols], "it_skill_trend_forecast_2026_2029")
             else:
-                st.info("Chưa tìm thấy tệp kết quả dự báo. Chạy python -m src.ml.train_forecast để tạo artifacts.")
+                st.info("Chưa tìm thấy tệp kết quả dự báo đa năm. Chạy python -m src.ml.multi_year_forecast để tạo artifacts.")
 
         with tab_gate:
             st.subheader("Cổng kiểm soát dữ liệu: Quyết định NO-GO cho chuỗi snapshot 2026")

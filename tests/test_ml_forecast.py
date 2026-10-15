@@ -66,3 +66,33 @@ def test_load_predictions_from_gold():
     assert len(preds) > 0
     assert "accuracy" in metrics
     assert "macro_f1" in metrics
+
+
+def test_multi_year_forecasting_pipeline():
+    from dashboard.data import load_multi_year_forecast
+    from src.ml.multi_year_forecast import build_unified_multi_year_dataset, train_and_forecast_next_3_years
+
+    g23 = load_gold(dataset="legacy_2023")
+    g26 = load_gold(dataset="scoped_2026")
+
+    unified = build_unified_multi_year_dataset(g23.tables["skill_stats"], g26.tables["skill_stats"])
+    assert not unified.empty
+    assert "rate_2023" in unified.columns
+    assert "rate_2026" in unified.columns
+
+    model, forecast_df, metrics = train_and_forecast_next_3_years(unified, n_estimators=20)
+    assert not forecast_df.empty
+    assert "rate_2027_pred" in forecast_df.columns
+    assert "rate_2028_pred" in forecast_df.columns
+    assert "rate_2029_pred" in forecast_df.columns
+    assert "trend_label" in forecast_df.columns
+
+    assert metrics["directional_accuracy"] >= 0.60
+    assert metrics["backtest_mae"] < 0.05
+
+    # Check loaded predictions from gold artifacts
+    preds, loaded_metrics = load_multi_year_forecast()
+    assert preds is not None
+    assert loaded_metrics is not None
+    assert len(preds) == len(forecast_df)
+    assert loaded_metrics["forecast_window"] == "2027 - 2029 (2 to 3 years from present)"
