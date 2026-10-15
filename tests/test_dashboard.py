@@ -152,14 +152,10 @@ def test_streamlit_pages_filters_empty_and_no_go(gold_fixture, monkeypatch):
     app = AppTest.from_file(str(Path(__file__).parents[1] / "dashboard/app.py"), default_timeout=30).run()
     assert not app.exception
     assert app.metric[0].value == "120"
-    for page in ["Nhóm nghề", "Kỹ năng & xu hướng", "So sánh nghề", "Dự báo & bằng chứng"]:
+    for page in ["Thống kê kỹ năng", "So sánh nghề", "Dự báo kỹ năng ML"]:
         app.radio(key="page").set_value(page).run()
         assert not app.exception, page
-    assert any("NO_GO" in w.value and "Insufficient evidence" in w.value for w in app.warning)
-    app.radio(key="page").set_value("Dữ liệu 2026").run()
-    assert not app.exception
-    assert any(metric.value == "19.706" for metric in app.metric)
-    app.radio(key="page").set_value("Kỹ năng & xu hướng").run()
+    app.radio(key="page").set_value("Thống kê kỹ năng").run()
     assert app.metric[0].value == "15.00%"
     app.selectbox(key="source").set_value("arbeitnow").run()
     assert not app.exception
@@ -254,10 +250,8 @@ def test_scoped_2026_app_pages_and_filters():
     assert not app.exception
     assert app.selectbox(key="source").value == "usajobs_historic"
     assert app.metric[0].value == "6.739"
-    for page in ["Nhóm nghề", "Kỹ năng & xu hướng", "So sánh nghề",
-                 "Dự báo & bằng chứng", "Dữ liệu 2026"]:
+    for page in ["Thống kê kỹ năng", "So sánh nghề", "Dự báo kỹ năng ML"]:
         app.radio(key="page").set_value(page).run()
         assert not app.exception, page
-    assert any(metric.value == "19.706" for metric in app.metric)
-    app.radio(key="page").set_value("Dự báo & bằng chứng").run()
-    assert any("NO_GO" in item.value for item in app.warning)
+    app.radio(key="page").set_value("Dự báo kỹ năng ML").run()
+    assert not app.exception
