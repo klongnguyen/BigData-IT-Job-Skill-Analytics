@@ -3,6 +3,8 @@
 import argparse
 import hashlib
 import json
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
@@ -16,14 +18,28 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 BRONZE_FRESH_DIR = BASE_DIR / "data" / "bronze" / "global" / "fresh"
 DEFAULT_SOURCES = (
     ("arbeitnow", "https://www.arbeitnow.com/api/job-board-api"),
-    ("remotive", "https://remotive.com/api/remote-jobs?category=software-dev&limit=150"),
+    ("remotive", "https://remotive.com/api/remote-jobs"),
 )
 
 
-def _fetch(url):
+def _fetch(url, retries=3, sleep=time.sleep):
     request = urllib.request.Request(url, headers={"User-Agent": "BigDataJobSkillAnalytics/1.0"})
-    with urllib.request.urlopen(request, timeout=20) as response:
-        return json.loads(response.read().decode("utf-8"))
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                if getattr(response, "status", 200) == 204:
+                    raise ValueError("HTTP 204 returned no JSON page")
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            if error.code not in (429, 500, 502, 503, 504) or attempt == retries:
+                raise
+            retry_after = error.headers.get("Retry-After") if error.headers else None
+            delay = min(float(retry_after), 60.0) if retry_after and retry_after.isdecimal() else 2 ** attempt
+            sleep(delay)
+        except (TimeoutError, urllib.error.URLError):
+            if attempt == retries:
+                raise
+            sleep(2 ** attempt)
 
 
 def _checksum(record):
@@ -93,9 +109,12 @@ def _normalize_job(source, item, ingestion_id, collected_at):
 
 
 def ingest_fresh_data(bronze_dir=BRONZE_FRESH_DIR, sources=DEFAULT_SOURCES,
-                      fetch=_fetch, max_pages=100):
+                      fetch=_fetch, max_pages=100, request_delay_seconds=0.0,
+                      sleep=time.sleep):
     if max_pages <= 0:
         raise ValueError("max_pages must be positive")
+    if request_delay_seconds < 0:
+        raise ValueError("request_delay_seconds must be nonnegative")
     started_at = utc_now()
     run_id, stage, final = start_run(bronze_dir)
     ingestion_id = str(uuid.uuid4())
@@ -105,8 +124,9 @@ def ingest_fresh_data(bronze_dir=BRONZE_FRESH_DIR, sources=DEFAULT_SOURCES,
     try:
         for source, first_url in sources:
             result = {"source": source, "requested_url": first_url, "rows": 0,
-                      "pages": 0, "skipped_rows": 0, "errors": [], "coverage": "unknown"}
-            seen_urls = set()
+                      "pages": 0, "skipped_rows": 0, "duplicate_rows": 0,
+                      "errors": [], "coverage": "unknown"}
+            seen_urls, seen_ids = set(), set()
             current_url = first_url
             while current_url and result["pages"] < max_pages:
                 if current_url in seen_urls:
@@ -124,13 +144,18 @@ def ingest_fresh_data(bronze_dir=BRONZE_FRESH_DIR, sources=DEFAULT_SOURCES,
                             job = _normalize_job(source, item, ingestion_id, collected_at)
                             if job is None:
                                 result["skipped_rows"] += 1
+                            elif job["source_record_id"] in seen_ids:
+                                result["duplicate_rows"] += 1
                             else:
+                                seen_ids.add(job["source_record_id"])
                                 jobs.append(job)
                                 result["rows"] += 1
                         except (KeyError, TypeError, ValueError, OverflowError) as error:
                             result["skipped_rows"] += 1
                             result["errors"].append(f"Invalid record: {error}")
                     current_url, result["coverage"] = _next_page(payload, current_url, first_url)
+                    if current_url and request_delay_seconds:
+                        sleep(request_delay_seconds)
                 except Exception as error:
                     result["errors"].append(f"Fetch/page error: {error}")
                     break
@@ -181,5 +206,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bronze-dir", default=BRONZE_FRESH_DIR)
     parser.add_argument("--max-pages", type=int, default=100)
+    parser.add_argument("--request-delay-seconds", type=float, default=1.0)
+    parser.add_argument("--source", choices=("all", "arbeitnow", "remotive"), default="all")
     args = parser.parse_args()
-    ingest_fresh_data(bronze_dir=args.bronze_dir, max_pages=args.max_pages)
+    sources = DEFAULT_SOURCES if args.source == "all" else tuple(
+        item for item in DEFAULT_SOURCES if item[0] == args.source)
+    ingest_fresh_data(bronze_dir=args.bronze_dir, sources=sources, max_pages=args.max_pages,
+                      request_delay_seconds=args.request_delay_seconds)

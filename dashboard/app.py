@@ -228,7 +228,8 @@ def main():
         st.markdown("#### Để đi tiếp")
         st.write("Bổ sung chuỗi dữ liệu thật liên tục và có thể so sánh; kiểm định taxonomy trên nhãn độc lập; "
                  "đánh giá rolling-origin trên dữ liệu tương lai trước khi xét lại cổng dự báo.")
-        st.info("M2/HDFS còn mở. M8/M9 mới có đường serving Parquet và demo local; nghiệm thu tích hợp vẫn còn phía trước.")
+        st.info("M2: cổng kỹ thuật HDFS → Spark đã đạt; ETL Silver từ HDFS và nghiệm thu toàn mốc còn mở. "
+                "M8/M9: Parquet serving và demo local đã chạy; nghiệm thu tích hợp còn mở.")
 
     st.divider()
     st.caption(f"Gold run {meta['run_id']} · Hoàn tất {meta['completed_at']} · Taxonomy {meta['taxonomy_version']}")

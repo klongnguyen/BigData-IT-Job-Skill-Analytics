@@ -1,5 +1,25 @@
 # Runbook Phase 02 — ingestion, ETL và HDFS gate
 
+## Bổ sung Bronze 2026 (15/10/2026)
+
+Arbeitnow và Remotive là snapshot tin đang hoạt động; USAJOBS Historic `PositionSeries=2210` là dữ liệu quá khứ của riêng khu vực liên bang Mỹ. Chạy từng nguồn vào run bất biến, không ghi đè run cũ:
+
+```powershell
+python -m src.ingestion.fresh_ingestion --source arbeitnow --max-pages 100 --request-delay-seconds 1
+python -m src.ingestion.fresh_ingestion --source remotive --max-pages 1
+python -m src.ingestion.usajobs_historic_ingestion --start-date 2026-01-01 --end-date 2026-01-14 --max-pages 5
+```
+
+Với USAJOBS, lặp các khoảng tối đa 14 ngày đến ngày cần thu, xác minh mọi manifest `status=complete`, `coverage=complete` và các khoảng nối liền trước khi audit. Truy vấn cả tháng có thể trả 500 dòng rồi trang tiếp theo rỗng, nên run tháng đó phải coi là `partial` và chia nhỏ. Audit nhận **đường run cụ thể** để không quét nhầm run thử/partial:
+
+```powershell
+python -m src.collection.audit_2026_bronze <run-dir-1> <run-dir-2> ... --through-month 2026-10 --output docs/data/2026_ingestion_audit.json
+```
+
+Kiểm tra `input_runs`, `us_federal_window_coverage`, `duplicate_source_records_removed`, `title_classification` và từng `source_month_counts` trong audit. Dữ liệu Bronze local được `.gitignore` bỏ qua; [báo cáo 2026](../reviews/2026_DATA_EXPANSION_2026-10-15.md) chỉ rõ số liệu của đợt đã thu. Chưa dùng audit này để thay run Silver/Gold đã khóa.
+
+USAJOBS `teleworkEligible=Y` chỉ là đủ điều kiện telework, không chuyển thành `Remote`; khi thiếu chỉ báo remote riêng, Bronze để `remote=null`. `positionlocations` có thể gồm nhiều nơi và phải giữ toàn bộ. Khi đưa Arbeitnow lên giao diện, đặt liên kết về Arbeitnow.com theo [điều khoản API](https://www.arbeitnow.com/terms); Remotive cũng yêu cầu ghi nguồn và liên kết tin gốc.
+
 ## Môi trường đã kiểm tra
 
 Lượt local ngày 04/10/2026 dùng Python 3.11.9, PySpark 4.2.0, Java 17.0.10. Cài dependency Phase 02 bằng `python -m pip install -r requirements-phase02.txt`. PySpark đọc `JAVA_HOME` từ môi trường; mã không tự gán đường dẫn JDK/Hadoop theo máy.
@@ -46,3 +66,24 @@ python -m src.processing.hdfs_smoke --bronze-run <bronze-run-dir> --allow-partia
 ```
 
 Lệnh này yêu cầu URI có scheme `hdfs://`, upload file Bronze vào HDFS, đọc bằng Spark, ghi Parquet lên HDFS và đọc lại để so số dòng. Chỉ manifest `data/manifests/hdfs/hdfs_smoke_<run_id>.json` có `status=completed`, URI thật và count khớp mới là bằng chứng kỹ thuật cho HDFS. Sau đó cần đối chiếu thêm phạm vi input và điều kiện dữ liệu trong Final Plan trước khi đóng M2. Không dùng `file://`, thư mục local hoặc test bị skip để thay bằng chứng HDFS.
+
+## 5. Kết quả Docker HDFS ngày 15/10/2026
+
+[Review M2](../reviews/M2_HDFS_REVIEW_2026-10-15.md) đã đối chiếu hai smoke run trên Docker HDFS tại `hdfs://namenode:8020/bigdata_job_analy`:
+
+| Bronze run | Trạng thái nguồn | Evidence | Input → output |
+|---|---|---|---:|
+| `20261004T103235056713Z-0811f6613d3c` | Historical `complete/full_input` | [`20261014T173656587825Z-9aee99826405`](../../data/manifests/hdfs/hdfs_smoke_20261014T173656587825Z-9aee99826405.json) | **785.741 → 785.741** |
+| `20261004T075332383635Z-c9fddef628d7` | Fresh `partial/scoped` | [`20261014T173838902471Z-542df647c8cf`](../../data/manifests/hdfs/hdfs_smoke_20261014T173838902471Z-542df647c8cf.json) | **666 → 666** |
+
+Trong container `project-smoke` có mount repo tại `/workspace` và `PHASE02_HDFS_URI=hdfs://namenode:8020/bigdata_job_analy`, kiểm tra lại bằng:
+
+```bash
+cd /workspace
+python -m pytest -q tests/test_phase02_hdfs.py
+python -m pytest -q tests --ignore=tests/test_dashboard.py
+```
+
+Lần kiểm tra 15/10: **2 passed, 0 skipped** cho live HDFS và **27 passed, 0 skipped** cho pipeline. Trên host, có thể dùng `docker exec hdfs-namenode hdfs dfsadmin -report` và `docker exec hdfs-namenode hdfs fsck /bigdata_job_analy/phase02_smoke/<run-id> -files -blocks` để xác minh DataNode/block. Các file smoke hiện đọc được và FSCK trả `HEALTHY`, nhưng nhiều block yêu cầu 3 replica trong cluster chỉ có một DataNode, nên báo under-replicated.
+
+Smoke này **không chạy ETL tạo Silver**. Cổng kỹ thuật HDFS → Spark đã đạt; M2 còn cần quyết định phạm vi nghiệm thu và bằng chứng vận hành nêu trong review. Docker Compose của máy review nằm ngoài repo; cần cung cấp cấu hình tương đương nếu muốn tái lập ở máy khác.

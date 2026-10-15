@@ -1,0 +1,16 @@
+{
+  "bronze_uri": "hdfs://namenode:8020/bigdata_job_analy/phase02_smoke/20261014T173656587825Z-9aee99826405/bronze",
+  "completed_at": "2026-10-14T17:37:41Z",
+  "hdfs_uri": "hdfs://namenode:8020",
+  "input_manifest": "/workspace/tmp/phase03_acceptance/historical_full/runs/20261004T103235056713Z-0811f6613d3c/manifest.json",
+  "input_manifest_sha256": "48492bae64ab9e68a0ab93bc96814ced958a6ca7cc78af0e26e21bbd4207480a",
+  "input_rows": 785741,
+  "java_version": "17.0.20.1",
+  "output_rows": 785741,
+  "output_uri": "hdfs://namenode:8020/bigdata_job_analy/phase02_smoke/20261014T173656587825Z-9aee99826405/parquet",
+  "run_id": "20261014T173656587825Z-9aee99826405",
+  "schema_version": 1,
+  "spark_master": "local[2]",
+  "spark_version": "4.2.0",
+  "status": "completed"
+}

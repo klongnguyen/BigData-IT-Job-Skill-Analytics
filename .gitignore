@@ -51,5 +51,8 @@ models/
 # Reproducible local Gold runs are referenced by committed audit summaries.
 data/gold/global/runs/
 
+# Immutable API Bronze runs stay local; commit only their audit summaries.
+data/bronze/**/runs/
+
 # Streamlit secrets
 .streamlit/secrets.toml

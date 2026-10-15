@@ -32,7 +32,8 @@ Tài liệu này xác lập đặc tả **Unified Schema chuẩn (18 trường)*
 ```
 
 ### Nguyên tắc thị trường (Market Dimension):
-- Trong MVP: `market = "GLOBAL"` cho toàn bộ bản ghi.
+- `market = "GLOBAL"` cho snapshot Arbeitnow và Remotive trong MVP.
+- `market = "US_FEDERAL"` cho dữ liệu lịch sử USAJOBS series 2210 thu năm 2026. Đây là tập việc làm khu vực liên bang Mỹ có phạm vi riêng; không cộng với GLOBAL khi báo cáo xu hướng thị trường chung.
 - Kiến trúc lưu trữ và schema sẵn sàng hỗ trợ `market = "VIETNAM"` sau này mà không cần thay đổi cấu trúc bảng.
 
 ---
@@ -48,7 +49,7 @@ Tài liệu này xác lập đặc tả **Unified Schema chuẩn (18 trường)*
 | 5 | `location` | `StringType()` | `VARCHAR(255)` | Có | Địa điểm làm việc nguyên bản (Thành phố, Bang hoặc Remote) |
 | 6 | `city` | `StringType()` | `VARCHAR(128)` | Có | Tên thành phố chỉ khi nguồn có trường city đáng tin cậy; không cắt location tùy tiện |
 | 7 | `country` | `StringType()` | `VARCHAR(64)` | Có | Quốc gia tuyển dụng nếu xác định được; nhãn vùng như Worldwide/Europe để null |
-| 8 | `market` | `StringType()` | `VARCHAR(32)` | **Không** | Phân vùng thị trường: `"GLOBAL"` (MVP) hoặc `"VIETNAM"` (Future) |
+| 8 | `market` | `StringType()` | `VARCHAR(32)` | **Không** | Phân vùng thị trường: `"GLOBAL"`, `"US_FEDERAL"` (backfill phạm vi riêng), hoặc `"VIETNAM"` (Future) |
 | 9 | `work_mode` | `StringType()` | `VARCHAR(32)` | Có | Hình thức làm việc khi nguồn/chuỗi location chỉ rõ `Remote`, `Onsite` hoặc `Hybrid`; nếu không thì null |
 | 10 | `description` | `StringType()` | `TEXT` | Có | JD đã làm sạch nếu nguồn cung cấp; archive 2023 hiện tại không có JD |
 | 11 | `experience_level` | `StringType()` | `VARCHAR(32)` | Có | Cấp bậc kinh nghiệm (Junior, Mid, Senior, Lead, Unknown) |
@@ -57,7 +58,7 @@ Tài liệu này xác lập đặc tả **Unified Schema chuẩn (18 trường)*
 | 14 | `currency` | `StringType()` | `VARCHAR(16)` | Có | Đơn vị tiền tệ theo nguồn; thiếu bằng chứng thì null |
 | 15 | `posted_at` | `TimestampType()`| `TIMESTAMP` | Có | Thời điểm đăng tin UTC; thiếu/sai thì quarantine khỏi phân tích theo thời gian |
 | 16 | `collected_at` | `TimestampType()`| `TIMESTAMP` | Có | Thời điểm thu thập có trong provenance; archive lịch sử không tự có thời điểm này |
-| 17 | `source` | `StringType()` | `VARCHAR(64)` | **Không** | Nguồn gốc tin (`arbeitnow`, `remotive`, `kaggle_historical`...) |
+| 17 | `source` | `StringType()` | `VARCHAR(64)` | **Không** | Nguồn gốc tin (`arbeitnow`, `remotive`, `usajobs_historic`, `kaggle_historical`...) |
 | 18 | `skills` | `ArrayType(StringType())` | `JSON / ARRAY` | **Không** | Kỹ năng chuẩn hóa từ `job_skills` của archive hoặc trích từ JD fresh; nguồn gốc nằm trong provenance |
 
 `job_id`, `title`, `normalized_title`, `market`, `source` và `skills` là trường bắt buộc trong Silver. ID được sinh xác định từ nguồn và mã dòng nguồn ổn định (hoặc checksum bản ghi khi nguồn không có ID gốc), không dùng counter tăng theo thứ tự chạy.

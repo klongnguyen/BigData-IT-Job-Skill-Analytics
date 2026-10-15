@@ -42,3 +42,7 @@
 Đã tạo [biên bản đề xuất nghiệm thu M7](../reviews/M7_NO_GO_ACCEPTANCE.md) và [dossier JSON có SHA-256 nguồn](../data/m7_no_go_dossier.json) từ audit Phase 03. Hồ sơ khóa Gold run, chính sách GO/NO-GO, taxonomy, sáu gate checks và các số liệu **32 tháng thiếu / 19 occupation-month dưới ngưỡng / 8 chuỗi đạt hỗ trợ cơ bản**. Trạng thái là **sẵn sàng để xét nghiệm thu**, không phải M7 đã được nhóm/giảng viên chấp thuận hoặc có model dự báo.
 
 Kiểm thử mới: **11 test dossier đạt**; regression Spark/pipeline **26 passed, 1 skipped** (HDFS live); dashboard **13 passed** trong môi trường UI riêng. `PHASE02_HDFS_URI` chưa được cấu hình, vì vậy **M2 vẫn OPEN**. M4 còn chờ tập nhãn độc lập; nhánh model của M7 và M6 vẫn bị khóa bởi gate `NO_GO`.
+
+## Cập nhật 15/10/2026 — cổng kỹ thuật HDFS
+
+[Review M2 mới](../reviews/M2_HDFS_REVIEW_2026-10-15.md) xác minh Docker HDFS thật: historical `complete/full_input` **785.741 → 785.741**, fresh `partial` **666 → 666**; live HDFS test **2 passed, 0 skipped** và pipeline **27 passed, 0 skipped**. **Cổng kỹ thuật HDFS → Spark đã đạt**, thay cho trạng thái preflight 13/10 ở trên. **M2 vẫn OPEN/CONDITIONAL** đến khi chốt đường HDFS → ETL → Silver, vận hành nguồn và biên bản nghiệm thu. Dự báo vẫn `NO_GO`.

@@ -67,3 +67,7 @@
 | Môi trường và log khó tái lập | **Cải thiện.** `requirements-phase02.txt` khóa phiên bản đã chạy; ETL manifest ghi phiên bản Python/PySpark/Spark/Java, taxonomy/config checksum, input/output checksum và metric. Môi trường HDFS vẫn chưa được nghiệm thu. |
 
 **Kết luận mới:** các lỗi code Phase 02 đã được sửa và pipeline local đã qua test + một lần chạy có manifest; **M2 vẫn OPEN** cho đến khi phép thử HDFS → Spark thành công trên dịch vụ HDFS thật. Không dùng kết quả local scoped để tuyên bố đủ dữ liệu dự báo.
+
+## Cập nhật sau review — 15/10/2026
+
+Điều kiện HDFS kỹ thuật còn mở tại ngày 04/10 đã được kiểm chứng trên Docker HDFS thật: historical `complete/full_input` **785.741 → 785.741**, fresh `partial` **666 → 666**, live HDFS test **2 passed, 0 skipped** và regression pipeline **27 passed, 0 skipped**. Xem [review M2 ngày 15/10](M2_HDFS_REVIEW_2026-10-15.md) để đọc SHA manifest, URI, kết quả FSCK, ma trận P2-01…P2-11 và giới hạn. **Cổng kỹ thuật HDFS → Spark đạt; M2 vẫn cần chốt nghiệm thu toàn mốc.** Các phát hiện và số liệu ở phần review 04/10 bên trên được giữ làm lịch sử, không còn mô tả trạng thái HDFS hiện hành.
