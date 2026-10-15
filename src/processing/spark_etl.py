@@ -10,6 +10,7 @@ import re
 import html
 import uuid
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pyspark
 
@@ -409,6 +410,42 @@ def _directory_evidence(root):
     return {"sha256": digest.hexdigest(), "files": entries}
 
 
+def _stage_bronze_to_hdfs(spark, hdfs_root, run_id, input_runs, files_by_kind):
+    """Copy verified Bronze files to an immutable HDFS path before ETL reads them."""
+    parsed = urlparse(hdfs_root)
+    if parsed.scheme != "hdfs" or not parsed.netloc or not parsed.path.startswith("/"):
+        raise ValueError("--hdfs-root must be a genuine hdfs://host:port/absolute/path URI")
+    jvm = spark.sparkContext._jvm
+    conf = spark.sparkContext._jsc.hadoopConfiguration()
+    fs = jvm.org.apache.hadoop.fs.FileSystem.get(jvm.java.net.URI(hdfs_root), conf)
+    if fs.getScheme() != "hdfs":
+        raise RuntimeError("Resolved filesystem is not HDFS")
+    base = hdfs_root.rstrip("/") + "/phase02_etl/" + run_id
+    base_path = jvm.org.apache.hadoop.fs.Path(base)
+    if fs.exists(base_path):
+        raise FileExistsError(f"HDFS ETL path already exists: {base}")
+    if not fs.mkdirs(base_path):
+        raise RuntimeError(f"Could not create HDFS ETL path: {base}")
+    staged = {}
+    for run in input_runs:
+        kind = run["kind"]
+        target_dir = base + "/" + kind
+        if not fs.mkdirs(jvm.org.apache.hadoop.fs.Path(target_dir)):
+            raise RuntimeError(f"Could not create HDFS Bronze path: {target_dir}")
+        uris = []
+        for index, local_file in enumerate(files_by_kind[kind]):
+            local = Path(local_file).resolve()
+            uri = target_dir + f"/{index:04d}-{local.name}"
+            target = jvm.org.apache.hadoop.fs.Path(uri)
+            fs.copyFromLocalFile(jvm.org.apache.hadoop.fs.Path(local.as_uri()), target)
+            if fs.getFileStatus(target).getLen() != local.stat().st_size:
+                raise AssertionError(f"HDFS byte count differs from local Bronze: {uri}")
+            uris.append(uri)
+        run["hdfs_records_uris"] = uris
+        staged[kind] = uris
+    return staged
+
+
 def run_etl(
     silver_dir=SILVER_GLOBAL_DIR,
     provenance_dir=PROVENANCE_GLOBAL_DIR,
@@ -418,9 +455,14 @@ def run_etl(
     fresh_run=None,
     allow_partial_inputs=False,
     manifest_dir=None,
+    hdfs_root=None,
 ):
     if not historical_run and not fresh_run:
         raise ValueError("Choose --historical-run and/or --fresh-run; implicit Bronze scans are disabled")
+    if hdfs_root:
+        parsed = urlparse(hdfs_root)
+        if parsed.scheme != "hdfs" or not parsed.netloc or not parsed.path.startswith("/"):
+            raise ValueError("--hdfs-root must be a genuine hdfs://host:port/absolute/path URI")
     input_runs = []
     historical_files = []
     fresh_files = []
@@ -480,6 +522,13 @@ def run_etl(
     spark = None
     try:
         spark = create_spark_session()
+        if hdfs_root:
+            staged = _stage_bronze_to_hdfs(
+                spark, hdfs_root, run_id, input_runs,
+                {"historical": historical_files, "fresh": fresh_files},
+            )
+            historical_files = staged.get("historical", [])
+            fresh_files = staged.get("fresh", [])
         metrics = _run_etl(
             spark, staged_paths, historical_files, fresh_files,
             expected_input_rows=sum(run["rows"] for run in input_runs),
@@ -491,6 +540,8 @@ def run_etl(
             "status": "completed",
             "completed_at": utc_now(),
             "input_runs": input_runs,
+            "bronze_storage": "hdfs" if hdfs_root else "local",
+            "hdfs_root": hdfs_root if hdfs_root else None,
             "metrics": metrics,
             "environment": {
                 "python": sys.version.split()[0],
@@ -533,6 +584,7 @@ def _parse_args():
     parser.add_argument("--provenance-dir", default=PROVENANCE_GLOBAL_DIR, help="Provenance Parquet output directory")
     parser.add_argument("--quarantine-dir", default=QUARANTINE_GLOBAL_DIR, help="Quarantine Parquet output directory")
     parser.add_argument("--manifest-dir", help="Directory for the completed ETL run manifest")
+    parser.add_argument("--hdfs-root", help="Stage verified Bronze to hdfs:// and run Spark ETL from HDFS")
     parser.add_argument(
         "--replace-existing",
         action="store_true",
@@ -552,4 +604,5 @@ if __name__ == "__main__":
         fresh_run=args.fresh_run,
         allow_partial_inputs=args.allow_partial_inputs,
         manifest_dir=args.manifest_dir,
+        hdfs_root=args.hdfs_root,
     )

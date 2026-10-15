@@ -1,5 +1,7 @@
 # Review M2 — HDFS Docker đối chiếu Final Plan
 
+> **Cập nhật cuối ngày 15/10:** Đường HDFS Bronze → Spark ETL → Silver/provenance đã chạy thật với fresh run 666 dòng. Kết quả **661 Silver/provenance, 5 ID trùng, 0 quarantine**; [audit HDFS ETL](../data/m2_hdfs_etl_audit.json) khóa manifest/output SHA. FSCK của riêng đường run này `HEALTHY`, 0 missing/corrupt/under-replicated sau khi đặt replication 1 phù hợp lab một DataNode. Các mục bên dưới phản ánh thời điểm review ban đầu; điều kiện thiếu HDFS→ETL→Silver ở mục 4 đã được giải quyết bằng run mới. M2 vẫn mở vì fresh chưa có nhiều kỳ quan sát, cấu hình lab chưa được nghiệm thu và các run HDFS cũ có thể còn under-replicated.
+
 **Ngày review:** 15/10/2026 (Asia/Saigon)
 
 **Quyết định:** **Cổng kỹ thuật HDFS → Spark đã đạt**; **M2 Global Data Ingestion Ready vẫn mở, chờ chốt nghiệm thu toàn mốc**. Review này không thay đổi cổng dự báo `NO_GO`.

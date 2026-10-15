@@ -1,43 +1,40 @@
-# Sơ đồ tiến độ dự án — 15/10/2026
+# Sơ đồ tiến độ dự án — cập nhật 15/10/2026
 
-Sơ đồ này ghi **trạng thái theo bằng chứng**, không quy đổi thành phần trăm hoàn thành. Silver/Gold và dashboard là run local đã khóa ngày 04/10; HDFS là smoke live ngày 15/10. Đợt dữ liệu 2026 mới đã vào Bronze/audit ngày 15/10 nhưng chưa vào Silver/Gold.
+Trạng thái dựa trên bằng chứng chạy thật và giới hạn nghiệm thu, không quy đổi thành phần trăm. Nhánh Gold hiện hành dùng archive 2023 và snapshot API 666 dòng; đợt Bronze 2026 mới được trình bày riêng.
 
 ```mermaid
 flowchart TB
-    A["Input run đã khóa<br/>Archive 2023: 785.741 dòng<br/>API 2026: 666 dòng, partial"] --> B["M2 · Bronze + manifest<br/>local: đã có"]
-    B --> C["M3 · Spark Silver + provenance<br/>786.300 tin · đã kiểm chứng local"]
-    C --> D["M5 · Gold mô tả<br/>5 bảng · đã kiểm chứng local"]
-    D --> E["M8 · Parquet serving<br/>đã chạy local"]
-    E --> F["M9 · JobScope<br/>5 trang · đã chạy local"]
+    A["Archive 2023 + API snapshot 666"] --> B["Bronze + manifest đã khóa"]
+    B --> C["Spark ETL local → Silver/provenance<br/>786.300 tin, 1:1"]
+    C --> D["Gold mô tả · 5 bảng<br/>run 04/10"]
+    D --> E["Parquet serving · verified"]
+    D --> M["MongoDB serving · 5 bảng<br/>audit/hash verified 15/10"]
+    E --> F["JobScope · 6 trang"]
+    M --> F
+    B --> H["HDFS Bronze → Spark ETL → Silver<br/>666 → 661, đã chạy thật 15/10"]
+    H --> H2["M2 còn mở: snapshot nhiều kỳ,<br/>ổn định nguồn, nghiệm thu lab"]
 
-    N["API 2026 mới<br/>19.706 ID nguồn raw"] --> N2["23 Bronze run được audit<br/>GLOBAL và US_FEDERAL tách biệt"]
-    N2 --> N3["M4 · lọc phạm vi IT / đánh giá taxonomy<br/>91,7% title chưa khớp 8 nghề"]
-    N3 -. "chờ chất lượng và nghiệm thu" .-> C
+    N["Bronze 2026 mới · 19.706 ID"] --> N2["23 run đã audit<br/>GLOBAL / US_FEDERAL tách biệt"]
+    N2 --> V["Trang kiểm kê Bronze 2026"]
+    N2 --> L["M4 · mẫu 95 JD local<br/>chờ gán nhãn độc lập"]
+    L -. "chưa qua gate chất lượng" .-> C
 
-    B -.-> H["HDFS → Spark → Parquet<br/>cổng kỹ thuật đạt 15/10"]
-    H -.-> H2["M2 còn mở: HDFS → ETL → Silver,<br/>thu fresh định kỳ, replica, nghiệm thu"]
-    C -.-> C2["M3 còn nghiệm thu dataset"]
-    C -.-> T["M4 còn đánh giá taxonomy<br/>trên nhãn độc lập"]
-    D -.-> D2["M5 còn nghiệm thu phân tích"]
-    E -.-> E2["M8 còn MongoDB nếu yêu cầu<br/>và nghiệm thu tích hợp"]
-    F -.-> F2["M9 còn demo và nghiệm thu tích hợp"]
+    D --> G{"Gate dự báo NO_GO<br/>32 tháng thiếu trong Gold run"}
+    G --> G1["M6 / model M7 chờ dữ liệu đủ điều kiện"]
+    G --> G2["Hồ sơ M7 NO_GO đã soạn<br/>chờ nghiệm thu"]
 
-    D --> G{"Cổng dự báo của Gold đã khóa<br/>NO_GO · thiếu 32 tháng"}
-    G --> G1["M6 · ML Dataset<br/>chưa triển khai, bị chặn"]
-    G --> G2["M7 · mô hình dự báo<br/>chưa triển khai, bị chặn"]
-    G --> G3["M7 · hồ sơ NO-GO<br/>đã soạn, chờ chấp thuận"]
+    F --> Z["M10 · báo cáo, nội dung slide,<br/>kịch bản demo đã soạn"]
+    H2 --> Z2["Nghiệm thu nhóm/giảng viên còn mở"]
+    G2 --> Z2
+    L --> Z2
+    Z --> Z2
 
-    F2 --> Z["M10 · báo cáo cuối và bàn giao<br/>chưa hoàn tất"]
-    G3 --> Z
-
-    classDef verified fill:#d8f3dc,stroke:#2d6a4f,color:#183a27;
+    classDef done fill:#d8f3dc,stroke:#2d6a4f,color:#183a27;
     classDef pending fill:#fff3cd,stroke:#a66b00,color:#4d3500;
     classDef blocked fill:#f8d7da,stroke:#a02a35,color:#5c1720;
-    class A,B,C,D,E,F,H,N,N2 verified;
-    class H2,C2,T,D2,E2,F2,G3,Z,N3 pending;
-    class G,G1,G2 blocked;
+    class A,B,C,D,E,F,H,M,N,N2,V,Z done;
+    class H2,L,G2,Z2 pending;
+    class G,G1 blocked;
 ```
 
-**Chú giải:** xanh = có bằng chứng triển khai local/kỹ thuật; vàng = còn việc hoặc nghiệm thu; đỏ = cổng dự báo `NO_GO`, nhánh model bị chặn. M2 HDFS technical gate đạt **không** đồng nghĩa M2 được nghiệm thu. 19.706 bản ghi Bronze mới **không phải** 19.706 tin IT đã xác nhận; dashboard vẫn đọc Gold cũ và chưa công bố dự báo.
-
-**Nguồn đối chiếu:** [báo cáo tiến độ](../../README.md), [audit Bronze 2026](../data/2026_ingestion_audit.json), [báo cáo dữ liệu 2026](../reviews/2026_DATA_EXPANSION_2026-10-15.md), [review M2 HDFS](../reviews/M2_HDFS_REVIEW_2026-10-15.md), [báo cáo Phase 03](../reviews/PHASE_03_ANALYTICS_REPORT.md), [hồ sơ M7 NO-GO](../reviews/M7_NO_GO_ACCEPTANCE.md), [Final Plan](../../FINAL_PLAN_BigData_IT_Job_Market_Skill_Forecasting.md).
+M3/M5 có output local được kiểm chứng, M8 có cả Parquet và MongoDB, M9 có giao diện chạy và test. M2/M3/M4/M5/M7/M8/M9/M10 vẫn cần các quyết định nghiệm thu nêu trong [README](../../README.md) và [báo cáo cuối](../final/FINAL_REPORT_2026-10-15.md). Đường HDFS→Silver là run kiểm thử fresh 666 dòng, không thay Gold 786.300 tin. Bản ghi Bronze 2026 không được coi là nhu cầu IT đã xác nhận; forecast giữ `NO_GO`.

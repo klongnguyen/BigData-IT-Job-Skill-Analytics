@@ -3,6 +3,7 @@
 from pathlib import Path
 import os
 import sys
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -21,7 +22,7 @@ SOURCES = {
     "remotive": "Remotive · snapshot 2026",
 }
 ORIGINS = {"source_tags": "Nhãn kỹ năng từ nguồn", "extracted_from_jd": "Trích xuất từ mô tả công việc"}
-PAGES = ["Tổng quan", "Nhóm nghề", "Kỹ năng & xu hướng", "So sánh nghề", "Dự báo & bằng chứng"]
+PAGES = ["Tổng quan", "Nhóm nghề", "Kỹ năng & xu hướng", "So sánh nghề", "Dự báo & bằng chứng", "Dữ liệu 2026"]
 PALETTE = ["#13786D", "#46A69A", "#88BEB4", "#BF8C42", "#708CA4"]
 
 
@@ -62,12 +63,20 @@ def main():
     st.markdown('<div class="hero">Thị trường IT, nhìn từ dữ liệu.</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Khám phá nhóm nghề, kỹ năng và xu hướng trong các nguồn tuyển dụng đã thu thập.</div>', unsafe_allow_html=True)
     try:
-        run = load_gold(audit_path=os.environ.get("JOB_ANALYTICS_AUDIT"))
+        backend = os.environ.get("JOB_GOLD_BACKEND", "parquet").lower()
+        if backend == "mongo":
+            from src.serving.mongo_gold import load_gold_mongo
+            run = load_gold_mongo(audit_path=os.environ.get("JOB_ANALYTICS_AUDIT"),
+                                  db_name=os.environ.get("JOB_MONGO_DB", "jobscope"))
+        elif backend == "parquet":
+            run = load_gold(audit_path=os.environ.get("JOB_ANALYTICS_AUDIT"))
+        else:
+            raise GoldError("JOB_GOLD_BACKEND must be parquet or mongo")
     except GoldError as exc:
         st.error("Không thể mở dữ liệu Gold đã xác minh.")
         st.code(str(exc), language=None)
-        st.info("Khôi phục đúng run Parquet được tham chiếu trong docs/data/phase03_analytics_audit.json. "
-                "Xem docs/planning/dashboard_runbook.md để chạy lại pipeline. Không có dữ liệu thay thế tự động.")
+        st.info("Khôi phục run Gold được tham chiếu trong docs/data/phase03_analytics_audit.json "
+                "theo backend đã chọn. Xem docs/planning/dashboard_runbook.md.")
         st.stop()
 
     meta, tables = run.manifest, run.tables
@@ -87,7 +96,7 @@ def main():
         st.caption("DỮ LIỆU ĐÃ XÁC MINH")
         st.write(f"{number(meta['input']['silver_rows'])} tin trong toàn bộ run")
         st.caption(f"Xử lý: {meta['completed_at']} · Taxonomy {meta['taxonomy_version']}")
-        st.caption("Gold Parquet · chỉ đọc · SHA-256 đã đối chiếu")
+        st.caption(f"Gold {backend.upper()} · chỉ đọc · SHA-256 đã đối chiếu")
         with st.expander("Run ID"):
             st.code(meta["run_id"], language=None)
 
@@ -95,7 +104,7 @@ def main():
     st.divider()
     st.caption(f"NGUỒN: {SOURCES.get(source, source)} · {len(months)} tháng được chọn · "
                f"{len(occupations)} nhóm nghề · Chỉ mô tả mẫu thu thập, không đại diện toàn thị trường.")
-    if source != "kaggle_historical_archive":
+    if source != "kaggle_historical_archive" and page != PAGES[5]:
         st.warning("Snapshot API có phạm vi giới hạn (partial/scoped). Số mẫu nhỏ và coverage thay đổi; "
                    "không so sánh trực tiếp số tin với archive 2023.")
     occ = select_scope(tables["occupation_stats"], source, months, occupations)
@@ -104,8 +113,29 @@ def main():
     n = int(occ.job_count.sum())
     if n == 0:
         st.info("Không có quan sát trong phạm vi này. Hãy chọn lại tháng hoặc nhóm nghề ở thanh bên.")
-        if page != PAGES[4]:
+        if page not in PAGES[4:]:
             st.stop()
+
+    if page == PAGES[5]:
+        st.subheader("Dữ liệu mới năm 2026 · kiểm kê Bronze")
+        audit = json.loads((ROOT / "docs/data/2026_ingestion_audit.json").read_text(encoding="utf-8"))
+        rows = pd.DataFrame(audit["source_month_counts"])
+        counts = rows.groupby(["market", "source"], as_index=False).jobs.sum()
+        cols = st.columns(3)
+        cols[0].metric("ID nguồn duy nhất", number(audit["unique_source_records"]))
+        cols[1].metric("Run Bronze đã audit", str(len(audit["input_runs"])))
+        cols[2].metric("Title chưa khớp 8 nhóm", number(audit["title_classification"]["unclassified_title_jobs"]))
+        st.warning("Đây là bản ghi Bronze theo phạm vi từng nguồn. Chưa xác nhận toàn bộ là việc làm IT; "
+                   "chưa đưa vào Silver/Gold hay cổng dự báo. US_FEDERAL là thị trường liên bang Mỹ riêng.")
+        selected = st.selectbox("Nguồn Bronze", sorted(rows.source.unique()), key="bronze_source")
+        scoped = rows.loc[rows.source.eq(selected)].sort_values("month")
+        st.caption(f"{selected} · {scoped.market.iloc[0]} · các tháng không có trong bảng là chưa quan sát, không phải 0 tin.")
+        chart(px.bar(scoped, x="month", y="jobs", color="market", color_discrete_sequence=PALETTE,
+                     labels={"month": "Tháng đăng", "jobs": "Bản ghi nguồn"}))
+        st.dataframe(counts, width="stretch", hide_index=True)
+        st.caption("Arbeitnow/Remotive là snapshot; 10/2026 và dữ liệu đến 15/10 là kỳ chưa kết thúc. "
+                   "91,7% tiêu đề của đợt mới chưa khớp taxonomy v0.1. Xem báo cáo 2026 để biết độ phủ và điều khoản nguồn.")
+        st.stop()
 
     if page in PAGES[:2]:
         evidence_n = int(evidence.skill_evidence_jobs.sum())

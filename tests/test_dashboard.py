@@ -156,6 +156,9 @@ def test_streamlit_pages_filters_empty_and_no_go(gold_fixture, monkeypatch):
         app.radio(key="page").set_value(page).run()
         assert not app.exception, page
     assert any("NO_GO" in w.value and "Insufficient evidence" in w.value for w in app.warning)
+    app.radio(key="page").set_value("Dữ liệu 2026").run()
+    assert not app.exception
+    assert any(metric.value == "19.706" for metric in app.metric)
     app.radio(key="page").set_value("Kỹ năng & xu hướng").run()
     assert app.metric[0].value == "15.00%"
     app.selectbox(key="source").set_value("arbeitnow").run()

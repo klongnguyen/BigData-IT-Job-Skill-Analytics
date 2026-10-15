@@ -1,0 +1,32 @@
+{
+  "manifest_sha256": "2b37892022882e834b5437555c5c567aa2ab31103dc1d581b9b2f18cd9e7c74d",
+  "run_id": "20261004T110131548191Z-e38fa7303cf4",
+  "schema_version": 1,
+  "tables": {
+    "market_stats": {
+      "collection": "gold_20261004T110131548191Z-e38fa7303cf4_market_stats",
+      "rows": 15,
+      "sha256": "cfffa0cdedb030447bbe90c8e1d01ce2f51794be6ffa85b523ec8c3cd0b3de23"
+    },
+    "occupation_stats": {
+      "collection": "gold_20261004T110131548191Z-e38fa7303cf4_occupation_stats",
+      "rows": 127,
+      "sha256": "091d81dce9b6e140fde74807423e356a78eb35481d11e31efa60aa585ec8ae7e"
+    },
+    "skill_evidence_stats": {
+      "collection": "gold_20261004T110131548191Z-e38fa7303cf4_skill_evidence_stats",
+      "rows": 234,
+      "sha256": "3f71d86e89ba5fb82dba9f2fa223db49837d7d8b04898b5b514a5d11f12122e2"
+    },
+    "skill_stats": {
+      "collection": "gold_20261004T110131548191Z-e38fa7303cf4_skill_stats",
+      "rows": 4538,
+      "sha256": "24161fab065d543d5fb169e7d9ef55c6dddbb13e86cf5be6a628b101dc03a61a"
+    },
+    "skill_trends": {
+      "collection": "gold_20261004T110131548191Z-e38fa7303cf4_skill_trends",
+      "rows": 4538,
+      "sha256": "aa7ecba17dd810af07d5b99ff578389b64271e05899e29acdceb08f4ff805db5"
+    }
+  }
+}
