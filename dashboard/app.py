@@ -10,6 +10,7 @@ if str(ROOT) not in sys.path:
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from dashboard.data import (
@@ -285,27 +286,37 @@ def main():
                 kpi_cols[4].metric("Xu hướng 3 năm", f"{badge_icon} {trend_lbl}", f"{delta_3y:+.1%}")
 
                 st.subheader("Biểu đồ Chuỗi Thời gian: Thực tế Quan sát & Đường Phóng Dự báo (2023 ➔ 2029)")
-                timeline_df = pd.DataFrame([
-                    {"Năm": "2023", "Tỷ lệ nhu cầu": s["rate_2023"], "Giai đoạn": "Thực tế lịch sử"},
-                    {"Năm": "2024", "Tỷ lệ nhu cầu": s["rate_2024"], "Giai đoạn": "Thực tế lịch sử"},
-                    {"Năm": "2025", "Tỷ lệ nhu cầu": s["rate_2025"], "Giai đoạn": "Thực tế lịch sử"},
-                    {"Năm": "2026", "Tỷ lệ nhu cầu": s["rate_2026"], "Giai đoạn": "Hiện tại (Baseline)"},
-                    {"Năm": "2027", "Tỷ lệ nhu cầu": s["rate_2027_pred"], "Giai đoạn": f"Dự báo ({trend_lbl})"},
-                    {"Năm": "2028", "Tỷ lệ nhu cầu": s["rate_2028_pred"], "Giai đoạn": f"Dự báo ({trend_lbl})"},
-                    {"Năm": "2029", "Tỷ lệ nhu cầu": s["rate_2029_pred"], "Giai đoạn": f"Dự báo ({trend_lbl})"},
-                ])
+                fig_multi = go.Figure()
 
-                fig_multi = px.line(
-                    timeline_df, x="Năm", y="Tỷ lệ nhu cầu", color="Giai đoạn", markers=True,
-                    color_discrete_map={
-                        "Thực tế lịch sử": "#46A69A",
-                        "Hiện tại (Baseline)": "#13786D",
-                        f"Dự báo ({trend_lbl})": lbl_color,
-                    },
-                    labels={"Tỷ lệ nhu cầu": "Tỷ lệ việc làm yêu cầu", "Năm": "Năm quan sát / Dự báo"}
+                # 1. Đường Thực tế Lịch sử (2023 - 2026) - Nét liền liên tục
+                fig_multi.add_trace(go.Scatter(
+                    x=["2023", "2024", "2025", "2026"],
+                    y=[s["rate_2023"], s["rate_2024"], s["rate_2025"], s["rate_2026"]],
+                    mode="lines+markers",
+                    name="Thực tế lịch sử (2023 – 2026)",
+                    line=dict(color="#13786D", width=3.5),
+                    marker=dict(size=8, color="#13786D"),
+                    hovertemplate="Năm %{x}<br>Tỷ lệ thực tế: %{y:.2%}<extra></extra>"
+                ))
+
+                # 2. Đường Phóng Dự báo (2026 - 2029) - Nối liền từ 2026 bằng nét đứt
+                fig_multi.add_trace(go.Scatter(
+                    x=["2026", "2027", "2028", "2029"],
+                    y=[s["rate_2026"], s["rate_2027_pred"], s["rate_2028_pred"], s["rate_2029_pred"]],
+                    mode="lines+markers",
+                    name=f"Dự báo ML ({trend_lbl})",
+                    line=dict(color=lbl_color, width=3.5, dash="dash"),
+                    marker=dict(size=8, color=lbl_color),
+                    hovertemplate="Năm %{x}<br>Tỷ lệ dự báo: %{y:.2%}<extra></extra>"
+                ))
+
+                fig_multi.update_layout(
+                    xaxis_title="Năm quan sát / Dự báo",
+                    yaxis_title="Tỷ lệ việc làm yêu cầu",
+                    yaxis=dict(tickformat=".1%"),
+                    hovermode="x unified",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
                 )
-                fig_multi.update_traces(line_width=3.5, marker=dict(size=8))
-                fig_multi.update_yaxes(tickformat=".1%")
                 chart(fig_multi)
 
             st.subheader(f"Top Kỹ năng Bứt phá Mạnh nhất 2026 ➔ 2029 · {pred_occ}")
