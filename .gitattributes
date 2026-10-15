@@ -1,0 +1,5 @@
+# Ensure consistent line endings across platforms
+* text=auto
+*.json text eol=lf
+*.py text eol=lf
+*.md text eol=lf

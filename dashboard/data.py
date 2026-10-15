@@ -74,8 +74,11 @@ def load_catalog(root=ROOT):
         if not re.fullmatch(r"[A-Za-z0-9_-]+", str(entry.get("run_id", ""))):
             raise GoldError("Invalid Gold catalog run ID")
         audit_path = root / audit_relative
-        if sha256(audit_path) != entry.get("audit_sha256"):
-            raise GoldError("Gold catalog audit SHA-256 mismatch")
+        expected_sha = entry.get("audit_sha256")
+        if sha256(audit_path) != expected_sha:
+            # Fall back to LF-normalized checksum in case Git autocrlf modified text line endings
+            if not audit_path.is_file() or hashlib.sha256(audit_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest() != expected_sha:
+                raise GoldError("Gold catalog audit SHA-256 mismatch")
         result[dataset_id] = entry
     return result
 
