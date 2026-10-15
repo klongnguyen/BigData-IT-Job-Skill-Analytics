@@ -1,15 +1,22 @@
 {
   "model_name": "GradientBoosting_MultiYearTrendForecaster",
   "framework": "PySpark MLlib / Scikit-Learn Ensemble",
-  "training_window": "2023 - 2026",
+  "training_window": "2023 - 2026 (Continuous Real Observations)",
   "forecast_window": "2027 - 2029 (2 to 3 years from present)",
+  "data_sources": {
+    "2023": "Historical Kaggle IT Archive (785,741 jobs)",
+    "2024": "Archive 1 (LinkedIn) & Archive 2 (AI Jobs) (15,220 IT jobs)",
+    "2025": "Archive 2 (AI Jobs) (3,328 IT jobs)",
+    "2026": "Scoped IT Analytic (8,370 jobs)",
+    "total_jobs": 812659
+  },
   "total_series": 299,
-  "backtest_mae": 0.0038,
-  "backtest_r2": 0.9995,
-  "directional_accuracy": 0.9532,
+  "backtest_mae": 0.0157,
+  "backtest_r2": 0.9894,
+  "directional_accuracy": 0.8595,
   "trend_distribution": {
-    "Stable": 158,
-    "Growing": 92,
-    "Declining": 49
+    "Stable": 133,
+    "Growing": 89,
+    "Declining": 77
   }
 }

@@ -50,22 +50,23 @@ Tài liệu này là bản nội dung chi tiết bám sát [đề cương 10 sli
 * **Độ chính xác thống kê:** Tháng không có dữ liệu được ghi nhận là khoảng trống (gap), không tự ý điền giá trị 0; mẫu số tính tỷ lệ kỹ năng luôn gắn liền với tổng số tin của từng nhóm nghề tương ứng.
 
 ## Slide 8: Ứng dụng Trực quan hóa JobScope Dashboard
-* **Tính năng giao diện Streamlit (6 trang chuyên biệt):**
-  * Hỗ trợ bộ lọc phân cấp an toàn: `Dataset → Market → Source → Month → Occupation`.
-  * Trang khảo sát luồng dữ liệu Bronze → Silver → Gold trực quan.
-  * Khám phá phân bổ kỹ năng, nhóm nghề, tương quan nhu cầu tuyển dụng.
-* **Xử lý thiếu bằng chứng:** Với nguồn USAJOBS chưa có trích xuất kỹ năng chuẩn hóa, hệ thống hiển thị trạng thái thiếu chứng cứ minh bạch, tuyệt đối không tạo tỷ lệ giả.
+* **Tính năng giao diện Streamlit (4 chuyên mục trọng tâm):**
+  * **Tổng quan:** Toàn cảnh quy mô tuyển dụng, phân bố nhóm nghề và diễn biến thị trường theo thời gian.
+  * **Thống kê kỹ năng:** Thống kê chi tiết tỷ lệ nhu cầu, số tin thực tế, Top kỹ năng phổ biến nhất của nghề và xu hướng qua các tháng.
+  * **So sánh nghề:** So sánh trực quan cơ cấu kỹ năng giữa các nhóm nghề công nghệ.
+  * **Dự báo kỹ năng ML:** Hiển thị trực diện dự báo xu hướng tương lai 2026 ➔ 2029 kèm các thẻ KPI hiệu năng.
+* **Độ chính xác thống kê:** Dữ liệu chuẩn hóa theo mẫu số từng nghề, trực quan hóa biểu đồ đường liên tục và cho phép xuất file CSV phục vụ báo cáo.
 
-## Slide 9: Mô hình Dự báo Máy học Đa Năm (2026 ➔ 2029)
-* **Hợp nhất Dữ liệu Chung Qua Các Năm:** Gộp toàn bộ 794.111 tin tuyển dụng (2023–2026) thành chuỗi dữ liệu đa năm thống nhất, không tách rời từng năm.
+## Slide 9: Mô hình Dự báo Máy học Đa Năm (2026 ➔ 2029) với Dữ liệu 4 Năm Thực tế
+* **Hợp nhất Dữ liệu Toàn diện 4 Năm (2023 – 2026):** Tích hợp hơn **812.659 tin tuyển dụng thực tế** (Kaggle Archive 2023, LinkedIn 2024, AI Jobs 2024-2025, Scoped 2026), lấp trọn vẹn khoảng gián đoạn bằng dữ liệu thực tế.
 * **Mô hình Dự báo Xu hướng Kỹ năng 2–3 Năm Tới (Spark MLlib / Gradient Boosting):**
-  * Huấn luyện mô hình hồi quy đa bước (Multi-Step Time-Series Forecaster) dựa trên CAGR, gia tốc và độ dốc xu hướng.
+  * Huấn luyện mô hình hồi quy đa bước (Multi-Step Time-Series Forecaster) dựa trên CAGR, gia tốc và độ dốc dịch chuyển từ dữ liệu 4 năm liên tục.
   * Dự phóng tỷ lệ nhu cầu kỹ năng cho **2027 (+1 năm)**, **2028 (+2 năm)** và **2029 (+3 năm)** bắt đầu từ mốc hiện tại 2026.
 * **Hiệu năng Đánh giá Kiểm thử (Backtesting):**
-  * **Độ chính xác chiều hướng (Directional Accuracy):** **`95,3%`** (dự đoán đúng xu hướng tăng/giảm).
-  * **Sai số tuyệt đối (MAE):** **`0,38%`** | **Hệ số xác định (R²):** **`0,9995`**.
-  * **Xu hướng phân bổ:** 92 kỹ năng Bùng nổ tăng trưởng (`Growing` 🚀), 158 kỹ năng Ổn định cốt lõi (`Stable` ⚖️), 49 kỹ năng Dịch chuyển giảm (`Declining` 📉).
-* **Trực quan hóa Thực tế:** Đường chuỗi thời gian liên tục từ thực tế quá khứ (2023–2026) nối tiếp với đường phóng dự báo tương lai tới năm 2029 trên Dashboard JobScope.
+  * **Độ chính xác chiều hướng (Directional Accuracy):** **`86,0%`** (dự đoán đúng xu hướng tăng/giảm trên dữ liệu thực tế).
+  * **Sai số tuyệt đối (MAE):** **`1,57%`** | **Hệ số xác định (R²):** **`0,9894`**.
+  * **Xu hướng phân bổ:** 89 kỹ năng Bùng nổ tăng trưởng (`Growing` 🚀), 133 kỹ năng Ổn định cốt lõi (`Stable` ⚖️), 77 kỹ năng Dịch chuyển giảm (`Declining` 📉).
+* **Trực quan hóa Thực tế:** Biểu đồ đường chuỗi thời gian 7 năm liên tục không đứt gãy từ thực tế quá khứ (2023–2026) nối tiếp với đường phóng dự báo tương lai tới năm 2029 trên Dashboard JobScope.
 
 ## Slide 10: Tổng kết Đồ án & Đóng góp
 * **Kết quả đạt được:**

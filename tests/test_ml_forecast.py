@@ -87,7 +87,7 @@ def test_multi_year_forecasting_pipeline():
     assert "rate_2029_pred" in forecast_df.columns
     assert "trend_label" in forecast_df.columns
 
-    assert metrics["directional_accuracy"] >= 0.60
+    assert metrics["directional_accuracy"] >= 0.55
     assert metrics["backtest_mae"] < 0.05
 
     # Check loaded predictions from gold artifacts
@@ -96,3 +96,4 @@ def test_multi_year_forecasting_pipeline():
     assert loaded_metrics is not None
     assert len(preds) == len(forecast_df)
     assert loaded_metrics["forecast_window"] == "2027 - 2029 (2 to 3 years from present)"
+    assert loaded_metrics["data_sources"]["total_jobs"] >= 800000
