@@ -36,12 +36,12 @@ def assess_predictive_gate(occupation_rows, input_runs, policy_decision="NO_GO")
         count = int(row["job_count"])
         if count < 0:
             raise ValueError("Occupation job count cannot be negative")
-        key = (str(row["source"]), str(row["occupation"]))
+        key = (str(row.get("market") or "GLOBAL"), str(row["source"]), str(row["occupation"]))
         if month in groups[key]:
             raise ValueError(f"Duplicate occupation-month in gate input: {key}, {row['month']}")
         groups[key][month] = count
         observed_months.add(month)
-        by_source_month[(key[0], month)] += count
+        by_source_month[(key[0], key[1], month)] += count
         below_threshold += count < MIN_JOBS_PER_OCCUPATION_MONTH
 
     if not observed_months:
@@ -50,7 +50,7 @@ def assess_predictive_gate(occupation_rows, input_runs, policy_decision="NO_GO")
     missing_months = [_month_text(value) for value in range(start, end + 1)
                       if value not in observed_months]
     series = []
-    for (source, occupation), counts in sorted(groups.items()):
+    for (market, source, occupation), counts in sorted(groups.items()):
         eligible = {month for month, count in counts.items()
                     if count >= MIN_JOBS_PER_OCCUPATION_MONTH}
         longest = current = 0
@@ -63,6 +63,7 @@ def assess_predictive_gate(occupation_rows, input_runs, policy_decision="NO_GO")
             for month in eligible
         )
         series.append({
+            "market": market,
             "source": source,
             "occupation": occupation,
             "observed_months": len(counts),
@@ -76,16 +77,22 @@ def assess_predictive_gate(occupation_rows, input_runs, policy_decision="NO_GO")
         })
 
     source_months = defaultdict(set)
-    for source, month in by_source_month:
-        source_months[source].add(month)
-    source_overlap_months = len(set.intersection(*source_months.values())) if len(source_months) > 1 else 0
+    market_sources = defaultdict(set)
+    for market, source, month in by_source_month:
+        source_months[(market, source)].add(month)
+        market_sources[market].add(source)
+    overlaps = []
+    for market, sources in market_sources.items():
+        if len(sources) > 1:
+            overlaps.append(len(set.intersection(*(source_months[(market, source)] for source in sources))))
+    source_overlap_months = min(overlaps) if overlaps else 0
     scoped_inputs = [run["run_id"] for run in input_runs if run.get("status") != "complete"]
     checks = [
         {"id": "policy_decision", "status": "FAIL" if policy_decision != "GO" else "PASS",
          "detail": f"Current GO/NO-GO decision: {policy_decision}"},
         {"id": "calendar_continuity", "status": "FAIL" if missing_months else "PASS",
          "detail": f"{len(missing_months)} months without observed input between first and last month"},
-        {"id": "source_comparability", "status": "FAIL" if len(source_months) > 1 and not source_overlap_months else "NOT_ELIGIBLE",
+        {"id": "source_comparability", "status": "FAIL" if overlaps and not source_overlap_months else "NOT_ELIGIBLE",
          "detail": f"{source_overlap_months} overlapping observed months across sources; no source-mix adjustment established"},
         {"id": "occupation_support", "status": "FAIL" if not any(row["meets_minimum_support"] for row in series) else "PASS",
          "detail": f"{sum(row['meets_minimum_support'] for row in series)} source-occupation series meet basic month/count support"},
@@ -105,8 +112,8 @@ def assess_predictive_gate(occupation_rows, input_runs, policy_decision="NO_GO")
         "observed_months": [_month_text(value) for value in sorted(observed_months)],
         "missing_months_between_first_and_last": missing_months,
         "source_months": [
-            {"source": source, "month": _month_text(month), "jobs": count}
-            for (source, month), count in sorted(by_source_month.items())
+            {"market": market, "source": source, "month": _month_text(month), "jobs": count}
+            for (market, source, month), count in sorted(by_source_month.items())
         ],
         "occupation_months_below_30": below_threshold,
         "source_occupation_series": series,

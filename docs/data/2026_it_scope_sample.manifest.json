@@ -1,0 +1,82 @@
+{
+  "status": "ai_assisted_review_complete",
+  "selection_sha256": "e1e8c9443b98ca64368ed1ca31cae11947c7919ff9d62050ac61575d40fe87fe",
+  "sample_path": "docs/data/2026_it_scope_sample.csv",
+  "sample_sha256": "365de636595ce0057a7f056580bb073955731d83470e6cb4d6fb8893d2308caa",
+  "sample_rows": 175,
+  "sample_by_source_and_title_class": [
+    {
+      "source": "arbeitnow",
+      "title_class": "Other IT",
+      "rows": 40
+    },
+    {
+      "source": "arbeitnow",
+      "title_class": "mapped",
+      "rows": 40
+    },
+    {
+      "source": "remotive",
+      "title_class": "Other IT",
+      "rows": 8
+    },
+    {
+      "source": "remotive",
+      "title_class": "mapped",
+      "rows": 7
+    },
+    {
+      "source": "usajobs_historic",
+      "title_class": "Other IT",
+      "rows": 40
+    },
+    {
+      "source": "usajobs_historic",
+      "title_class": "mapped",
+      "rows": 40
+    }
+  ],
+  "manual_columns_initially_blank": [
+    "manual_label",
+    "in_scope_it",
+    "review_reason"
+  ],
+  "sampling_method": "source ID dedup, complete-run preference, SHA-256 rank by source and source_record_id",
+  "note": "AI-assisted scope spot-check only; not independent human ground truth. Agreement counts are not precision, recall or F1.",
+  "labeling_method": "AI-assisted semantic title review",
+  "reviewer_type": "AI",
+  "original_unlabelled_sample_sha256": "34be349a016de434f3bcc3c29bacc5601226004d68e63479cbf3795165d0d54a",
+  "in_scope_counts": {
+    "in_scope_it_1": 142,
+    "in_scope_it_0": 27,
+    "unresolved": 6
+  },
+  "by_source": {
+    "arbeitnow": {
+      "rows": 80,
+      "in_scope_it": 52,
+      "out_of_scope_it": 22,
+      "unresolved": 6
+    },
+    "remotive": {
+      "rows": 15,
+      "in_scope_it": 10,
+      "out_of_scope_it": 5,
+      "unresolved": 0
+    },
+    "usajobs_historic": {
+      "rows": 80,
+      "in_scope_it": 80,
+      "out_of_scope_it": 0,
+      "unresolved": 0
+    }
+  },
+  "agreement_counts": {
+    "mapped_same_label_and_in_scope": 76,
+    "mapped_revised_label_in_scope": 10,
+    "mapped_out_of_scope": 1,
+    "other_it_to_in_scope": 56,
+    "other_it_to_out_of_scope": 26,
+    "other_it_unresolved": 6
+  }
+}

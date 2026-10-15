@@ -1,0 +1,1153 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "completed_at": "2026-10-15T14:47:59Z",
+  "run_id": "20261015T144634600577Z-8d531796a5f6",
+  "manifest_path": "data/gold/jobscope/runs/20261015T144634600577Z-8d531796a5f6/manifest.json",
+  "manifest_sha256": "c9208520cecf115591d524120fc13bc1501de893a30897072e0f61c30c3cf1cd",
+  "analysis_type": "observed_descriptive_only",
+  "input": {
+    "allow_scoped_inputs": false,
+    "bronze_runs": [
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/global/fresh/runs/20261015T024120862520Z-6d0ef660e16f/manifest.json",
+        "manifest_sha256": "74d13bc94ebc2ea2eae7d02eb856570d0c93aafe18d614ddbc91dc87a38a8a6c",
+        "market_scope": null,
+        "rows": 1471,
+        "run_id": "20261015T024120862520Z-6d0ef660e16f",
+        "source": "public_api_snapshot",
+        "sources": [
+          {
+            "coverage": "page_limit",
+            "errors": [],
+            "pages": 5,
+            "requested_url": "https://www.arbeitnow.com/api/job-board-api",
+            "rows": 1456,
+            "skipped_rows": 0,
+            "source": "arbeitnow",
+            "status": "partial"
+          },
+          {
+            "coverage": "unknown",
+            "errors": [],
+            "pages": 1,
+            "requested_url": "https://remotive.com/api/remote-jobs",
+            "rows": 15,
+            "skipped_rows": 0,
+            "source": "remotive",
+            "status": "partial"
+          }
+        ],
+        "status": "partial"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/global/fresh/runs/20261015T024226485373Z-585879971368/manifest.json",
+        "manifest_sha256": "c144d920ea03cb990b4b3f103954be3c6c51d3699674f7c54ff3e6f9e4d5b5e7",
+        "market_scope": null,
+        "rows": 13225,
+        "run_id": "20261015T024226485373Z-585879971368",
+        "source": "public_api_snapshot",
+        "sources": [
+          {
+            "coverage": "complete",
+            "errors": [],
+            "pages": 91,
+            "requested_url": "https://www.arbeitnow.com/api/job-board-api",
+            "rows": 13225,
+            "skipped_rows": 0,
+            "source": "arbeitnow",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025910900640Z-7e44f271bc09/manifest.json",
+        "manifest_sha256": "6ce0be5cf2ca4391f540daee77d6a68371556187229b7562e60f4f7054e4ecca",
+        "market_scope": "US federal jobs",
+        "rows": 214,
+        "run_id": "20261015T025910900640Z-7e44f271bc09",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-01-14",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 214,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=01-01-2026&EndPositionOpenDate=01-14-2026",
+            "rows": 214,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-01-01",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025913162393Z-73dd7d1b5f04/manifest.json",
+        "manifest_sha256": "ceb0e26d0d47390cda14d14cdb8e5c70423dcf817027861f9a6cc37edf9e84b0",
+        "market_scope": "US federal jobs",
+        "rows": 227,
+        "run_id": "20261015T025913162393Z-73dd7d1b5f04",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-01-28",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 227,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=01-15-2026&EndPositionOpenDate=01-28-2026",
+            "rows": 227,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-01-15",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025915011035Z-f7677c11403b/manifest.json",
+        "manifest_sha256": "18cfd539336fa5a759d04cbfe75902a0ef3209478fc9d330215fef3e96ea670a",
+        "market_scope": "US federal jobs",
+        "rows": 302,
+        "run_id": "20261015T025915011035Z-f7677c11403b",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-02-11",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 302,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=01-29-2026&EndPositionOpenDate=02-11-2026",
+            "rows": 302,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-01-29",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025917065417Z-e9534c17036f/manifest.json",
+        "manifest_sha256": "5e35230d1cebc89f2f63f1fa5cc4a1d4860f035a659eadf1e34704e7f83ad999",
+        "market_scope": "US federal jobs",
+        "rows": 274,
+        "run_id": "20261015T025917065417Z-e9534c17036f",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-02-25",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 274,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=02-12-2026&EndPositionOpenDate=02-25-2026",
+            "rows": 274,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-02-12",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025918942290Z-060e008833c4/manifest.json",
+        "manifest_sha256": "d773b3f4efae578b1233258720c852ce99dd4765e09a8feb0b38c3474669d44b",
+        "market_scope": "US federal jobs",
+        "rows": 363,
+        "run_id": "20261015T025918942290Z-060e008833c4",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-03-11",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 363,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=02-26-2026&EndPositionOpenDate=03-11-2026",
+            "rows": 363,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-02-26",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025921163614Z-8388c5e7e3a1/manifest.json",
+        "manifest_sha256": "db3de60a3137b72d980082f9dc98f3f16dfa669f8f6188a631e7d46159af667a",
+        "market_scope": "US federal jobs",
+        "rows": 317,
+        "run_id": "20261015T025921163614Z-8388c5e7e3a1",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-03-25",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 317,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=03-12-2026&EndPositionOpenDate=03-25-2026",
+            "rows": 317,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-03-12",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025923041637Z-9589a75a7688/manifest.json",
+        "manifest_sha256": "83cc61b1cbce902c6f92ccbdd07f40500506aedbb0293057ba58ca4098e938d9",
+        "market_scope": "US federal jobs",
+        "rows": 341,
+        "run_id": "20261015T025923041637Z-9589a75a7688",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-04-08",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 341,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=03-26-2026&EndPositionOpenDate=04-08-2026",
+            "rows": 341,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-03-26",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025925108013Z-f0000e0e18b9/manifest.json",
+        "manifest_sha256": "ea5b48876d3415202033009d4c9b425bdce3c1e3bd2d1c7bbd84b909eca66e62",
+        "market_scope": "US federal jobs",
+        "rows": 336,
+        "run_id": "20261015T025925108013Z-f0000e0e18b9",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-04-22",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 336,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=04-09-2026&EndPositionOpenDate=04-22-2026",
+            "rows": 336,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-04-09",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025927313240Z-c300acc0f97f/manifest.json",
+        "manifest_sha256": "500055b4f149329f510762d8517a18977b9d10d3cea482137da2fb77ddbbba3d",
+        "market_scope": "US federal jobs",
+        "rows": 386,
+        "run_id": "20261015T025927313240Z-c300acc0f97f",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-05-06",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 386,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=04-23-2026&EndPositionOpenDate=05-06-2026",
+            "rows": 386,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-04-23",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025929395319Z-0b797f876fb9/manifest.json",
+        "manifest_sha256": "f647048b32cc5befd8b91ceb13d591df4caf971dd2351a822cb9bf2478df1e1d",
+        "market_scope": "US federal jobs",
+        "rows": 390,
+        "run_id": "20261015T025929395319Z-0b797f876fb9",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-05-20",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 390,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=05-07-2026&EndPositionOpenDate=05-20-2026",
+            "rows": 390,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-05-07",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025931305631Z-9bc4d1a3d8ef/manifest.json",
+        "manifest_sha256": "5f1b073e75fe133cb6d99618ba3d6dcbb447ba413330066319399c99628e2ee1",
+        "market_scope": "US federal jobs",
+        "rows": 236,
+        "run_id": "20261015T025931305631Z-9bc4d1a3d8ef",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-06-03",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 236,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=05-21-2026&EndPositionOpenDate=06-03-2026",
+            "rows": 236,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-05-21",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025933267347Z-677c3ffb7d46/manifest.json",
+        "manifest_sha256": "bdf942512a499e97cecfe083e731be0d701250d87259d6f5349345d63d102232",
+        "market_scope": "US federal jobs",
+        "rows": 382,
+        "run_id": "20261015T025933267347Z-677c3ffb7d46",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-06-17",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 382,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=06-04-2026&EndPositionOpenDate=06-17-2026",
+            "rows": 382,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-06-04",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025935405046Z-e4cad160cae9/manifest.json",
+        "manifest_sha256": "d1db5fd25c5df81714aea7eb026a00ac7156fa2c2e6d11bc7320dd3ed96bd39b",
+        "market_scope": "US federal jobs",
+        "rows": 372,
+        "run_id": "20261015T025935405046Z-e4cad160cae9",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-07-01",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 372,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=06-18-2026&EndPositionOpenDate=07-01-2026",
+            "rows": 372,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-06-18",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025937318829Z-54ffff9b937f/manifest.json",
+        "manifest_sha256": "09aec687aeb80264a268987dfaeb5e920e58d1f3c64bb704c2680291a484344a",
+        "market_scope": "US federal jobs",
+        "rows": 283,
+        "run_id": "20261015T025937318829Z-54ffff9b937f",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-07-15",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 283,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=07-02-2026&EndPositionOpenDate=07-15-2026",
+            "rows": 283,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-07-02",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025939412197Z-eb75a773dae7/manifest.json",
+        "manifest_sha256": "cadfc693b965434656cc8ba0f3de32529347c03e9387a1923ee5216bb1b72f2a",
+        "market_scope": "US federal jobs",
+        "rows": 372,
+        "run_id": "20261015T025939412197Z-eb75a773dae7",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-07-29",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 372,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=07-16-2026&EndPositionOpenDate=07-29-2026",
+            "rows": 372,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-07-16",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025941384786Z-f50fd1c2e444/manifest.json",
+        "manifest_sha256": "61c6684e9054e249c58adb0e67d4659d6f5aae089eb5c179d28d03b403e3bace",
+        "market_scope": "US federal jobs",
+        "rows": 363,
+        "run_id": "20261015T025941384786Z-f50fd1c2e444",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-08-12",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 363,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=07-30-2026&EndPositionOpenDate=08-12-2026",
+            "rows": 363,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-07-30",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025944054071Z-d6c639245830/manifest.json",
+        "manifest_sha256": "fcda4325f755cac8970f55002116e4fbb6d494b525f67e70c72d0090d92a3cab",
+        "market_scope": "US federal jobs",
+        "rows": 401,
+        "run_id": "20261015T025944054071Z-d6c639245830",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-08-26",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 401,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=08-13-2026&EndPositionOpenDate=08-26-2026",
+            "rows": 401,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-08-13",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025945987157Z-810b69dab4c9/manifest.json",
+        "manifest_sha256": "e05d794f5fb08d256c67c5401923b0f60ccaeb3a6fda398734ab4ad9aa55eaf6",
+        "market_scope": "US federal jobs",
+        "rows": 341,
+        "run_id": "20261015T025945987157Z-810b69dab4c9",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-09-09",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 341,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=08-27-2026&EndPositionOpenDate=09-09-2026",
+            "rows": 341,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-08-27",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025947907782Z-a726fc81a072/manifest.json",
+        "manifest_sha256": "14bae7b37b6e90f6f59dc0b62d938b1034ad1d2fe4835c0961fabca6f8c8e19f",
+        "market_scope": "US federal jobs",
+        "rows": 345,
+        "run_id": "20261015T025947907782Z-a726fc81a072",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-09-23",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 345,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=09-10-2026&EndPositionOpenDate=09-23-2026",
+            "rows": 345,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-09-10",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025949847569Z-3dbe7c4a3737/manifest.json",
+        "manifest_sha256": "d84e989e97df906c47b1bf7051a225047f01067ad0112924fda9271c624e1659",
+        "market_scope": "US federal jobs",
+        "rows": 357,
+        "run_id": "20261015T025949847569Z-3dbe7c4a3737",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-10-07",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 357,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=09-24-2026&EndPositionOpenDate=10-07-2026",
+            "rows": 357,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-09-24",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      },
+      {
+        "kind": "fresh",
+        "manifest_path": "data/bronze/us_federal/historic/runs/20261015T025951788950Z-5f6849c8de7d/manifest.json",
+        "manifest_sha256": "2ad76f91953ecf89d665072309c468643ec38209a68250707532b332111011d6",
+        "market_scope": "US federal jobs",
+        "rows": 137,
+        "run_id": "20261015T025951788950Z-5f6849c8de7d",
+        "source": "usajobs_historic",
+        "sources": [
+          {
+            "coverage": "complete",
+            "duplicate_rows": 0,
+            "end_date": "2026-10-15",
+            "errors": [],
+            "market_scope": "US federal jobs",
+            "pages": 1,
+            "position_series": "2210",
+            "raw_rows": 137,
+            "requested_url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=10-08-2026&EndPositionOpenDate=10-15-2026",
+            "rows": 137,
+            "skipped_rows": 0,
+            "source": "usajobs_historic",
+            "start_date": "2026-10-08",
+            "status": "complete"
+          }
+        ],
+        "status": "complete"
+      }
+    ],
+    "etl_manifest_path": "data/manifests/etl/etl_10d0710787d2402186356858d3331e50.json",
+    "etl_manifest_sha256": "817c24b15a12436ce47c2fce08a891ce50f31cb87221bc3ce2b74a028a7b15c9",
+    "etl_run_id": "10d0710787d2402186356858d3331e50",
+    "input_selection_sha256": "e1e8c9443b98ca64368ed1ca31cae11947c7919ff9d62050ac61575d40fe87fe",
+    "provenance_rows": 8370,
+    "provenance_sha256": "579e31522a432e39daf2052546c01a3b38214031d66fb08997d3a56c4904e3bd",
+    "silver_audit_sha256": "022342d20493ed9130a0f8c2f166eb27a3896951eb2a3f8f8f80c2d1475090d1",
+    "silver_rows": 8370,
+    "silver_sha256": "013665ec183649c70fcd9f5485ca76e1c878527b37372c2dbf28c9a563299339"
+  },
+  "taxonomy_version": "v0.2",
+  "taxonomy_config_sha256": {
+    "job_title_mapping_v0_2.json": "f7d8d8782f3abe84e8522286953581ae4b69074232a99c9799536dc08c710a65",
+    "skills_v0.json": "69b835d7649108632a61f04341ce79fd26994fc2900053588883faa001cc459e"
+  },
+  "scope_policy_version": "2026_it_scope_v1",
+  "scope_policy_sha256": "b1ab62175706387bb457251fdf1b240501f4ff03bd21b7034dd3b476954a4c9d",
+  "ai_review_sample_sha256": "365de636595ce0057a7f056580bb073955731d83470e6cb4d6fb8893d2308caa",
+  "scope_summary": {
+    "scope_excluded_rows": 548,
+    "scope_unresolved_rows": 10788,
+    "silver_rows": 8370
+  },
+  "outputs": {
+    "market_stats": {
+      "rows": 13,
+      "sha256": "48d7f5bb03f10677e527eddc548cf764915827ea8595fdd552bda667622b8664"
+    },
+    "occupation_stats": {
+      "rows": 66,
+      "sha256": "6dbd84a3400350eafaf214e39ab3b9213bedde5e8c893900a2fbb74ad7466896"
+    },
+    "skill_evidence_stats": {
+      "rows": 66,
+      "sha256": "8dc35d9f01b4bbc67ef39233226a4214383f64de2b22a9cdc1dd62e4c67d60f2"
+    },
+    "skill_stats": {
+      "rows": 401,
+      "sha256": "6992a4bd8d67316c9b3806b1014c0685a91cd66e3b183f8e673eeaa1ea44abf8"
+    },
+    "skill_trends": {
+      "rows": 401,
+      "sha256": "3ad4d5ee1700a415c73886a5358094518978b0c03ff6e342fd2d6477a7ab2d58"
+    }
+  },
+  "market_source_month": [
+    {
+      "market": "GLOBAL",
+      "source": "arbeitnow",
+      "month": "2026-10",
+      "job_count": 1621
+    },
+    {
+      "market": "GLOBAL",
+      "source": "remotive",
+      "month": "2026-09",
+      "job_count": 8
+    },
+    {
+      "market": "GLOBAL",
+      "source": "remotive",
+      "month": "2026-10",
+      "job_count": 2
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-01",
+      "job_count": 500
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-02",
+      "job_count": 599
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-03",
+      "job_count": 754
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-04",
+      "job_count": 747
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-05",
+      "job_count": 719
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-06",
+      "job_count": 772
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-07",
+      "job_count": 771
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-08",
+      "job_count": 820
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-09",
+      "job_count": 760
+    },
+    {
+      "market": "US_FEDERAL",
+      "source": "usajobs_historic",
+      "month": "2026-10",
+      "job_count": 297
+    }
+  ],
+  "accounting": {
+    "market_jobs": 8370,
+    "occupation_jobs": 8370,
+    "skill_origin_jobs": 8370
+  },
+  "predictive_gate": {
+    "checks": [
+      {
+        "detail": "Current GO/NO-GO decision: NO_GO",
+        "id": "policy_decision",
+        "status": "FAIL"
+      },
+      {
+        "detail": "0 months without observed input between first and last month",
+        "id": "calendar_continuity",
+        "status": "PASS"
+      },
+      {
+        "detail": "1 overlapping observed months across sources; no source-mix adjustment established",
+        "id": "source_comparability",
+        "status": "NOT_ELIGIBLE"
+      },
+      {
+        "detail": "0 source-occupation series meet basic month/count support",
+        "id": "occupation_support",
+        "status": "FAIL"
+      },
+      {
+        "detail": "1 selected Bronze runs are partial/scoped",
+        "id": "input_scope",
+        "status": "FAIL"
+      },
+      {
+        "detail": "No representative fixed future test, uncertainty-qualified labels, or rolling-origin comparison was run",
+        "id": "rolling_origin_future_test",
+        "status": "NOT_ELIGIBLE"
+      }
+    ],
+    "decision": "NO_GO",
+    "missing_months_between_first_and_last": [],
+    "observed_months": [
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10"
+    ],
+    "occupation_months_below_30": 47,
+    "predictive_claims": "Insufficient evidence",
+    "source_months": [
+      {
+        "jobs": 1621,
+        "market": "GLOBAL",
+        "month": "2026-10",
+        "source": "arbeitnow"
+      },
+      {
+        "jobs": 8,
+        "market": "GLOBAL",
+        "month": "2026-09",
+        "source": "remotive"
+      },
+      {
+        "jobs": 2,
+        "market": "GLOBAL",
+        "month": "2026-10",
+        "source": "remotive"
+      },
+      {
+        "jobs": 500,
+        "market": "US_FEDERAL",
+        "month": "2026-01",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 599,
+        "market": "US_FEDERAL",
+        "month": "2026-02",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 754,
+        "market": "US_FEDERAL",
+        "month": "2026-03",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 747,
+        "market": "US_FEDERAL",
+        "month": "2026-04",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 719,
+        "market": "US_FEDERAL",
+        "month": "2026-05",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 772,
+        "market": "US_FEDERAL",
+        "month": "2026-06",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 771,
+        "market": "US_FEDERAL",
+        "month": "2026-07",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 820,
+        "market": "US_FEDERAL",
+        "month": "2026-08",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 760,
+        "market": "US_FEDERAL",
+        "month": "2026-09",
+        "source": "usajobs_historic"
+      },
+      {
+        "jobs": 297,
+        "market": "US_FEDERAL",
+        "month": "2026-10",
+        "source": "usajobs_historic"
+      }
+    ],
+    "source_occupation_series": [
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Backend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Data Analyst",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Data Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Data Scientist",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "DevOps Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Frontend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Machine Learning Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Other IT",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 1,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 1,
+        "observed_months": 1,
+        "occupation": "Software Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "arbeitnow"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Backend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Data Scientist",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Machine Learning Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Other IT",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "GLOBAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 2,
+        "occupation": "Software Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "remotive"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Backend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 5,
+        "occupation": "Data Analyst",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 8,
+        "occupation": "Data Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 6,
+        "occupation": "Data Scientist",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 9,
+        "occupation": "DevOps Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 1,
+        "occupation": "Frontend Developer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 2,
+        "occupation": "Machine Learning Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 10,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 10,
+        "observed_months": 10,
+        "occupation": "Other IT",
+        "potential_cutoffs_with_three_lags_and_next_month": 6,
+        "source": "usajobs_historic"
+      },
+      {
+        "longest_consecutive_eligible_months": 0,
+        "market": "US_FEDERAL",
+        "meets_minimum_support": false,
+        "months_at_least_30_jobs": 0,
+        "observed_months": 9,
+        "occupation": "Software Engineer",
+        "potential_cutoffs_with_three_lags_and_next_month": 0,
+        "source": "usajobs_historic"
+      }
+    ],
+    "thresholds": {
+      "min_consecutive_months": 12,
+      "min_jobs_per_occupation_month": 30,
+      "min_labeled_cutoffs": 3
+    }
+  },
+  "old_gold_manifest_sha256": "2b37892022882e834b5437555c5c567aa2ab31103dc1d581b9b2f18cd9e7c74d"
+}

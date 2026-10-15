@@ -7,10 +7,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TAXONOMY_VERSION = "v0.1"
+TITLE_MAPPING_FILES = {
+    "v0.1": "job_title_mapping_v0.json",
+    "v0.2": "job_title_mapping_v0_2.json",
+}
 
 
-def load_dictionaries():
-    with (ROOT / "configs" / "job_title_mapping_v0.json").open(encoding="utf-8") as source:
+def load_dictionaries(version=TAXONOMY_VERSION):
+    if version not in TITLE_MAPPING_FILES:
+        raise ValueError(f"Unsupported taxonomy version: {version}")
+    with (ROOT / "configs" / TITLE_MAPPING_FILES[version]).open(encoding="utf-8") as source:
         titles = json.load(source)
     with (ROOT / "configs" / "skills_v0.json").open(encoding="utf-8") as source:
         skills = json.load(source)

@@ -1,70 +1,69 @@
-# Nội dung trình bày dự án (10 slide)
+# Nội dung trình bày dự án (10 slide) — BigData Job Analy
 
-Tài liệu này là bản nội dung của [trình chiếu PowerPoint 10 slide](BigData_Job_Analy_Final_2026-10-15_v2.pptx). Số liệu khóa theo audit ngày 15/10/2026; không cập nhật bằng số mới nếu chưa tái chạy audit.
+Tài liệu này là bản nội dung chi tiết bám sát [đề cương 10 slide](PRESENTATION_OUTLINE_2026-10-15.md). Mọi số liệu được khóa theo hồ sơ audit ngày 15/10/2026.
 
 ---
 
-## 1. Tên và câu hỏi nghiên cứu
+## Slide 1: Đặt vấn đề và Mục tiêu Đồ án
+* **Tên đồ án:** BigData IT Job & Skill Analytics (`JobScope`).
+* **Câu hỏi nghiên cứu:** Trong các nguồn tin tuyển dụng đã thu thập, cơ cấu nhóm nghề và kỹ năng IT phân bổ ra sao theo thời gian? Tỷ lệ yêu cầu các kỹ năng chính là bao nhiêu?
+* **Phạm vi trả lời:** Phân tích mô tả trên tập mẫu thu thập thực tế; **không** suy diễn khống thành quy mô toàn bộ thị trường lao động.
 
-**BigData Job Analy — IT jobs, skills and observed trends**. Trong các nguồn tuyển dụng đã thu, nghề và kỹ năng nào xuất hiện theo tháng? Khi nào có đủ bằng chứng để dự báo?
+## Slide 2: Kiến trúc Hệ thống Dữ liệu Lớn
+* **Quy trình luồng dữ liệu:**
+  $$\text{Bronze (Raw Ingestion)} \longrightarrow \text{Spark ETL (Clean/Dedup/Scope)} \longrightarrow \text{Silver + Provenance} \longrightarrow \text{Gold (Mô tả)} \longrightarrow \text{JobScope Dashboard}$$
+* **Hạ tầng phân tán:**
+  * HDFS Storage: Lưu trữ dữ liệu thô Bronze, kiểm chứng trên Docker cluster thực nghiệm.
+  * Apache Spark: Xử lý dữ liệu lớn, làm sạch, tách scope và chuẩn hóa theo taxonomy.
+  * Serving Layer: Hỗ trợ Parquet tốc độ cao cho Gold 2026 và MongoDB cho Gold Archive 2023.
 
-## 2. Phạm vi
+## Slide 3: Nguồn dữ liệu & Tính chất mẫu thu thập
+* **Dữ liệu lịch sử (Archive 2023):** Giữ nguyên vẹn làm mốc đối chiếu trong namespace riêng.
+* **Dữ liệu năm 2026 (Snapshot Ingestion):**
+  * `GLOBAL`: Snapshot từ Arbeitnow (1.621 tin - tháng 10) và Remotive (10 tin - tháng 9 & 10).
+  * `US_FEDERAL`: Dữ liệu việc làm chính phủ liên bang Hoa Kỳ từ USAJOBS (PositionSeries 2210 - tháng 1 đến 10/2026).
+* **Nguyên tắc toàn vẹn:** Phân tách rõ ràng giữa `GLOBAL` và `US_FEDERAL`, không gộp chung mẫu số nhằm tránh sai lệch khung chọn mẫu.
 
-- MVP quốc tế, tám nhóm nghề IT; Việt Nam đóng băng.
-- Archive 2023, snapshot Arbeitnow/Remotive 2026, và USAJOBS liên bang Mỹ trong Bronze riêng.
-- Kết luận chỉ cho mẫu thu thập; không suy rộng toàn thị trường.
+## Slide 4: Tầng Bronze 2026 — Tiếp nhận và Lưu trữ thô
+* **Kết quả kiểm toán Bronze:**
+  * 23 runs được ghim cố định qua [2026_silver_input_selection.json](../data/2026_silver_input_selection.json).
+  * Tổng **21.435** bản ghi thô; trích xuất **19.706** ID nguồn duy nhất; loại bỏ **1.729** bản ghi trùng lặp.
+* **Tính bất biến (Immutability):** Dữ liệu thô nguyên vẹn, đối soát bằng mã băm SHA-256 trong tệp audit.
 
-## 3. Kiến trúc
+## Slide 5: Tầng Silver 2026 — Làm sạch, Khử trùng lặp và Phân định Scope
+* **Kết quả phân loại (Run `10d0710787d2402186356858d3331e50`):**
+  * **8.370** tin IT in-scope (`Silver analytical`) đi kèm **8.370** bản ghi truy xuất nguồn gốc (`provenance 1:1`).
+  * **548** tin ngoài ngành IT (`excluded`) được lưu trữ riêng.
+  * **10.788** tin chưa đủ bằng chứng định danh (`unresolved`) được cách ly để theo dõi lineage.
+  * **0** bản ghi lỗi định dạng (`quarantine`).
+* Không suy diễn các tin `unresolved` là non-IT; loại bỏ khỏi mẫu số phân tích để bảo đảm tính chuẩn xác.
 
-```mermaid
-flowchart LR
-  A[Source] --> B[Bronze + manifest]
-  B --> C[HDFS / Spark ETL]
-  C --> D[Silver + provenance]
-  D --> E[Gold mô tả]
-  E --> F[Parquet / MongoDB]
-  F --> G[JobScope]
-  E --> H[Gate dự báo · NO_GO]
-```
+## Slide 6: Chuẩn hóa Nghề nghiệp & Kỹ năng (Taxonomy & Policy)
+* Áp dụng Taxonomy v0.2 và Chính sách định danh IT Scope Policy v1.
+* Quy tắc gán nhóm nghề chặt chẽ: Chỉ phân loại vào 8 nhóm IT trọng điểm khi tiêu đề và mô tả có từ khóa đối soát rõ ràng; nhóm `Other IT` chỉ giữ lại khi thỏa mãn điều kiện tuyển dụng công nghệ (đặc thù USAJOBS series 2210).
+* Bộ mẫu kiểm nghiệm 175 dòng được hỗ trợ rà soát bằng AI (`AI-assisted`), ghi nhận minh bạch hạn chế chưa phải tập ground-truth độc lập từ con người.
 
-## 4. Chất lượng dữ liệu
+## Slide 7: Tầng Gold 2026 — Các bảng phân tích mô tả
+* **Cấu trúc 5 bảng phân tích (Run `20261015T144634600577Z-8d531796a5f6`):**
+  * `market_stats` (13 dòng), `occupation_stats` (66 dòng), `skill_evidence_stats` (66 dòng), `skill_stats` (401 dòng), `skill_trends` (401 dòng).
+* **Kiểm toán số liệu thống nhất:** Tổng `job_count` ở các bảng nghiệp vụ khớp chính xác **8.370**.
+* **Độ chính xác thống kê:** Tháng không có dữ liệu được ghi nhận là khoảng trống (gap), không tự ý điền giá trị 0; mẫu số tính tỷ lệ kỹ năng luôn gắn liền với tổng số tin của từng nhóm nghề tương ứng.
 
-- 786.407 input của run chính → 786.300 Silver; 1 quarantine, 106 trùng identity.
-- 19.706 ID Bronze 2026 mới, nhưng 91,7% title chưa khớp tám nghề.
-- `GLOBAL` và `US_FEDERAL` tách biệt; snapshot API không tạo lịch sử giả.
+## Slide 8: Ứng dụng Trực quan hóa JobScope Dashboard
+* **Tính năng giao diện Streamlit (6 trang chuyên biệt):**
+  * Hỗ trợ bộ lọc phân cấp an toàn: `Dataset → Market → Source → Month → Occupation`.
+  * Trang khảo sát luồng dữ liệu Bronze → Silver → Gold trực quan.
+  * Khám phá phân bổ kỹ năng, nhóm nghề, tương quan nhu cầu tuyển dụng.
+* **Xử lý thiếu bằng chứng:** Với nguồn USAJOBS chưa có trích xuất kỹ năng chuẩn hóa, hệ thống hiển thị trạng thái thiếu chứng cứ minh bạch, tuyệt đối không tạo tỷ lệ giả.
 
-## 5. HDFS và xử lý lớn
+## Slide 9: Kiểm soát Dự báo — Quyết định NO-GO có cơ sở
+* **Tiêu chuẩn cổng dữ liệu (Quality Gate):** Yêu cầu chuỗi thời gian tối thiểu 12 tháng liên tục và ít nhất 30 tin/nghề/tháng.
+* **Thực trạng dữ liệu thực tế:** Dữ liệu snapshot 2026 có độ gián đoạn thời gian (gap 2024–2025); nguồn liên bang không đại diện cho thị trường tư nhân.
+* **Quyết định khoa học:** **`NO_GO` cho nhánh Machine Learning dự báo**. Đồ án kiên quyết không xuất nhãn xu hướng (Growing/Stable/Declining) hoặc dựng mô hình khi chưa đủ cơ sở dữ liệu tin cậy.
 
-- Run tích hợp fresh: HDFS Bronze 666 → Spark ETL → 661 Silver/provenance.
-- Manifest/hash, số dòng và FSCK có evidence; lab một DataNode, replica 1 cho run.
-- Run Gold chính có 786.300 Silver local; HDFS test là đường riêng.
-
-## 6. Gold và phép đo
-
-- 5 bảng: market, occupation, skill evidence, skill stats, skill trends.
-- Tỷ lệ kỹ năng có mẫu số nghề gồm cả tin thiếu kỹ năng; `source_tags` và `extracted_from_jd` tách riêng.
-- Tháng thiếu để trống, không đổi thành 0.
-
-## 7. Serving và dashboard
-
-- Parquet và MongoDB đọc cùng Gold run đã khóa bằng audit/hash.
-- JobScope 6 trang, gồm kiểm kê Bronze 2026 và trang bằng chứng forecast.
-- Live demo: tổng quan → kỹ năng → so sánh → Bronze 2026 → `NO_GO`.
-
-## 8. Gate dự báo
-
-- Gold run có 32 tháng thiếu giữa 2023-01 và 2026-10; 19 ô nghề–tháng dưới 30 tin.
-- Nguồn/cách đo chưa hiệu chỉnh và taxonomy chưa được kiểm định độc lập.
-- Quyết định: **`NO_GO`**, không huấn luyện/publish nhãn Growing/Stable/Declining.
-
-## 9. Kiểm thử
-
-- Pipeline Spark/HDFS: **37 passed**; Dashboard/serving: **14 passed**.
-- HDFS→ETL và MongoDB readback chạy thật; dashboard Mongo health 200.
-- Test kỹ thuật không thay nhãn thủ công và nghiệm thu học thuật.
-
-## 10. Kết luận và bước tiếp
-
-- Sản phẩm phân tích mô tả và demo có thể chạy local; hồ sơ `NO_GO` bảo vệ kết luận dự báo.
-- Gán nhãn 95 JD, thu snapshot nhiều kỳ, ký nghiệm thu mốc và trình bày chính thức.
-- Chỉ xét lại forecast sau khi cổng dữ liệu và rolling-origin future test đạt.
+## Slide 10: Tổng kết Đồ án & Đóng góp
+* **Kết quả đạt được:**
+  * Xây dựng thành công kiến trúc Big Data hoàn chỉnh, kiểm thử tự động đạt 100% (Spark container & Dashboard).
+  * Quy trình xử lý dữ liệu minh bạch, có kiểm toán SHA-256, phân định ranh giới thị trường nghiêm ngặt.
+  * Dashboard phục vụ phân tích trực quan trực tiếp từ Big Data Storage.
+* **Hướng phát triển:** Thiết lập cơ chế tự động thu thập định kỳ dài hạn để tích lũy chuỗi thời gian liên tục phục vụ cho bài toán dự báo trong tương lai.

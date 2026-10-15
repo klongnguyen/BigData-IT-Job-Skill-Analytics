@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from dashboard.data import (
-    GoldError, directory_evidence, load_gold, select_scope, sha256,
+    GoldError, directory_evidence, load_catalog, load_gold, select_scope, sha256,
     summarize_skills, trend_calendar,
 )
 
@@ -180,3 +180,84 @@ def test_streamlit_missing_artifact_message(monkeypatch):
     app = AppTest.from_file(str(Path(__file__).parents[1] / "dashboard/app.py"), default_timeout=30).run()
     assert not app.exception
     assert "Không thể mở dữ liệu Gold" in app.error[0].value
+
+
+def test_scoped_2026_catalog_market_and_denominator():
+    root = Path(__file__).parents[1]
+    if not (root / "data/gold/jobscope/runs").is_dir():
+        pytest.skip("Immutable JobScope Gold artifact is not restored on this host")
+    catalog = load_catalog(root)
+    assert set(catalog) == {"legacy_2023", "scoped_2026"}
+    scoped = load_gold(root, dataset="scoped_2026")
+    market = scoped.tables["market_stats"]
+    assert market.groupby("market").job_count.sum().to_dict() == {
+        "GLOBAL": 1631, "US_FEDERAL": 6739}
+    assert market.groupby(["market", "source"]).job_count.sum().to_dict() == {
+        ("GLOBAL", "arbeitnow"): 1621, ("GLOBAL", "remotive"): 10,
+        ("US_FEDERAL", "usajobs_historic"): 6739}
+    assert select_scope(market, "usajobs_historic", ["2026-10"], market="GLOBAL").empty
+    assert select_scope(market, "usajobs_historic", ["2026-10"], market="US_FEDERAL").job_count.sum() > 0
+    skills = scoped.tables["skill_stats"]
+    occupations = scoped.tables["occupation_stats"]
+    federal_skills = select_scope(skills, "usajobs_historic", ["2026-10"], market="US_FEDERAL")
+    federal_occ = select_scope(occupations, "usajobs_historic", ["2026-10"], market="US_FEDERAL")
+    assert federal_skills.empty  # No standardized skill evidence in USAJOBS titles.
+    assert not federal_occ.empty
+    assert summarize_skills(federal_skills, federal_occ).empty
+    global_skills = select_scope(skills, "arbeitnow", ["2026-10"], market="GLOBAL")
+    global_occ = select_scope(occupations, "arbeitnow", ["2026-10"], market="GLOBAL")
+    summary = summarize_skills(global_skills, global_occ)
+    assert set(summary.market) == {"GLOBAL"}
+    assert summary.denominator_jobs.max() <= global_occ.job_count.sum()
+    assert scoped.manifest["predictive_gate"]["decision"] == "NO_GO"
+    run_dir = root / "data/gold/jobscope/runs" / scoped.manifest["run_id"]
+    assert not any("prediction" in path.name for path in run_dir.rglob("*"))
+
+
+def test_skill_denominator_keeps_markets_separate():
+    skills = pd.DataFrame([
+        {"market": market, "source": "shared", "occupation": "Data Engineer",
+         "skills_origin": "source_tags", "taxonomy_version": "v0.2",
+         "skill": "Python", "skill_job_count": 5}
+        for market in ("GLOBAL", "US_FEDERAL")
+    ])
+    occupations = pd.DataFrame([
+        {"market": "GLOBAL", "source": "shared", "occupation": "Data Engineer", "job_count": 20},
+        {"market": "US_FEDERAL", "source": "shared", "occupation": "Data Engineer", "job_count": 100},
+    ])
+    result = summarize_skills(skills, occupations).set_index("market")
+    assert result.loc["GLOBAL", "demand_rate"] == pytest.approx(.25)
+    assert result.loc["US_FEDERAL", "demand_rate"] == pytest.approx(.05)
+
+
+def test_catalog_sha_tampering_fails_closed(tmp_path):
+    root = Path(__file__).parents[1]
+    catalog = json.loads((root / "docs/data/dashboard_gold_catalog.json").read_text(encoding="utf-8"))
+    target = tmp_path / "docs/data"
+    target.mkdir(parents=True)
+    (target / "dashboard_gold_catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
+    (target / "phase03_analytics_audit.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(GoldError, match="audit SHA"):
+        load_catalog(tmp_path)
+
+
+def test_scoped_2026_app_pages_and_filters():
+    root = Path(__file__).parents[1]
+    if not (root / "data/gold/jobscope/runs").is_dir():
+        pytest.skip("Immutable JobScope Gold artifact is not restored on this host")
+    from streamlit.testing.v1 import AppTest
+    app = AppTest.from_file(str(root / "dashboard/app.py"), default_timeout=45).run()
+    app.selectbox(key="dataset").set_value("scoped_2026").run()
+    assert not app.exception
+    assert app.metric[0].value == "1.621"
+    app.selectbox(key="market").set_value("US_FEDERAL").run()
+    assert not app.exception
+    assert app.selectbox(key="source").value == "usajobs_historic"
+    assert app.metric[0].value == "6.739"
+    for page in ["Nhóm nghề", "Kỹ năng & xu hướng", "So sánh nghề",
+                 "Dự báo & bằng chứng", "Dữ liệu 2026"]:
+        app.radio(key="page").set_value(page).run()
+        assert not app.exception, page
+    assert any(metric.value == "19.706" for metric in app.metric)
+    app.radio(key="page").set_value("Dự báo & bằng chứng").run()
+    assert any("NO_GO" in item.value for item in app.warning)

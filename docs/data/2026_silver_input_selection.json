@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "selection_kind": "2026_bronze_to_silver",
+  "audit_path": "docs/data/2026_ingestion_audit.json",
+  "audit_sha256": "e3325b36bc841002c012a5b37b47089de00da218eefb78391c14ef1a2c1e4e92",
+  "inputs": [
+    {
+      "kind": "fresh",
+      "path": "data/bronze/global/fresh/runs/20261015T024120862520Z-6d0ef660e16f",
+      "run_id": "20261015T024120862520Z-6d0ef660e16f",
+      "manifest_sha256": "74d13bc94ebc2ea2eae7d02eb856570d0c93aafe18d614ddbc91dc87a38a8a6c",
+      "expected_status": "partial",
+      "source": "public_api_snapshot",
+      "rows": 1471,
+      "allow_partial": true,
+      "partial_reason": "required_for_remotive_snapshot"
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/global/fresh/runs/20261015T024226485373Z-585879971368",
+      "run_id": "20261015T024226485373Z-585879971368",
+      "manifest_sha256": "c144d920ea03cb990b4b3f103954be3c6c51d3699674f7c54ff3e6f9e4d5b5e7",
+      "expected_status": "complete",
+      "source": "public_api_snapshot",
+      "rows": 13225
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025910900640Z-7e44f271bc09",
+      "run_id": "20261015T025910900640Z-7e44f271bc09",
+      "manifest_sha256": "6ce0be5cf2ca4391f540daee77d6a68371556187229b7562e60f4f7054e4ecca",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 214
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025913162393Z-73dd7d1b5f04",
+      "run_id": "20261015T025913162393Z-73dd7d1b5f04",
+      "manifest_sha256": "ceb0e26d0d47390cda14d14cdb8e5c70423dcf817027861f9a6cc37edf9e84b0",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 227
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025915011035Z-f7677c11403b",
+      "run_id": "20261015T025915011035Z-f7677c11403b",
+      "manifest_sha256": "18cfd539336fa5a759d04cbfe75902a0ef3209478fc9d330215fef3e96ea670a",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 302
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025917065417Z-e9534c17036f",
+      "run_id": "20261015T025917065417Z-e9534c17036f",
+      "manifest_sha256": "5e35230d1cebc89f2f63f1fa5cc4a1d4860f035a659eadf1e34704e7f83ad999",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 274
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025918942290Z-060e008833c4",
+      "run_id": "20261015T025918942290Z-060e008833c4",
+      "manifest_sha256": "d773b3f4efae578b1233258720c852ce99dd4765e09a8feb0b38c3474669d44b",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 363
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025921163614Z-8388c5e7e3a1",
+      "run_id": "20261015T025921163614Z-8388c5e7e3a1",
+      "manifest_sha256": "db3de60a3137b72d980082f9dc98f3f16dfa669f8f6188a631e7d46159af667a",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 317
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025923041637Z-9589a75a7688",
+      "run_id": "20261015T025923041637Z-9589a75a7688",
+      "manifest_sha256": "83cc61b1cbce902c6f92ccbdd07f40500506aedbb0293057ba58ca4098e938d9",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 341
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025925108013Z-f0000e0e18b9",
+      "run_id": "20261015T025925108013Z-f0000e0e18b9",
+      "manifest_sha256": "ea5b48876d3415202033009d4c9b425bdce3c1e3bd2d1c7bbd84b909eca66e62",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 336
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025927313240Z-c300acc0f97f",
+      "run_id": "20261015T025927313240Z-c300acc0f97f",
+      "manifest_sha256": "500055b4f149329f510762d8517a18977b9d10d3cea482137da2fb77ddbbba3d",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 386
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025929395319Z-0b797f876fb9",
+      "run_id": "20261015T025929395319Z-0b797f876fb9",
+      "manifest_sha256": "f647048b32cc5befd8b91ceb13d591df4caf971dd2351a822cb9bf2478df1e1d",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 390
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025931305631Z-9bc4d1a3d8ef",
+      "run_id": "20261015T025931305631Z-9bc4d1a3d8ef",
+      "manifest_sha256": "5f1b073e75fe133cb6d99618ba3d6dcbb447ba413330066319399c99628e2ee1",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 236
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025933267347Z-677c3ffb7d46",
+      "run_id": "20261015T025933267347Z-677c3ffb7d46",
+      "manifest_sha256": "bdf942512a499e97cecfe083e731be0d701250d87259d6f5349345d63d102232",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 382
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025935405046Z-e4cad160cae9",
+      "run_id": "20261015T025935405046Z-e4cad160cae9",
+      "manifest_sha256": "d1db5fd25c5df81714aea7eb026a00ac7156fa2c2e6d11bc7320dd3ed96bd39b",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 372
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025937318829Z-54ffff9b937f",
+      "run_id": "20261015T025937318829Z-54ffff9b937f",
+      "manifest_sha256": "09aec687aeb80264a268987dfaeb5e920e58d1f3c64bb704c2680291a484344a",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 283
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025939412197Z-eb75a773dae7",
+      "run_id": "20261015T025939412197Z-eb75a773dae7",
+      "manifest_sha256": "cadfc693b965434656cc8ba0f3de32529347c03e9387a1923ee5216bb1b72f2a",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 372
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025941384786Z-f50fd1c2e444",
+      "run_id": "20261015T025941384786Z-f50fd1c2e444",
+      "manifest_sha256": "61c6684e9054e249c58adb0e67d4659d6f5aae089eb5c179d28d03b403e3bace",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 363
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025944054071Z-d6c639245830",
+      "run_id": "20261015T025944054071Z-d6c639245830",
+      "manifest_sha256": "fcda4325f755cac8970f55002116e4fbb6d494b525f67e70c72d0090d92a3cab",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 401
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025945987157Z-810b69dab4c9",
+      "run_id": "20261015T025945987157Z-810b69dab4c9",
+      "manifest_sha256": "e05d794f5fb08d256c67c5401923b0f60ccaeb3a6fda398734ab4ad9aa55eaf6",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 341
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025947907782Z-a726fc81a072",
+      "run_id": "20261015T025947907782Z-a726fc81a072",
+      "manifest_sha256": "14bae7b37b6e90f6f59dc0b62d938b1034ad1d2fe4835c0961fabca6f8c8e19f",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 345
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025949847569Z-3dbe7c4a3737",
+      "run_id": "20261015T025949847569Z-3dbe7c4a3737",
+      "manifest_sha256": "d84e989e97df906c47b1bf7051a225047f01067ad0112924fda9271c624e1659",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 357
+    },
+    {
+      "kind": "fresh",
+      "path": "data/bronze/us_federal/historic/runs/20261015T025951788950Z-5f6849c8de7d",
+      "run_id": "20261015T025951788950Z-5f6849c8de7d",
+      "manifest_sha256": "2ad76f91953ecf89d665072309c468643ec38209a68250707532b332111011d6",
+      "expected_status": "complete",
+      "source": "usajobs_historic",
+      "rows": 137
+    }
+  ]
+}

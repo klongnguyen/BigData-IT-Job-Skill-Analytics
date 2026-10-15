@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "created_at": "2026-10-15T14:13:35Z",
+  "etl_run_id": "10d0710787d2402186356858d3331e50",
+  "etl_manifest_path": "data/manifests/etl/etl_10d0710787d2402186356858d3331e50.json",
+  "etl_manifest_sha256": "817c24b15a12436ce47c2fce08a891ce50f31cb87221bc3ce2b74a028a7b15c9",
+  "preflight_sha256": "ada1c0dd057356102e1c17bd4fbb8aacf4b4d516df056cb9a84bfcf77877c96f",
+  "parquet_counts": {
+    "silver": 8370,
+    "provenance": 8370,
+    "scope_excluded": 548,
+    "scope_unresolved": 10788,
+    "quarantine": 0
+  },
+  "silver_by_source_market": [
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "rows": 1621
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "rows": 10
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "rows": 6739
+    }
+  ],
+  "old_artifact_sha256": {
+    "taxonomy_v0_1": "4aacd9a32d30af2dcb30e83d2fd41c63dafdccb28dfd0e33447ca204e6681ebd",
+    "old_etl_manifest": "7d767fca4ed3b728892dcac3a2d5bfbb57dfd5cc4601b14e889149dc403acb4c",
+    "old_gold_manifest": "2b37892022882e834b5437555c5c567aa2ab31103dc1d581b9b2f18cd9e7c74d",
+    "old_silver_parquet": "1f57f5d35b380d4c4d8340d5bfc8545b2719426e11e1390b05ee193cd3fe1ee9",
+    "old_provenance_parquet": "54c353af0beda17680f0147d6900fd9d4aadce179c5d3f9329efdf6e5042fc0e"
+  },
+  "forecast_gate": "NO_GO",
+  "gold_created": false
+}

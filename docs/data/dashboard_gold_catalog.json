@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "datasets": [
+    {
+      "id": "legacy_2023",
+      "label": "Legacy / archive 2023",
+      "audit_path": "docs/data/phase03_analytics_audit.json",
+      "audit_sha256": "4655c11eb24ec1f51fac66f6449c22dc1aa28cc2828c486bca00737cfd4b210f",
+      "run_namespace": "data/gold/global/runs",
+      "run_id": "20261004T110131548191Z-e38fa7303cf4"
+    },
+    {
+      "id": "scoped_2026",
+      "label": "Scoped 2026",
+      "audit_path": "docs/data/2026_gold_run_audit.json",
+      "audit_sha256": "4e130c088954ecb112b9939c64a9ccf891e51b6f81162348c7d67c5c1e9e0b11",
+      "run_namespace": "data/gold/jobscope/runs",
+      "run_id": "20261015T144634600577Z-8d531796a5f6"
+    }
+  ]
+}

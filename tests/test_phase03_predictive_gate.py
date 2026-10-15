@@ -34,3 +34,18 @@ def test_gate_rejects_duplicate_month_and_never_grants_go_from_counts():
     assert gate["decision"] == "NO_GO"
     with pytest.raises(RuntimeError, match="not GO"):
         require_predictive_go(gate)
+
+
+def test_market_is_part_of_predictive_identity_and_comparability():
+    rows = [
+        {"market": "GLOBAL", "source": "same", "occupation": "Data Engineer",
+         "month": "2026-10", "job_count": 50},
+        {"market": "US_FEDERAL", "source": "same", "occupation": "Data Engineer",
+         "month": "2026-10", "job_count": 500},
+    ]
+    gate = assess_predictive_gate(rows, [])
+    assert gate["decision"] == "NO_GO"
+    assert len(gate["source_occupation_series"]) == 2
+    assert {(row["market"], row["jobs"]) for row in gate["source_months"]} == {
+        ("GLOBAL", 50), ("US_FEDERAL", 500)}
+    assert next(check for check in gate["checks"] if check["id"] == "source_comparability")["status"] == "NOT_ELIGIBLE"

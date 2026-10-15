@@ -55,5 +55,14 @@ data/gold/global/runs/
 # Immutable API Bronze runs stay local; commit only their audit summaries.
 data/bronze/**/runs/
 
+# Immutable 2026 Silver run data and manifests stay local; commit audit summaries.
+data/manifests/etl/
+data/silver/jobscope/runs/
+data/provenance/jobscope/runs/
+data/quarantine/jobscope/runs/
+data/scope_excluded/jobscope/runs/
+data/scope_unresolved/jobscope/runs/
+data/gold/jobscope/runs/
+
 # Streamlit secrets
 .streamlit/secrets.toml

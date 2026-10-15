@@ -1,0 +1,75 @@
+{
+  "version": "2026_it_scope_v1",
+  "taxonomy_version": "v0.2",
+  "ai_review_sample_sha256": "365de636595ce0057a7f056580bb073955731d83470e6cb4d6fb8893d2308caa",
+  "default_global_decision": "unresolved",
+  "federal_rule_id": "source_series_2210",
+  "rules": [
+    {
+      "id": "not_a_job_training",
+      "decision": "excluded",
+      "pattern": "(?:^|\\W)(?:weiterbildung|bootcamp|training course)(?:\\W|$)",
+      "reason": "Tiêu đề là chương trình đào tạo, không phải vị trí tuyển dụng"
+    },
+    {
+      "id": "it_pos_support",
+      "decision": "in_scope_other_it",
+      "pattern": "(?:support|service).{0,45}(?:pos|kassensystem)|(?:pos|kassensystem).{0,45}(?:support|service)",
+      "reason": "Hỗ trợ hệ thống POS/kassensystem số"
+    },
+    {
+      "id": "it_digital_architecture",
+      "decision": "in_scope_other_it",
+      "pattern": "(?:solution|solutions) architect.{0,60}(?:digital|software|cloud|platform)|(?:digital|software|cloud|platform).{0,60}(?:solution|solutions) architect",
+      "reason": "Kiến trúc giải pháp nền tảng số"
+    },
+    {
+      "id": "it_solution_engineering",
+      "decision": "in_scope_other_it",
+      "pattern": "(?:ai solutions engineer|solutions engineer.{0,55}(?:edi|e-invoicing|software|digital)|(?:edi|e-invoicing).{0,55}solutions engineer)",
+      "reason": "Kỹ thuật giải pháp AI hoặc tích hợp dữ liệu số"
+    },
+    {
+      "id": "it_software_implementation",
+      "decision": "in_scope_other_it",
+      "pattern": "(?:software implementation|implementation.{0,30}software)",
+      "reason": "Triển khai phần mềm là công việc CNTT"
+    },
+    {
+      "id": "it_security",
+      "decision": "in_scope_other_it",
+      "pattern": "(?:cybersecurity|appsec|infosec|offensive security|red team|information security|it security)",
+      "reason": "Vai trò an ninh thông tin hoặc an ninh mạng"
+    },
+    {
+      "id": "it_qa_testing",
+      "decision": "in_scope_other_it",
+      "pattern": "(?:qa|teststrategie|test manager).{0,55}(?:it consulting|software|app|application)|(?:it consulting|software).{0,55}(?:qa|teststrategie|test manager)",
+      "reason": "Kiểm thử hoặc tư vấn chất lượng phần mềm CNTT"
+    },
+    {
+      "id": "it_support_operations",
+      "decision": "in_scope_other_it",
+      "pattern": "(?:\\bit support\\b|service desk|\\bit operations\\b|\\bit systems engineer\\b|\\bit specialist\\b|information technology specialist|technical support.{0,35}(?:software|network|systems|cloud|\\bit\\b))",
+      "reason": "Hỗ trợ, vận hành hoặc chuyên viên hệ thống CNTT"
+    },
+    {
+      "id": "non_it_commercial_admin",
+      "decision": "excluded",
+      "pattern": "(?:affiliate marketing|influencer manager|marketing manager|sales manager|corporate sales|inside sales|business development representative|appointment\\s+setter|chat setter|copywriter|freelance writer|content reviewer|office assistant|hr & people|accountant|bilanzbuchhalter|credit hire handler|director of ops|managing director)",
+      "reason": "Tiêu đề là kinh doanh, marketing, nội dung hoặc hành chính"
+    },
+    {
+      "id": "non_it_domain_profession",
+      "decision": "excluded",
+      "pattern": "(?:assay-entwicklung pharma|tor- und türsysteme|starkstromelektriker|brandschutztechniker|quantitative risk manager|automatisierung und telekommunikation offshore|game art lead|facharzt|fachkosmetiker|soft fabrics|mechanische gewerke|heating & cooling)",
+      "reason": "Tiêu đề là nghề ngoài lĩnh vực CNTT"
+    },
+    {
+      "id": "it_mapped_v0_2",
+      "decision": "in_scope_mapped",
+      "pattern": null,
+      "reason": "Tiêu đề khớp nghề taxonomy v0.2"
+    }
+  ]
+}

@@ -1,0 +1,521 @@
+{
+  "status": "passed",
+  "created_at": "2026-10-15T14:09:12Z",
+  "input_selection_sha256": "e1e8c9443b98ca64368ed1ca31cae11947c7919ff9d62050ac61575d40fe87fe",
+  "scope_policy_sha256": "b1ab62175706387bb457251fdf1b240501f4ff03bd21b7034dd3b476954a4c9d",
+  "taxonomy_config_sha256": "f7d8d8782f3abe84e8522286953581ae4b69074232a99c9799536dc08c710a65",
+  "sample_sha256": "365de636595ce0057a7f056580bb073955731d83470e6cb4d6fb8893d2308caa",
+  "sample_agreement_counts": {
+    "excluded": 27,
+    "unresolved": 6,
+    "in_scope": 142
+  },
+  "input_run_count": 23,
+  "metrics": {
+    "input_rows": 21435,
+    "unique_rows": 19706,
+    "duplicate_rows": 1729,
+    "quarantine_rows": 0,
+    "valid_rows": 21435,
+    "silver_rows": 8370,
+    "scope_excluded_rows": 548,
+    "scope_unresolved_rows": 10788,
+    "multi_run_lineage_ids": 1456,
+    "partial_winners": {
+      "remotive": 15
+    }
+  },
+  "source_market_decision": [
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "scope_decision": "excluded",
+      "rows": 543
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "scope_decision": "in_scope",
+      "rows": 1621
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "scope_decision": "unresolved",
+      "rows": 10788
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "scope_decision": "excluded",
+      "rows": 5
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "scope_decision": "in_scope",
+      "rows": 10
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "scope_decision": "in_scope",
+      "rows": 6739
+    }
+  ],
+  "source_rule": [
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "insufficient_title_evidence",
+      "rows": 10788
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_digital_architecture",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_mapped_v0_2",
+      "rows": 1485
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_pos_support",
+      "rows": 3
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_qa_testing",
+      "rows": 5
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_security",
+      "rows": 66
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_software_implementation",
+      "rows": 4
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_solution_engineering",
+      "rows": 10
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "it_support_operations",
+      "rows": 41
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "non_it_commercial_admin",
+      "rows": 508
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "non_it_domain_profession",
+      "rows": 23
+    },
+    {
+      "source": "arbeitnow",
+      "analysis_scope_basis": "not_a_job_training",
+      "rows": 12
+    },
+    {
+      "source": "remotive",
+      "analysis_scope_basis": "it_mapped_v0_2",
+      "rows": 9
+    },
+    {
+      "source": "remotive",
+      "analysis_scope_basis": "it_support_operations",
+      "rows": 1
+    },
+    {
+      "source": "remotive",
+      "analysis_scope_basis": "non_it_commercial_admin",
+      "rows": 5
+    },
+    {
+      "source": "usajobs_historic",
+      "analysis_scope_basis": "source_series_2210",
+      "rows": 6739
+    }
+  ],
+  "source_market_occupation": [
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Backend Developer",
+      "rows": 131
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Data Analyst",
+      "rows": 37
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Data Engineer",
+      "rows": 117
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Data Scientist",
+      "rows": 90
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "DevOps Engineer",
+      "rows": 212
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Frontend Developer",
+      "rows": 56
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Machine Learning Engineer",
+      "rows": 152
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Other IT",
+      "rows": 136
+    },
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "occupation": "Software Engineer",
+      "rows": 690
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "occupation": "Backend Developer",
+      "rows": 1
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "occupation": "Data Scientist",
+      "rows": 1
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "occupation": "Machine Learning Engineer",
+      "rows": 2
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "occupation": "Other IT",
+      "rows": 1
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "occupation": "Software Engineer",
+      "rows": 5
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Backend Developer",
+      "rows": 1
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Data Analyst",
+      "rows": 7
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Data Engineer",
+      "rows": 26
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Data Scientist",
+      "rows": 13
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "DevOps Engineer",
+      "rows": 33
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Frontend Developer",
+      "rows": 2
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Machine Learning Engineer",
+      "rows": 4
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Other IT",
+      "rows": 6603
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "occupation": "Software Engineer",
+      "rows": 50
+    }
+  ],
+  "source_market_month": [
+    {
+      "source": "arbeitnow",
+      "market": "GLOBAL",
+      "month": "2026-10",
+      "rows": 1621
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "month": "2026-09",
+      "rows": 8
+    },
+    {
+      "source": "remotive",
+      "market": "GLOBAL",
+      "month": "2026-10",
+      "rows": 2
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-01",
+      "rows": 500
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-02",
+      "rows": 599
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-03",
+      "rows": 754
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-04",
+      "rows": 747
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-05",
+      "rows": 719
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-06",
+      "rows": 772
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-07",
+      "rows": 771
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-08",
+      "rows": 820
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-09",
+      "rows": 760
+    },
+    {
+      "source": "usajobs_historic",
+      "market": "US_FEDERAL",
+      "month": "2026-10",
+      "rows": 297
+    }
+  ],
+  "top_unresolved_titles": [
+    {
+      "source": "arbeitnow",
+      "title": "Account Executive",
+      "rows": 25
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Servicetechniker im Außendienst (gn)",
+      "rows": 23
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Forward Deployed Engineer",
+      "rows": 18
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Geschäftsführer (m/w/d) Gebäude-Energieberatung – Aufbau neuer Standort im Umland",
+      "rows": 16
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Enterprise Account Executive",
+      "rows": 16
+    },
+    {
+      "source": "arbeitnow",
+      "title": "IT-Systemadministrator (m/w/d)",
+      "rows": 16
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Initiativbewerbung",
+      "rows": 13
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Senior Product Designer",
+      "rows": 11
+    },
+    {
+      "source": "arbeitnow",
+      "title": "IT-Administrator (m/w/d)",
+      "rows": 10
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Senior Sales Engineer - UK",
+      "rows": 10
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Engineering Manager",
+      "rows": 10
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Initiativbewerbung (m/w/d)",
+      "rows": 10
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Senior Product Manager",
+      "rows": 9
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Product Manager",
+      "rows": 8
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Projektleiter Customer Projects (gn)",
+      "rows": 8
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Product Designer",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Conseiller(ère) commercial(e) terrain expérimenté(e)",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Senior Project Manager",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Solutions Engineer",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Scrum Master / Delivery Enabler (m/w/d) - KI-gestützte Softwareentwicklung",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Steuerberater (m/w/d)",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "title": "KFZ-Mechatroniker für NFZ, LKW & Trailer (m/w/d) | 40.000 - 48.000 €",
+      "rows": 7
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Solution Architect",
+      "rows": 6
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Account Manager",
+      "rows": 6
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Senior Project Manager für digitale Verwaltungsprojekte - Migration und Inneres (all genders)",
+      "rows": 6
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Senior Consultant für digitale Verwaltungsprojekte - Migration und Inneres (all genders)",
+      "rows": 6
+    },
+    {
+      "source": "arbeitnow",
+      "title": "SPS-Programmierer (m/w/d)",
+      "rows": 6
+    },
+    {
+      "source": "arbeitnow",
+      "title": "SPS - Programmierer / Automatisierungstechniker (gn)",
+      "rows": 6
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Inbetriebnehmer WMS / Inbetriebnahme - Ingenieur/Techniker (gn)",
+      "rows": 6
+    },
+    {
+      "source": "arbeitnow",
+      "title": "Elektriker (m/w/d)",
+      "rows": 6
+    }
+  ],
+  "failures": []
+}

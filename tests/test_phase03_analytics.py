@@ -7,7 +7,10 @@ import pytest
 
 from src.common.run_manifest import sha256_file
 from src.processing.spark_etl import _directory_evidence, create_spark_session
-from src.analytics.phase03_gold import load_verified_etl_manifest, run_phase03
+from src.analytics.phase03_gold import (
+    ETL_2026_RUN_ID, ETL_2026_SHA256, build_gold_tables,
+    load_verified_etl_manifest, run_phase03, verify_2026_silver_authorization,
+)
 
 
 def _fixture_etl(tmp_path):
@@ -170,3 +173,89 @@ def test_rejects_duplicate_provenance_even_with_matching_file_checksums(tmp_path
     with pytest.raises(AssertionError, match="Duplicate provenance job_id key"):
         run_phase03(path, sha256_file(path), output_root=tmp_path / "gold")
     assert not list((tmp_path / "gold").glob("*/manifest.json"))
+
+
+def test_market_is_in_every_gold_key_denominator_and_trend():
+    spark = create_spark_session()
+    try:
+        rows = [
+            {"job_id": "g1", "market": "GLOBAL", "source": "same_source",
+             "normalized_title": "Data Engineer", "posted_at": datetime(2026, 1, 15, tzinfo=timezone.utc),
+             "skills": ["python"], "company": "A", "country": "US",
+             "work_mode": "Remote", "experience_level": "Mid"},
+            {"job_id": "g2", "market": "GLOBAL", "source": "same_source",
+             "normalized_title": "Data Engineer", "posted_at": datetime(2026, 3, 15, tzinfo=timezone.utc),
+             "skills": ["python"], "company": "B", "country": "US",
+             "work_mode": "Remote", "experience_level": "Mid"},
+            {"job_id": "f1", "market": "US_FEDERAL", "source": "same_source",
+             "normalized_title": "Data Engineer", "posted_at": datetime(2026, 2, 15, tzinfo=timezone.utc),
+             "skills": ["sql"], "company": "C", "country": "US",
+             "work_mode": "Remote", "experience_level": "Mid"},
+            {"job_id": "f2", "market": "US_FEDERAL", "source": "same_source",
+             "normalized_title": "Data Engineer", "posted_at": datetime(2026, 3, 15, tzinfo=timezone.utc),
+             "skills": ["sql"], "company": "D", "country": "US",
+             "work_mode": "Remote", "experience_level": "Mid"},
+        ]
+        silver = spark.createDataFrame(rows)
+        provenance = spark.createDataFrame([
+            {"job_id": row["job_id"], "source": row["source"],
+             "skills_origin": "source_tags", "taxonomy_version": "v0.2"}
+            for row in rows])
+        tables = build_gold_tables(silver, provenance, "v0.2")
+        for name, keys in {
+            "market_stats": ["market", "month", "source"],
+            "occupation_stats": ["market", "month", "source", "occupation"],
+            "skill_evidence_stats": ["market", "month", "source", "occupation", "skills_origin", "taxonomy_version"],
+            "skill_stats": ["market", "month", "source", "occupation", "skills_origin", "taxonomy_version", "skill"],
+            "skill_trends": ["market", "month", "source", "occupation", "skills_origin", "taxonomy_version", "skill"],
+        }.items():
+            frame = tables[name]
+            assert frame.count() == frame.select(*keys).distinct().count()
+        market = tables["market_stats"].collect()
+        assert {(row.market, row.month, row.job_count) for row in market} == {
+            ("GLOBAL", "2026-01", 1), ("GLOBAL", "2026-03", 1),
+            ("US_FEDERAL", "2026-02", 1), ("US_FEDERAL", "2026-03", 1),
+        }
+        trends = tables["skill_trends"]
+        global_march = trends.filter((trends.market == "GLOBAL") &
+                                     (trends.month == "2026-03") & (trends.skill == "python")).first()
+        federal_march = trends.filter((trends.market == "US_FEDERAL") &
+                                      (trends.month == "2026-03") & (trends.skill == "sql")).first()
+        assert global_march.previous_observed_month == "2026-01"
+        assert global_march.consecutive_observed_month is False
+        assert federal_march.previous_observed_month == "2026-02"
+        assert federal_march.consecutive_observed_month is True
+        assert trends.filter(trends.month == "2026-04").count() == 0
+    finally:
+        spark.stop()
+
+
+def test_2026_authorization_rejects_wrong_sha_and_partial(monkeypatch):
+    from pathlib import Path
+    from src.analytics import phase03_gold
+    from src.analytics.phase03_gold import ROOT, OLD_GOLD_MANIFEST, OLD_GOLD_SHA256
+    path = ROOT / "data/manifests/etl" / f"etl_{ETL_2026_RUN_ID}.json"
+    report, _ = load_verified_etl_manifest(path, ETL_2026_SHA256, allow_scoped_inputs=True)
+    audit, audit_sha = verify_2026_silver_authorization(report, path, ETL_2026_SHA256)
+    assert audit["status"] == "passed" and len(audit_sha) == 64
+    assert sha256_file(OLD_GOLD_MANIFEST) == OLD_GOLD_SHA256
+    with pytest.raises(ValueError, match="exact audited"):
+        verify_2026_silver_authorization(report, path, "0" * 64)
+    changed = json.loads(json.dumps(report))
+    changed["input_runs"][0]["run_id"] = "unexpected_partial"
+    with pytest.raises(ValueError, match="Bronze lineage|unauthorized partial"):
+        verify_2026_silver_authorization(changed, path, ETL_2026_SHA256)
+    actual_evidence = phase03_gold._directory_evidence
+    silver_dir = ROOT / "data/silver/jobscope/runs" / ETL_2026_RUN_ID
+
+    def tampered_evidence(directory):
+        evidence = actual_evidence(directory)
+        if Path(directory).resolve() == silver_dir.resolve():
+            return {**evidence, "sha256": "0" * 64}
+        return evidence
+
+    monkeypatch.setattr(phase03_gold, "_directory_evidence", tampered_evidence)
+    with pytest.raises(ValueError, match="silver output SHA mismatch"):
+        verify_2026_silver_authorization(report, path, ETL_2026_SHA256)
+    with pytest.raises(ValueError, match="explicit --jobscope-2026"):
+        run_phase03(path, ETL_2026_SHA256)

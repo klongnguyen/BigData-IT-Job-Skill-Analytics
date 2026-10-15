@@ -14,12 +14,76 @@ from pyspark import StorageLevel
 from src.analytics.predictive_gate import assess_predictive_gate
 from src.common.run_manifest import new_run_id, sha256_file, utc_now
 from src.processing.spark_etl import _directory_evidence, create_spark_session
+from src.processing.input_selection import (
+    PARTIAL_MANIFEST_SHA256, PARTIAL_RUN_ID, load_input_selection,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_ROOT = ROOT / "data" / "gold" / "global" / "runs"
 POLICY_FILE = ROOT / "docs" / "planning" / "go_no_go_report.md"
 TAXONOMY_FILES = ("job_title_mapping_v0.json", "skills_v0.json")
+JOB_SCOPE_OUTPUT_ROOT = ROOT / "data" / "gold" / "jobscope" / "runs"
+ETL_2026_RUN_ID = "10d0710787d2402186356858d3331e50"
+ETL_2026_SHA256 = "817c24b15a12436ce47c2fce08a891ce50f31cb87221bc3ce2b74a028a7b15c9"
+SILVER_2026_AUDIT = ROOT / "docs" / "data" / "2026_silver_run_audit.json"
+SILVER_2026_SELECTION = ROOT / "docs" / "data" / "2026_silver_input_selection.json"
+OLD_GOLD_MANIFEST = ROOT / "data/gold/global/runs/20261004T110131548191Z-e38fa7303cf4/manifest.json"
+OLD_GOLD_SHA256 = "2b37892022882e834b5437555c5c567aa2ab31103dc1d581b9b2f18cd9e7c74d"
+
+
+def _workspace_relative(path):
+    path = Path(path).resolve()
+    return path.relative_to(ROOT).as_posix() if path.is_relative_to(ROOT) else str(path)
+
+
+def verify_2026_silver_authorization(report, etl_path, expected_sha256):
+    """Authorize only the audited 2026 Silver run, including its exact partial."""
+    if (Path(etl_path).resolve() != (ROOT / "data/manifests/etl" / f"etl_{ETL_2026_RUN_ID}.json").resolve()
+            or expected_sha256 != ETL_2026_SHA256 or report.get("run_id") != ETL_2026_RUN_ID):
+        raise ValueError("Gold 2026 requires the exact audited ETL manifest")
+    audit = json.loads(SILVER_2026_AUDIT.read_text(encoding="utf-8"))
+    if (audit.get("status") != "passed" or audit.get("etl_run_id") != ETL_2026_RUN_ID
+            or audit.get("etl_manifest_sha256") != ETL_2026_SHA256):
+        raise ValueError("Silver 2026 audit is not passed for the exact ETL run")
+    if report.get("input_selection", {}).get("sha256") != sha256_file(SILVER_2026_SELECTION):
+        raise ValueError("Gold 2026 input-selection SHA mismatch")
+    if (report.get("taxonomy_version") != "v0.2" or
+            report.get("taxonomy_config_sha256", {}).get("job_title_mapping_v0_2.json") !=
+            sha256_file(ROOT / "configs/job_title_mapping_v0_2.json") or
+            report.get("scope_policy_version") != "2026_it_scope_v1" or
+            report.get("scope_policy_sha256") != sha256_file(ROOT / "configs/job_scope_policy_2026_v1.json") or
+            report.get("ai_review_sample_sha256") != sha256_file(ROOT / "docs/data/2026_it_scope_sample.csv")):
+        raise ValueError("Gold 2026 taxonomy, scope policy or AI sample SHA mismatch")
+    expected_counts = {"silver_rows": 8370, "provenance_rows": 8370,
+                       "scope_excluded_rows": 548, "scope_unresolved_rows": 10788,
+                       "quarantine_rows": 0, "unique_survivors": 19706}
+    if any(report.get("metrics", {}).get(key) != value for key, value in expected_counts.items()):
+        raise ValueError("Gold 2026 Silver scope accounting mismatch")
+    if audit.get("parquet_counts") != {"silver": 8370, "provenance": 8370,
+                                       "scope_excluded": 548, "scope_unresolved": 10788,
+                                       "quarantine": 0}:
+        raise ValueError("Gold 2026 Silver audit counts differ")
+    for name, count in (("silver", 8370), ("provenance", 8370),
+                        ("scope_excluded", 548), ("scope_unresolved", 10788), ("quarantine", 0)):
+        output = report.get("outputs", {}).get(name, {})
+        expected_dir = ROOT / "data" / name / "jobscope" / "runs" / ETL_2026_RUN_ID
+        if Path(output.get("path", "")).resolve() != expected_dir.resolve():
+            raise ValueError(f"Gold 2026 {name} path is outside audited namespace")
+        if _directory_evidence(expected_dir) != {"sha256": output.get("sha256"),
+                                                  "files": output.get("files")}:
+            raise ValueError(f"Gold 2026 {name} output SHA mismatch")
+    selected, _ = load_input_selection(SILVER_2026_SELECTION, sha256_file(SILVER_2026_SELECTION))
+    declared = {run["run_id"]: run for run in report["input_runs"]}
+    if len(declared) != len(selected) or any(
+            declared.get(run["run_id"], {}).get("manifest_sha256") != run["manifest_sha256"]
+            or declared[run["run_id"]]["status"] != run["status"] for run in selected):
+        raise ValueError("Gold 2026 Bronze lineage differs from pinned selection")
+    partials = {(run["run_id"], run["manifest_sha256"]) for run in report["input_runs"]
+                if run["status"] == "partial"}
+    if partials != {(PARTIAL_RUN_ID, PARTIAL_MANIFEST_SHA256)}:
+        raise ValueError("Gold 2026 has an unauthorized partial Bronze run")
+    return audit, sha256_file(SILVER_2026_AUDIT)
 
 
 def load_verified_etl_manifest(path, expected_sha256, allow_scoped_inputs=False):
@@ -68,6 +132,7 @@ def build_gold_tables(silver, provenance, taxonomy_version):
         "taxonomy_version",
     )
     jobs = (silver.join(provenance_fields, "job_id", "inner")
+        .withColumn("market", F.coalesce(F.col("market") if "market" in silver.columns else F.lit(None), F.lit("GLOBAL")))
         .withColumn("month", F.date_format("posted_at", "yyyy-MM"))
         .withColumn("occupation", F.when(
             F.col("normalized_title").isNull() | (F.trim("normalized_title") == ""),
@@ -76,7 +141,7 @@ def build_gold_tables(silver, provenance, taxonomy_version):
         .withColumn("has_skill_evidence", F.col("skills").isNotNull() & (F.size("skills") > 0))
         .persist(StorageLevel.MEMORY_AND_DISK))
     if jobs.filter(
-            F.col("month").isNull() | F.col("source").isNull() |
+            F.col("month").isNull() | F.col("source").isNull() | F.col("market").isNull() |
             F.col("provenance_source").isNull() |
             (F.col("source") != F.col("provenance_source")) |
             F.col("skills_origin").isNull()).limit(1).count():
@@ -85,7 +150,7 @@ def build_gold_tables(silver, provenance, taxonomy_version):
                    (F.col("taxonomy_version") != F.lit(taxonomy_version))).limit(1).count():
         raise AssertionError("Provenance taxonomy version differs from ETL manifest")
 
-    month_source = ["month", "source"]
+    month_source = ["market", "month", "source"]
     occ_keys = month_source + ["occupation"]
     skill_scope = occ_keys + ["skills_origin", "taxonomy_version"]
 
@@ -117,7 +182,7 @@ def build_gold_tables(silver, provenance, taxonomy_version):
         .agg(F.countDistinct("job_id").alias("skill_job_count")))
     # A skill absent in an observed source/occupation/evidence month has rate 0.
     # Months without that observed evidence scope remain absent, never zero-filled.
-    series_keys = ["source", "occupation", "skills_origin", "taxonomy_version"]
+    series_keys = ["market", "source", "occupation", "skills_origin", "taxonomy_version"]
     skill_universe = skill_counts.select(*series_keys, "skill").distinct()
     observed_grid = skill_evidence_stats.join(skill_universe, series_keys)
     skill_stats = (observed_grid
@@ -125,7 +190,7 @@ def build_gold_tables(silver, provenance, taxonomy_version):
         .withColumn("skill_job_count", F.coalesce(F.col("skill_job_count"), F.lit(0)))
         .withColumn("demand_rate", F.col("skill_job_count") / F.col("occupation_job_count"))
         .persist(StorageLevel.MEMORY_AND_DISK))
-    window = Window.partitionBy("source", "occupation", "skills_origin", "taxonomy_version", "skill").orderBy("month")
+    window = Window.partitionBy("market", "source", "occupation", "skills_origin", "taxonomy_version", "skill").orderBy("month")
     skill_trends = (skill_stats
         .withColumn("previous_observed_month", F.lag("month").over(window))
         .withColumn("previous_demand_rate", F.lag("demand_rate").over(window))
@@ -149,10 +214,23 @@ def build_gold_tables(silver, provenance, taxonomy_version):
 
 
 def run_phase03(etl_manifest, expected_etl_sha256, output_root=DEFAULT_OUTPUT_ROOT,
-                allow_scoped_inputs=False, audit_json=None):
+                allow_scoped_inputs=False, audit_json=None, jobscope_2026=False):
+    if jobscope_2026 and allow_scoped_inputs:
+        raise ValueError("Gold 2026 authorization uses the exact audited run, not generic partial allowance")
+    if (Path(etl_manifest).resolve().name == f"etl_{ETL_2026_RUN_ID}.json" and not jobscope_2026):
+        raise ValueError("Gold 2026 requires explicit --jobscope-2026 authorization")
     report, etl_sha256 = load_verified_etl_manifest(
-        etl_manifest, expected_etl_sha256, allow_scoped_inputs,
+        etl_manifest, expected_etl_sha256, allow_scoped_inputs or jobscope_2026,
     )
+    silver_audit, silver_audit_sha = (verify_2026_silver_authorization(
+        report, etl_manifest, expected_etl_sha256) if jobscope_2026 else (None, None))
+    if jobscope_2026:
+        if Path(output_root).resolve() == DEFAULT_OUTPUT_ROOT.resolve():
+            output_root = JOB_SCOPE_OUTPUT_ROOT
+        if Path(output_root).resolve() != JOB_SCOPE_OUTPUT_ROOT.resolve():
+            raise ValueError("Gold 2026 must publish in the immutable jobscope namespace")
+        if sha256_file(OLD_GOLD_MANIFEST) != OLD_GOLD_SHA256:
+            raise ValueError("Legacy Gold manifest changed")
     output_root = Path(output_root).resolve()
     input_dirs = [Path(report["outputs"][name]["path"]).resolve() for name in ("silver", "provenance")]
     for directory in input_dirs:
@@ -179,17 +257,36 @@ def run_phase03(etl_manifest, expected_etl_sha256, output_root=DEFAULT_OUTPUT_RO
                 provenance.join(silver, "job_id", "left_anti").limit(1).count()):
             raise AssertionError("Silver/provenance cardinality or ETL manifest count mismatch")
 
+        observed = None
+        if jobscope_2026:
+            observed = {(r["market"], r["source"], r["month"]): r["count"]
+                        for r in silver.withColumn("month", F.date_format("posted_at", "yyyy-MM"))
+                        .groupBy("market", "source", "month").count().collect()}
+            by_source = {}
+            for (market, source, month_value), count in observed.items():
+                by_source[(market, source)] = by_source.get((market, source), 0) + count
+            if by_source != {("GLOBAL", "arbeitnow"): 1621,
+                             ("GLOBAL", "remotive"): 10,
+                             ("US_FEDERAL", "usajobs_historic"): 6739}:
+                raise AssertionError("Gold 2026 source/market counts differ from Silver audit")
+            if ({m for market, source, m in observed if source == "arbeitnow"} != {"2026-10"} or
+                    {(m, n) for (market, source, m), n in observed.items() if source == "remotive"} !=
+                    {("2026-09", 8), ("2026-10", 2)} or
+                    {m for market, source, m in observed if source == "usajobs_historic"} !=
+                    {f"2026-{m:02d}" for m in range(1, 11)}):
+                raise AssertionError("Gold 2026 observed-month coverage differs from audit")
+
         tables = build_gold_tables(silver, provenance, report["taxonomy_version"])
         if (tables["market_stats"].agg(F.sum("job_count")).first()[0] != silver_count or
                 tables["occupation_stats"].agg(F.sum("job_count")).first()[0] != silver_count or
                 tables["skill_evidence_stats"].agg(F.sum("origin_job_count")).first()[0] != silver_count):
             raise AssertionError("Gold source/occupation/evidence job accounting failed")
         keys = {
-            "market_stats": ["month", "source"],
-            "occupation_stats": ["month", "source", "occupation"],
-            "skill_evidence_stats": ["month", "source", "occupation", "skills_origin", "taxonomy_version"],
-            "skill_stats": ["month", "source", "occupation", "skills_origin", "taxonomy_version", "skill"],
-            "skill_trends": ["month", "source", "occupation", "skills_origin", "taxonomy_version", "skill"],
+            "market_stats": ["market", "month", "source"],
+            "occupation_stats": ["market", "month", "source", "occupation"],
+            "skill_evidence_stats": ["market", "month", "source", "occupation", "skills_origin", "taxonomy_version"],
+            "skill_stats": ["market", "month", "source", "occupation", "skills_origin", "taxonomy_version", "skill"],
+            "skill_trends": ["market", "month", "source", "occupation", "skills_origin", "taxonomy_version", "skill"],
         }
         outputs = {}
         for name, frame in tables.items():
@@ -206,29 +303,32 @@ def run_phase03(etl_manifest, expected_etl_sha256, output_root=DEFAULT_OUTPUT_RO
             frame.write.mode("errorifexists").parquet(str(stage_path))
             if spark.read.parquet(str(stage_path)).count() != count:
                 raise AssertionError(f"Written {name} row count mismatch")
-            outputs[name] = {"path": str(final / name), "rows": count, **_directory_evidence(stage_path)}
+            outputs[name] = {"path": _workspace_relative(final / name) if jobscope_2026 else str(final / name),
+                             "rows": count, **_directory_evidence(stage_path)}
 
         occupation_rows = [row.asDict() for row in tables["occupation_stats"].select(
-            "month", "source", "occupation", "job_count").collect()]
+            "market", "month", "source", "occupation", "job_count").collect()]
         gate = assess_predictive_gate(occupation_rows, report["input_runs"])
+        if gate["decision"] != "NO_GO":
+            raise AssertionError("2026 Gold forecast gate must remain NO_GO")
         source_occupation = [row.asDict() for row in tables["occupation_stats"].groupBy(
-            "source", "occupation").agg(F.sum("job_count").alias("jobs")).orderBy("source", "occupation").collect()]
-        occupation_totals = tables["occupation_stats"].groupBy("source", "occupation").agg(
+            "market", "source", "occupation").agg(F.sum("job_count").alias("jobs")).orderBy("market", "source", "occupation").collect()]
+        occupation_totals = tables["occupation_stats"].groupBy("market", "source", "occupation").agg(
             F.sum("job_count").alias("denominator_jobs"),
         )
         evidence_summary = [row.asDict() for row in tables["skill_evidence_stats"].groupBy(
-            "source", "occupation", "skills_origin").agg(
+            "market", "source", "occupation", "skills_origin").agg(
                 F.sum("origin_job_count").alias("origin_jobs"),
                 F.sum("skill_evidence_jobs").alias("evidence_jobs"),
-            ).join(occupation_totals, ["source", "occupation"])
-            .orderBy("source", "occupation", "skills_origin").collect()]
-        top_window = Window.partitionBy("source", "occupation", "skills_origin").orderBy(
+            ).join(occupation_totals, ["market", "source", "occupation"])
+            .orderBy("market", "source", "occupation", "skills_origin").collect()]
+        top_window = Window.partitionBy("market", "source", "occupation", "skills_origin").orderBy(
             F.col("skill_job_count").desc(), F.col("skill").asc())
         top_skills = [row.asDict() for row in tables["skill_stats"].groupBy(
-            "source", "occupation", "skills_origin", "skill").agg(
+            "market", "source", "occupation", "skills_origin", "skill").agg(
                 F.sum("skill_job_count").alias("skill_job_count")
             ).withColumn("rank", F.row_number().over(top_window)).filter(F.col("rank") <= 3)
-            .orderBy("source", "occupation", "skills_origin", "rank").collect()]
+            .orderBy("market", "source", "occupation", "skills_origin", "rank").collect()]
         manifest = {
             "schema_version": 1,
             "run_id": run_id,
@@ -237,7 +337,7 @@ def run_phase03(etl_manifest, expected_etl_sha256, output_root=DEFAULT_OUTPUT_RO
             "analysis_type": "observed_descriptive_only",
             "input": {
                 "etl_run_id": report["run_id"],
-                "etl_manifest_path": str(Path(etl_manifest).resolve()),
+                "etl_manifest_path": _workspace_relative(etl_manifest) if jobscope_2026 else str(Path(etl_manifest).resolve()),
                 "etl_manifest_sha256": etl_sha256,
                 "bronze_runs": report["input_runs"],
                 "silver_rows": silver_count,
@@ -245,12 +345,23 @@ def run_phase03(etl_manifest, expected_etl_sha256, output_root=DEFAULT_OUTPUT_RO
                 "silver_sha256": report["outputs"]["silver"]["sha256"],
                 "provenance_sha256": report["outputs"]["provenance"]["sha256"],
                 "allow_scoped_inputs": allow_scoped_inputs,
+                "silver_audit_sha256": silver_audit_sha,
+                "input_selection_sha256": report.get("input_selection", {}).get("sha256"),
             },
             "taxonomy_version": report["taxonomy_version"],
             "taxonomy_config_sha256": report.get("taxonomy_config_sha256") or {
                 name: sha256_file(ROOT / "configs" / name) for name in TAXONOMY_FILES
             },
             "policy_sha256": sha256_file(POLICY_FILE),
+            "scope_policy_version": report.get("scope_policy_version"),
+            "scope_policy_sha256": report.get("scope_policy_sha256"),
+            "ai_review_sample_sha256": report.get("ai_review_sample_sha256"),
+            "scope_summary": ({"silver_rows": 8370, "scope_excluded_rows": 548,
+                               "scope_unresolved_rows": 10788} if jobscope_2026 else None),
+            "observed_source_market_month": ([{"market": market, "source": source,
+                                               "month": month_value, "jobs": count}
+                                              for (market, source, month_value), count in sorted(observed.items())]
+                                             if observed is not None else None),
             "filters": {"posted_at": "valid Phase 02 Silver only", "dedup": "one survivor per job_id"},
             "environment": {
                 "python": sys.version.split()[0],
@@ -268,6 +379,8 @@ def run_phase03(etl_manifest, expected_etl_sha256, output_root=DEFAULT_OUTPUT_RO
             json.dumps(manifest, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8",
         )
         os.replace(stage, final)
+        if jobscope_2026 and sha256_file(OLD_GOLD_MANIFEST) != OLD_GOLD_SHA256:
+            raise AssertionError("Legacy Gold changed during 2026 publication")
         if audit_json:
             audit_path = Path(audit_json).resolve()
             audit_path.parent.mkdir(parents=True, exist_ok=True)
@@ -276,12 +389,17 @@ def run_phase03(etl_manifest, expected_etl_sha256, output_root=DEFAULT_OUTPUT_RO
                 "run_id": run_id,
                 "completed_at": manifest["completed_at"],
                 "analysis_type": manifest["analysis_type"],
-                "manifest_path": str(final / "manifest.json"),
+                "manifest_path": _workspace_relative(final / "manifest.json") if jobscope_2026 else str(final / "manifest.json"),
                 "manifest_sha256": sha256_file(final / "manifest.json"),
                 "input": manifest["input"],
                 "taxonomy_version": manifest["taxonomy_version"],
                 "taxonomy_config_sha256": manifest["taxonomy_config_sha256"],
                 "policy_sha256": manifest["policy_sha256"],
+                "scope_policy_version": manifest["scope_policy_version"],
+                "scope_policy_sha256": manifest["scope_policy_sha256"],
+                "ai_review_sample_sha256": manifest["ai_review_sample_sha256"],
+                "scope_summary": manifest["scope_summary"],
+                "observed_source_market_month": manifest["observed_source_market_month"],
                 "environment": manifest["environment"],
                 "filters": manifest["filters"],
                 "outputs": {name: {"rows": item["rows"], "sha256": item["sha256"]}
@@ -308,6 +426,8 @@ def _parse_args():
     parser.add_argument("--etl-manifest-sha256", required=True)
     parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT))
     parser.add_argument("--allow-scoped-inputs", action="store_true")
+    parser.add_argument("--jobscope-2026", action="store_true",
+                        help="Authorize only the exact audited Silver 2026 run")
     parser.add_argument("--audit-json")
     return parser.parse_args()
 
@@ -319,6 +439,7 @@ if __name__ == "__main__":
         output_root=args.output_root,
         allow_scoped_inputs=args.allow_scoped_inputs,
         audit_json=args.audit_json,
+        jobscope_2026=args.jobscope_2026,
     )
     print(json.dumps({
         "run_id": result["run_id"],

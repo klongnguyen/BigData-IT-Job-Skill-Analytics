@@ -20,14 +20,15 @@ if BASE_DIR not in sys.path:
 
 from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import (
-    coalesce, col, concat_ws, date_format, lit, lower, month,
-    regexp_replace, row_number, sha2, struct, to_json, try_to_timestamp, trim, udf, year, when,
+    coalesce, col, collect_list, concat_ws, date_format, lit, lower, month,
+    regexp_replace, row_number, sha2, sort_array, struct, to_json, try_to_timestamp, trim, udf, year, when,
 )
-from pyspark.sql.types import ArrayType, BooleanType, IntegerType, StringType
+from pyspark.sql.types import ArrayType, BooleanType, IntegerType, StringType, StructField, StructType
 
 from src.common.schema import UNIFIED_JOB_FIELDS
 from src.common.identity import stable_job_id
 from src.common.run_manifest import load_bronze_run, sha256_file, utc_now
+from src.processing.input_selection import PARTIAL_RUN_ID, load_input_selection
 from src.common.taxonomy import (
     TAXONOMY_VERSION,
     extract_skills,
@@ -35,12 +36,24 @@ from src.common.taxonomy import (
     normalize_source_tags,
     normalize_title,
 )
+from src.processing.scope_policy_2026 import (
+    POLICY_PATH, POLICY_VERSION, TAXONOMY_VERSION_2026, classify_scope, load_scope_policy,
+)
 
 BRONZE_HIST_DIR = os.path.join(BASE_DIR, "data", "bronze", "global", "historical")
 BRONZE_FRESH_DIR = os.path.join(BASE_DIR, "data", "bronze", "global", "fresh")
 SILVER_GLOBAL_DIR = os.path.join(BASE_DIR, "data", "silver", "global")
 PROVENANCE_GLOBAL_DIR = os.path.join(BASE_DIR, "data", "provenance", "global", "job_provenance")
 QUARANTINE_GLOBAL_DIR = os.path.join(BASE_DIR, "data", "quarantine", "global", "invalid_records")
+CANONICAL_2026_SELECTION = Path(BASE_DIR) / "docs" / "data" / "2026_silver_input_selection.json"
+CANONICAL_2026_PREFLIGHT = Path(BASE_DIR) / "docs" / "data" / "2026_scope_policy_preflight.json"
+
+
+def _portable_path(path):
+    """Persist workspace paths independent of the Windows/Docker mount point."""
+    resolved = Path(path).resolve()
+    base = Path(BASE_DIR).resolve()
+    return resolved.relative_to(base).as_posix() if resolved.is_relative_to(base) else str(resolved)
 
 
 def _remove_path(path):
@@ -130,8 +143,9 @@ def _country_or_null(value):
     return text
 
 
-def build_udfs():
-    title_mapping, skills_dictionary = load_dictionaries()
+def build_udfs(taxonomy_version=TAXONOMY_VERSION):
+    title_mapping, skills_dictionary = load_dictionaries(taxonomy_version)
+    policy = load_scope_policy() if taxonomy_version == TAXONOMY_VERSION_2026 else None
 
     def clean_html(value):
         if value is None or not str(value).strip():
@@ -163,7 +177,7 @@ def build_udfs():
     title_udf = udf(normalize_role, StringType())
     skills_udf = udf(extract_from_description, ArrayType(StringType()))
     tags_udf = udf(normalize_tags, ArrayType(StringType()))
-    return {
+    result = {
         "clean_html": udf(clean_html, StringType()),
         "norm_title": title_udf,
         "extract_skills": skills_udf,
@@ -173,6 +187,21 @@ def build_udfs():
         "valid_country": udf(_country_or_null, StringType()),
         "stable_job_id": udf(stable_job_id, StringType()),
     }
+    if policy:
+        scope_fields = ["normalized_title", "scope_decision", "scope_label",
+                        "analysis_scope_basis", "scope_reason", "taxonomy_version",
+                        "scope_policy_version"]
+        scope_schema = StructType([StructField(name, StringType(), False) for name in scope_fields])
+
+        def classify(title, source, market, federal_verified):
+            decision = classify_scope(
+                title, source, market, policy=policy, title_mapping=title_mapping,
+                federal_series_2210_verified=bool(federal_verified),
+            )
+            return tuple(decision[name] for name in scope_fields)
+
+        result["scope"] = udf(classify, scope_schema)
+    return result
 
 
 def _historical_frame(spark, udfs, paths):
@@ -258,13 +287,34 @@ def _fresh_frame(spark, udfs, paths):
     )
 
 
-def _run_etl(spark, output_dirs, historical_files, fresh_files, expected_input_rows):
-    udfs = build_udfs()
+def _run_etl(spark, output_dirs, selected_runs, expected_input_rows, scope_policy):
+    taxonomy_version = TAXONOMY_VERSION_2026 if scope_policy == "strict_2026" else TAXONOMY_VERSION
+    udfs = build_udfs(taxonomy_version)
     frames = []
-    if historical_files:
-        frames.append(_historical_frame(spark, udfs, historical_files))
-    if fresh_files:
-        frames.append(_fresh_frame(spark, udfs, fresh_files))
+    for run in selected_runs:
+        frame = (_historical_frame(spark, udfs, run["files"]) if run["kind"] == "historical"
+                 else _fresh_frame(spark, udfs, run["files"]))
+        frame = (frame.withColumn("input_run_id", lit(run["run_id"]))
+                 .withColumn("input_manifest_sha256", lit(run["manifest_sha256"]))
+                 .withColumn("input_run_status", lit(run["status"]))
+                 .withColumn("input_kind", lit(run["kind"]))
+                 .withColumn("federal_series_2210_verified", lit(
+                     run["source"] == "usajobs_historic" and run.get("market_scope") == "US federal jobs"
+                 )))
+        if scope_policy == "strict_2026":
+            if run["source"] == "usajobs_historic":
+                invalid_scope = frame.filter(
+                    (coalesce(col("source"), lit("__NULL__")) != "usajobs_historic") |
+                    (coalesce(col("market"), lit("__NULL__")) != "US_FEDERAL")
+                ).count()
+            else:
+                invalid_scope = frame.filter(
+                    (~coalesce(col("source"), lit("__NULL__")).isin("arbeitnow", "remotive")) |
+                    (coalesce(col("market"), lit("__NULL__")) != "GLOBAL")
+                ).count()
+            if invalid_scope:
+                raise ValueError(f"Bronze row source/market differs from verified run: {run['run_id']}")
+        frames.append(frame)
     if not frames:
         raise ValueError("Choose at least one explicit Bronze run")
 
@@ -323,7 +373,7 @@ def _run_etl(spark, output_dirs, historical_files, fresh_files, expected_input_r
         .when(col("title").isNull() | (trim(col("title")) == ""), lit("missing_title"))
         .when(col("source_record_id").isNull() | (trim(col("source_record_id")) == ""), lit("missing_source_record_id"))
         .otherwise(lit("missing_source")),
-    )
+    ).withColumn("selected_survivor", lit(False))
     invalid_count = invalid.count()
     invalid.write.mode("errorifexists").parquet(output_dirs["quarantine"])
     valid = processed.filter(
@@ -340,16 +390,63 @@ def _run_etl(spark, output_dirs, historical_files, fresh_files, expected_input_r
     # A native source identity identifies one job across repeated snapshots.
     # Content equality across different IDs is only an audit candidate.
     survivor_window = Window.partitionBy("job_id").orderBy(
+        when(col("input_run_status") == "complete", lit(1)).otherwise(lit(0)).desc(),
         col("collected_at").desc_nulls_last(),
         col("raw_checksum").desc_nulls_last(),
         col("job_hash").asc_nulls_last(),
         col("source_url").asc_nulls_last(),
-        col("ingestion_id").asc_nulls_last())
-    survivors = (valid.withColumn("_survivor_rank", row_number().over(survivor_window))
-                 .filter(col("_survivor_rank") == 1).drop("_survivor_rank"))
-    survivor_count = survivors.count()
-    if survivors.select("job_id").distinct().count() != survivor_count:
+        col("ingestion_id").asc_nulls_last(),
+        col("input_run_id").asc(), col("input_manifest_sha256").asc())
+    ranked = valid.withColumn("_survivor_rank", row_number().over(survivor_window))
+    lineage = ranked.groupBy("job_id").agg(sort_array(collect_list(struct(
+        col("input_run_id"), col("input_manifest_sha256"), col("ingestion_id"),
+        col("collected_at"), col("raw_checksum"),
+        (col("_survivor_rank") == 1).alias("selected_survivor"),
+    ))).alias("input_lineage"))
+    unique_survivors = (ranked.filter(col("_survivor_rank") == 1)
+                        .drop("_survivor_rank").join(lineage, "job_id", "inner"))
+    unique_count = unique_survivors.count()
+    if unique_survivors.select("job_id").distinct().count() != unique_count:
         raise AssertionError("Silver job_id is not unique")
+
+    if scope_policy == "strict_2026":
+        remotive_from_partial = unique_survivors.filter(
+            (col("source") == "remotive") & (col("input_run_id") == PARTIAL_RUN_ID)
+        ).count()
+        partial_arbeitnow_winners = unique_survivors.filter(
+            (col("source") == "arbeitnow") & (col("input_run_id") == PARTIAL_RUN_ID)
+        ).count()
+        if remotive_from_partial != 15 or partial_arbeitnow_winners:
+            raise AssertionError("Pinned partial run contribution differs from the audited 15/0 contract")
+        scoped = (unique_survivors
+            .withColumn("_scope", udfs["scope"](
+                col("title"), col("source"), col("market"), col("federal_series_2210_verified")))
+            .withColumn("normalized_title", col("_scope.normalized_title"))
+            .withColumn("scope_decision", col("_scope.scope_decision"))
+            .withColumn("scope_label", col("_scope.scope_label"))
+            .withColumn("analysis_scope_basis", col("_scope.analysis_scope_basis"))
+            .withColumn("scope_reason", col("_scope.scope_reason"))
+            .withColumn("scope_policy_version", col("_scope.scope_policy_version"))
+            .withColumn("in_analysis_scope", col("scope_decision") == "in_scope")
+            .drop("_scope"))
+    elif scope_policy == "all_valid":
+        scoped = (unique_survivors.withColumn("analysis_scope_basis", lit("legacy_all_valid"))
+                  .withColumn("scope_decision", lit("in_scope"))
+                  .withColumn("scope_label", col("normalized_title"))
+                  .withColumn("scope_reason", lit("Legacy all-valid scope"))
+                  .withColumn("scope_policy_version", lit(None).cast("string"))
+                  .withColumn("in_analysis_scope", lit(True)))
+    else:
+        raise ValueError(f"Unsupported scope policy: {scope_policy}")
+    survivors = scoped.filter(col("in_analysis_scope"))
+    survivor_count = survivors.count()
+    excluded = (scoped.filter(col("scope_decision") == "excluded")
+                .withColumn("scope_exclusion_reason", col("scope_reason")))
+    excluded_count = excluded.count()
+    unresolved = scoped.filter(col("scope_decision") == "unresolved")
+    unresolved_count = unresolved.count()
+    if survivor_count + excluded_count + unresolved_count != unique_count:
+        raise AssertionError("Analysis-scope accounting failed")
 
     silver_with_parts = (survivors
         .withColumn("year", year(col("posted_at")))
@@ -360,8 +457,12 @@ def _run_etl(spark, output_dirs, historical_files, fresh_files, expected_input_r
         raise ValueError(f"Silver schema mismatch: expected {expected_silver_columns}, got {silver.columns}")
     provenance = silver_with_parts.select(
         "job_id", "source", "source_record_id", "source_url", "description_origin",
-        "skills_origin", lit(TAXONOMY_VERSION).alias("taxonomy_version"), "ingestion_id", "collected_at",
-        "raw_checksum", lit("posted_at_valid").alias("timestamp_quality"))
+        "skills_origin", lit(taxonomy_version).alias("taxonomy_version"), "ingestion_id", "collected_at",
+        "raw_checksum", lit("posted_at_valid").alias("timestamp_quality"),
+        col("input_run_id").alias("survivor_run_id"),
+        col("input_manifest_sha256").alias("survivor_manifest_sha256"),
+        "input_lineage", "analysis_scope_basis", "scope_decision", "scope_label",
+        "scope_reason", "scope_policy_version")
 
     quarantine_by_source_reason = [
         {"source": row["source"], "reason": row["quarantine_reason"], "rows": row["count"]}
@@ -371,6 +472,24 @@ def _run_etl(spark, output_dirs, historical_files, fresh_files, expected_input_r
 
     silver.write.mode("errorifexists").partitionBy("year", "month").parquet(output_dirs["silver"])
     provenance.write.mode("errorifexists").parquet(output_dirs["provenance"])
+    if "scope_excluded" in output_dirs:
+        excluded.select(
+            "job_id", "source", "market", "source_record_id", "title",
+            col("normalized_title").alias("occupation"), "scope_decision", "scope_label",
+            "scope_exclusion_reason", "analysis_scope_basis", "scope_policy_version",
+            col("input_run_id").alias("survivor_run_id"),
+            col("input_manifest_sha256").alias("survivor_manifest_sha256"),
+            "input_lineage", "posted_at",
+        ).write.mode("errorifexists").parquet(output_dirs["scope_excluded"])
+    if "scope_unresolved" in output_dirs:
+        unresolved.select(
+            "job_id", "source", "market", "source_record_id", "title",
+            col("normalized_title").alias("occupation"), "scope_decision", "scope_label",
+            "scope_reason", "analysis_scope_basis", "scope_policy_version",
+            col("input_run_id").alias("survivor_run_id"),
+            col("input_manifest_sha256").alias("survivor_manifest_sha256"),
+            "input_lineage", "posted_at",
+        ).write.mode("errorifexists").parquet(output_dirs["scope_unresolved"])
     written_silver = spark.read.parquet(output_dirs["silver"])
     written_provenance = spark.read.parquet(output_dirs["provenance"])
     written_quarantine = spark.read.parquet(output_dirs["quarantine"])
@@ -378,21 +497,58 @@ def _run_etl(spark, output_dirs, historical_files, fresh_files, expected_input_r
             written_provenance.count() != survivor_count or
             written_quarantine.count() != invalid_count):
         raise AssertionError("Staged output counts do not match input accounting")
+    if "scope_excluded" in output_dirs and spark.read.parquet(output_dirs["scope_excluded"]).count() != excluded_count:
+        raise AssertionError("Staged scope-excluded count does not match input accounting")
+    if "scope_unresolved" in output_dirs and spark.read.parquet(output_dirs["scope_unresolved"]).count() != unresolved_count:
+        raise AssertionError("Staged scope-unresolved count does not match input accounting")
     if written_silver.select("job_id").distinct().count() != survivor_count:
         raise AssertionError("Staged Silver job_id is not unique")
     if written_provenance.select("job_id").distinct().count() != survivor_count:
         raise AssertionError("Staged provenance does not map 1:1 to Silver")
-    if input_count != valid_count + invalid_count or valid_count < survivor_count:
+    if (input_count != valid_count + invalid_count or
+            valid_count < unique_count or
+            unique_count != survivor_count + excluded_count + unresolved_count):
         raise AssertionError("ETL row accounting failed")
+    breakdown = [
+        {"source": row["source"], "market": row["market"],
+         "occupation": row["normalized_title"], "month": row["posted_month"], "rows": row["count"]}
+        for row in survivors.withColumn("posted_month", date_format(col("posted_at"), "yyyy-MM"))
+        .groupBy("source", "market", "normalized_title", "posted_month")
+        .count().orderBy("source", "market", "normalized_title", "posted_month").collect()
+    ]
+    excluded_by_source_reason = [
+        {"source": row["source"], "market": row["market"],
+         "reason": row["scope_exclusion_reason"], "rows": row["count"]}
+        for row in excluded.groupBy("source", "market", "scope_exclusion_reason")
+        .count().orderBy("source", "market", "scope_exclusion_reason").collect()
+    ]
+    scope_by_source_market = [
+        {"source": row["source"], "market": row["market"],
+         "scope_decision": row["scope_decision"], "rows": row["count"]}
+        for row in scoped.groupBy("source", "market", "scope_decision")
+        .count().orderBy("source", "market", "scope_decision").collect()
+    ]
+    survivor_by_input_run = [
+        {"run_id": row["input_run_id"], "source": row["source"], "rows": row["count"]}
+        for row in unique_survivors.groupBy("input_run_id", "source").count()
+        .orderBy("input_run_id", "source").collect()
+    ]
     metrics = {
         "input_rows": input_count,
         "valid_rows": valid_count,
         "quarantine_rows": invalid_count,
-        "identity_duplicates_removed": valid_count - survivor_count,
+        "identity_duplicates_removed": valid_count - unique_count,
+        "unique_survivors": unique_count,
+        "scope_excluded_rows": excluded_count,
+        "scope_unresolved_rows": unresolved_count,
         "silver_rows": survivor_count,
         "provenance_rows": survivor_count,
         "unique_job_ids": survivor_count,
         "quarantine_by_source_reason": quarantine_by_source_reason,
+        "scope_excluded_by_source_reason": excluded_by_source_reason,
+        "scope_by_source_market": scope_by_source_market,
+        "source_market_occupation_month": breakdown,
+        "survivor_by_input_run": survivor_by_input_run,
     }
     print(f"[ETL] {metrics}")
     return metrics
@@ -410,7 +566,27 @@ def _directory_evidence(root):
     return {"sha256": digest.hexdigest(), "files": entries}
 
 
-def _stage_bronze_to_hdfs(spark, hdfs_root, run_id, input_runs, files_by_kind):
+def _validated_2026_preflight(selection_path, selection_sha):
+    """Require the canonical read-only preflight before publishing 2026 Silver."""
+    if Path(selection_path).resolve() != CANONICAL_2026_SELECTION.resolve():
+        return None  # Isolated test fixtures use their own pinned selection.
+    if not CANONICAL_2026_PREFLIGHT.is_file():
+        raise ValueError("2026 Silver requires the completed scope-policy preflight")
+    report = json.loads(CANONICAL_2026_PREFLIGHT.read_text(encoding="utf-8"))
+    required = {
+        "input_selection_sha256": selection_sha,
+        "scope_policy_sha256": sha256_file(POLICY_PATH),
+        "taxonomy_config_sha256": sha256_file(Path(BASE_DIR) / "configs/job_title_mapping_v0_2.json"),
+        "sample_sha256": sha256_file(Path(BASE_DIR) / "docs/data/2026_it_scope_sample.csv"),
+    }
+    if report.get("status") != "passed" or report.get("input_run_count") != 23:
+        raise ValueError("2026 scope preflight is not passed for all 23 Bronze runs")
+    if any(report.get(key) != value for key, value in required.items()):
+        raise ValueError("2026 scope preflight hashes changed; rerun audit")
+    return report
+
+
+def _stage_bronze_to_hdfs(spark, hdfs_root, run_id, selected_runs):
     """Copy verified Bronze files to an immutable HDFS path before ETL reads them."""
     parsed = urlparse(hdfs_root)
     if parsed.scheme != "hdfs" or not parsed.netloc or not parsed.path.startswith("/"):
@@ -427,13 +603,13 @@ def _stage_bronze_to_hdfs(spark, hdfs_root, run_id, input_runs, files_by_kind):
     if not fs.mkdirs(base_path):
         raise RuntimeError(f"Could not create HDFS ETL path: {base}")
     staged = {}
-    for run in input_runs:
+    for run in selected_runs:
         kind = run["kind"]
-        target_dir = base + "/" + kind
+        target_dir = base + "/" + kind + "/" + run["run_id"]
         if not fs.mkdirs(jvm.org.apache.hadoop.fs.Path(target_dir)):
             raise RuntimeError(f"Could not create HDFS Bronze path: {target_dir}")
         uris = []
-        for index, local_file in enumerate(files_by_kind[kind]):
+        for index, local_file in enumerate(run["files"]):
             local = Path(local_file).resolve()
             uri = target_dir + f"/{index:04d}-{local.name}"
             target = jvm.org.apache.hadoop.fs.Path(uri)
@@ -442,7 +618,7 @@ def _stage_bronze_to_hdfs(spark, hdfs_root, run_id, input_runs, files_by_kind):
                 raise AssertionError(f"HDFS byte count differs from local Bronze: {uri}")
             uris.append(uri)
         run["hdfs_records_uris"] = uris
-        staged[kind] = uris
+        staged[run["run_id"]] = uris
     return staged
 
 
@@ -453,41 +629,85 @@ def run_etl(
     replace_existing=False,
     historical_run=None,
     fresh_run=None,
+    fresh_runs=None,
     allow_partial_inputs=False,
     manifest_dir=None,
     hdfs_root=None,
+    input_selection=None,
+    input_selection_sha256=None,
+    scope_excluded_dir=None,
+    scope_unresolved_dir=None,
 ):
-    if not historical_run and not fresh_run:
+    if not historical_run and not fresh_run and not fresh_runs and not input_selection:
         raise ValueError("Choose --historical-run and/or --fresh-run; implicit Bronze scans are disabled")
+    if input_selection and (historical_run or fresh_run or fresh_runs or allow_partial_inputs):
+        raise ValueError("Pinned input selection cannot be mixed with legacy runs or generic partial allowance")
+    if input_selection and replace_existing:
+        raise ValueError("Pinned 2026 ETL inputs cannot replace existing outputs")
+    if input_selection_sha256 and not input_selection:
+        raise ValueError("--input-selection-sha256 requires --input-selection")
     if hdfs_root:
         parsed = urlparse(hdfs_root)
         if parsed.scheme != "hdfs" or not parsed.netloc or not parsed.path.startswith("/"):
             raise ValueError("--hdfs-root must be a genuine hdfs://host:port/absolute/path URI")
-    input_runs = []
-    historical_files = []
-    fresh_files = []
-    for kind, run_dir in (("historical", historical_run), ("fresh", fresh_run)):
-        if run_dir:
+    if input_selection:
+        selected_runs, _ = load_input_selection(input_selection, input_selection_sha256)
+        scope_policy = "strict_2026"
+        preflight = _validated_2026_preflight(input_selection, input_selection_sha256)
+    else:
+        selected_runs = []
+        scope_policy = "all_valid"
+        preflight = None
+        requested = ([("historical", historical_run)] if historical_run else [])
+        requested += [("fresh", path) for path in ([fresh_run] if fresh_run else []) + list(fresh_runs or [])]
+        if len({str(Path(path).resolve()) for _, path in requested}) != len(requested):
+            raise ValueError("The same Bronze run cannot be selected twice")
+        for kind, run_dir in requested:
             manifest, files, checksum = load_bronze_run(
                 run_dir, expected_kind=kind, allow_partial=allow_partial_inputs,
             )
-            input_runs.append({"kind": kind, "run_id": manifest["run_id"],
-                               "status": manifest["status"], "rows": manifest["total_rows"],
-                               "manifest_path": str(Path(run_dir).resolve() / "manifest.json"),
-                               "manifest_sha256": checksum})
-            if kind == "historical":
-                historical_files = files
-            else:
-                fresh_files = files
+            selected_runs.append({
+                "kind": kind, "run_id": manifest["run_id"], "status": manifest["status"],
+                "rows": manifest["total_rows"], "source": manifest.get("source"),
+                "market_scope": manifest.get("market_scope"),
+                "manifest_path": str(Path(run_dir).resolve() / "manifest.json"),
+                "manifest_sha256": checksum, "files": files,
+                "sources": manifest.get("sources", []),
+            })
+    if len({run["run_id"] for run in selected_runs}) != len(selected_runs):
+        raise ValueError("Bronze run IDs must be unique across selected inputs")
+    input_runs = [{key: (_portable_path(value) if key == "manifest_path" else value)
+                   for key, value in run.items() if key != "files"}
+                  for run in selected_runs]
 
     run_id = uuid.uuid4().hex
     manifest_root = Path(manifest_dir or Path(BASE_DIR) / "data" / "manifests" / "etl")
+    if scope_policy == "strict_2026":
+        if silver_dir == SILVER_GLOBAL_DIR:
+            silver_dir = Path(BASE_DIR) / "data" / "silver" / "jobscope" / "runs" / run_id
+        if provenance_dir == PROVENANCE_GLOBAL_DIR:
+            provenance_dir = Path(BASE_DIR) / "data" / "provenance" / "jobscope" / "runs" / run_id
+        if quarantine_dir == QUARANTINE_GLOBAL_DIR:
+            quarantine_dir = Path(BASE_DIR) / "data" / "quarantine" / "jobscope" / "runs" / run_id
     targets = {
         "silver": os.path.abspath(silver_dir),
         "provenance": os.path.abspath(provenance_dir),
         "quarantine": os.path.abspath(quarantine_dir),
         "manifest": os.path.abspath(manifest_root / f"etl_{run_id}.json"),
     }
+    if scope_policy == "strict_2026":
+        targets["scope_excluded"] = os.path.abspath(
+            scope_excluded_dir or Path(BASE_DIR) / "data" / "scope_excluded" / "jobscope" / "runs" / run_id
+        )
+        targets["scope_unresolved"] = os.path.abspath(
+            scope_unresolved_dir or Path(BASE_DIR) / "data" / "scope_unresolved" / "jobscope" / "runs" / run_id
+        )
+        protected = {os.path.abspath(path) for path in
+                     (SILVER_GLOBAL_DIR, PROVENANCE_GLOBAL_DIR, QUARANTINE_GLOBAL_DIR)}
+        if protected.intersection(targets.values()):
+            raise ValueError("Pinned 2026 ETL cannot write to legacy global output paths")
+    elif scope_excluded_dir or scope_unresolved_dir:
+        raise ValueError("Scope review outputs require the pinned 2026 input selection")
     if len(set(targets.values())) != len(targets):
         raise ValueError("ETL output paths must be distinct.")
     paths = list(targets.values())
@@ -523,16 +743,28 @@ def run_etl(
     try:
         spark = create_spark_session()
         if hdfs_root:
-            staged = _stage_bronze_to_hdfs(
-                spark, hdfs_root, run_id, input_runs,
-                {"historical": historical_files, "fresh": fresh_files},
-            )
-            historical_files = staged.get("historical", [])
-            fresh_files = staged.get("fresh", [])
+            staged = _stage_bronze_to_hdfs(spark, hdfs_root, run_id, selected_runs)
+            for index, selected in enumerate(selected_runs):
+                selected["files"] = staged[selected["run_id"]]
+                input_runs[index]["hdfs_records_uris"] = selected["files"]
         metrics = _run_etl(
-            spark, staged_paths, historical_files, fresh_files,
+            spark, staged_paths, selected_runs,
             expected_input_rows=sum(run["rows"] for run in input_runs),
+            scope_policy=scope_policy,
         )
+        if preflight is not None:
+            expected = preflight["metrics"]
+            for field, etl_field in (("input_rows", "input_rows"), ("valid_rows", "valid_rows"),
+                                     ("quarantine_rows", "quarantine_rows"),
+                                     ("duplicate_rows", "identity_duplicates_removed"),
+                                     ("unique_rows", "unique_survivors"),
+                                     ("silver_rows", "silver_rows"),
+                                     ("scope_excluded_rows", "scope_excluded_rows"),
+                                     ("scope_unresolved_rows", "scope_unresolved_rows")):
+                if metrics[etl_field] != expected[field]:
+                    raise AssertionError(f"Spark Silver differs from approved preflight: {field}")
+            if metrics["scope_by_source_market"] != preflight["source_market_decision"]:
+                raise AssertionError("Spark source/market scope decisions differ from preflight")
         config_root = Path(BASE_DIR) / "configs"
         report = {
             "schema_version": 1,
@@ -540,6 +772,10 @@ def run_etl(
             "status": "completed",
             "completed_at": utc_now(),
             "input_runs": input_runs,
+            "input_selection": ({"path": _portable_path(input_selection),
+                                 "sha256": input_selection_sha256}
+                                if input_selection else None),
+            "analysis_scope_policy": scope_policy,
             "bronze_storage": "hdfs" if hdfs_root else "local",
             "hdfs_root": hdfs_root if hdfs_root else None,
             "metrics": metrics,
@@ -550,14 +786,20 @@ def run_etl(
                 "java": spark.sparkContext._jvm.java.lang.System.getProperty("java.version"),
                 "spark_master": spark.sparkContext.master,
             },
-            "taxonomy_version": TAXONOMY_VERSION,
+            "taxonomy_version": TAXONOMY_VERSION_2026 if scope_policy == "strict_2026" else TAXONOMY_VERSION,
             "taxonomy_config_sha256": {
                 name: sha256_file(config_root / name)
-                for name in ("job_title_mapping_v0.json", "skills_v0.json")
+                for name in (("job_title_mapping_v0_2.json", "skills_v0.json")
+                             if scope_policy == "strict_2026" else
+                             ("job_title_mapping_v0.json", "skills_v0.json"))
             },
+            "scope_policy_version": POLICY_VERSION if scope_policy == "strict_2026" else None,
+            "scope_policy_sha256": sha256_file(POLICY_PATH) if scope_policy == "strict_2026" else None,
+            "ai_review_sample_sha256": (load_scope_policy()["ai_review_sample_sha256"]
+                                        if scope_policy == "strict_2026" else None),
             "outputs": {
-                name: {"path": targets[name], **_directory_evidence(staged_paths[name])}
-                for name in ("silver", "provenance", "quarantine")
+                name: {"path": _portable_path(targets[name]), **_directory_evidence(staged_paths[name])}
+                for name in targets if name != "manifest"
             },
         }
         with open(staged_paths["manifest"], "x", encoding="utf-8") as stream:
@@ -577,12 +819,16 @@ def run_etl(
 def _parse_args():
     parser = argparse.ArgumentParser(description="Build Bronze-to-Silver job data with provenance.")
     parser.add_argument("--historical-run", help="Immutable historical Bronze run directory")
-    parser.add_argument("--fresh-run", help="Immutable fresh Bronze run directory")
+    parser.add_argument("--fresh-run", action="append", help="Immutable fresh Bronze run directory (repeatable)")
+    parser.add_argument("--input-selection", help="Pinned 2026 Bronze input-selection JSON")
+    parser.add_argument("--input-selection-sha256", help="Required SHA-256 of the input-selection JSON")
     parser.add_argument("--allow-partial-inputs", action="store_true",
                         help="Explicitly accept a scoped/partial Bronze run")
     parser.add_argument("--silver-dir", default=SILVER_GLOBAL_DIR, help="Silver Parquet output directory")
     parser.add_argument("--provenance-dir", default=PROVENANCE_GLOBAL_DIR, help="Provenance Parquet output directory")
     parser.add_argument("--quarantine-dir", default=QUARANTINE_GLOBAL_DIR, help="Quarantine Parquet output directory")
+    parser.add_argument("--scope-excluded-dir", help="Out-of-scope valid-record Parquet output directory")
+    parser.add_argument("--scope-unresolved-dir", help="Unresolved valid-record Parquet output directory")
     parser.add_argument("--manifest-dir", help="Directory for the completed ETL run manifest")
     parser.add_argument("--hdfs-root", help="Stage verified Bronze to hdfs:// and run Spark ETL from HDFS")
     parser.add_argument(
@@ -601,8 +847,12 @@ if __name__ == "__main__":
         quarantine_dir=args.quarantine_dir,
         replace_existing=args.replace_existing,
         historical_run=args.historical_run,
-        fresh_run=args.fresh_run,
+        fresh_runs=args.fresh_run,
         allow_partial_inputs=args.allow_partial_inputs,
         manifest_dir=args.manifest_dir,
         hdfs_root=args.hdfs_root,
+        input_selection=args.input_selection,
+        input_selection_sha256=args.input_selection_sha256,
+        scope_excluded_dir=args.scope_excluded_dir,
+        scope_unresolved_dir=args.scope_unresolved_dir,
     )
