@@ -10,7 +10,7 @@ Pipeline Bronze → Spark Silver → Gold mô tả đã tạo **786.300 tin Silv
 
 Đường **HDFS Bronze → Spark ETL → Silver/provenance** đã chạy thật với run fresh 666 dòng: 666 valid, 5 ID trùng được gộp, 661 Silver và 661 provenance, 0 quarantine. [Audit HDFS ETL](docs/data/m2_hdfs_etl_audit.json) khóa SHA của manifest và các output. HDFS FSCK riêng run này `HEALTHY`, 0 block thiếu/hỏng/under-replicated sau khi đặt replica 1 cho lab một DataNode. Run cũ 786.300 Silver vẫn là Gold chính; bài thử HDFS 661 tin là đường tích hợp riêng.
 
-**MongoDB serving** đã nhận đủ 5 bảng của Gold run đã khóa. Dashboard có thể đọc Parquet hoặc MongoDB, đối chiếu [serving audit](docs/data/mongo_serving_audit.json) với run/hash/số dòng. MongoDB local và raw Parquet/Bronze lớn không được đưa lên Git; clone mới cần khôi phục artifact hoặc tái chạy pipeline. Dashboard Mongo đang phục vụ local tại [http://127.0.0.1:8502](http://127.0.0.1:8502) trong phiên làm việc này.
+**MongoDB serving** đã nhận đủ 5 bảng của Gold run đã khóa. Dashboard có thể đọc Parquet hoặc MongoDB, đối chiếu [serving audit](docs/data/mongo_serving_audit.json) với run/hash/số dòng. MongoDB local và raw Parquet/Bronze lớn không được đưa lên Git; clone mới cần khôi phục artifact hoặc tái chạy pipeline. Lệnh bên dưới mở dashboard Mongo tại [http://127.0.0.1:8502](http://127.0.0.1:8502).
 
 ## Milestone
 
@@ -23,7 +23,7 @@ Pipeline Bronze → Spark Silver → Gold mô tả đã tạo **786.300 tin Silv
 | M6/M7 · Dự báo | [Hồ sơ `NO_GO` có bằng chứng](docs/reviews/M7_NO_GO_ACCEPTANCE.md). | M6/model không đủ điều kiện; nhánh M7 `NO_GO` chờ nhóm/giảng viên chấp thuận. |
 | M8 · Serving | Parquet và MongoDB phục vụ cùng Gold run, đọc lại 5 bảng đạt. | Nghiệm thu triển khai trên môi trường bàn giao. |
 | M9 · Dashboard | 6 trang, AppTest và HTTP health đạt; xem [runbook](docs/planning/dashboard_runbook.md). | Demo và ký nghiệm thu. |
-| M10 · Final | [Báo cáo cuối](docs/final/FINAL_REPORT_2026-10-15.md), [slide nội dung](docs/final/PRESENTATION.md), [kịch bản demo](docs/final/DEMO_SCRIPT.md), kiểm thử đã tổng hợp. | Chấp thuận các giới hạn dữ liệu/milestone và thuyết trình chính thức. |
+| M10 · Final | [Báo cáo cuối](docs/final/FINAL_REPORT_2026-10-15.md), [trình chiếu 10 slide](docs/final/BigData_Job_Analy_Final_2026-10-15_v2.pptx), [kịch bản demo](docs/final/DEMO_SCRIPT.md), kiểm thử đã tổng hợp. | Chấp thuận các giới hạn dữ liệu/milestone và thuyết trình chính thức. |
 
 Không có nhãn dự báo Growing/Stable/Declining, metric mô hình hoặc dự báo tương lai: khoảng trống 2024–2025, khác biệt nguồn và taxonomy chưa được kiểm định làm gate `NO_GO`.
 

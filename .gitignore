@@ -30,6 +30,7 @@ derby.log
 # Logs and temporary files
 logs/
 tmp/
+.chart-data-*/
 *.log
 
 # Local datasets - keep directory placeholders only

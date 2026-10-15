@@ -6,7 +6,7 @@
 
 Dự án trả lời trong **mẫu đã thu thập**: nguồn nào có quan sát, các nhóm nghề xuất hiện bao nhiêu lần, kỹ năng nào được ghi nhận trong từng nghề và tỷ lệ quan sát thay đổi ra sao theo tháng. Luồng xử lý gồm Bronze bất biến và manifest → Spark làm sạch, dedup, provenance → năm bảng Gold mô tả → Parquet/MongoDB → dashboard JobScope. Dashboard phân biệt tháng không quan sát với tỷ lệ bằng 0, và giữ `source_tags` khác `extracted_from_jd`.
 
-Đầu ra bàn giao: mã nguồn collector/ETL/Gold/serving/dashboard, cấu hình taxonomy, audit JSON, bộ kiểm thử, [README](../../README.md), [sơ đồ tiến độ](../planning/PROJECT_PROGRESS_DIAGRAM_2026-10-15.md), [nội dung slide](PRESENTATION.md) và [kịch bản demo](DEMO_SCRIPT.md). Bronze và Parquet dung lượng lớn, MongoDB local cùng log chạy nằm trên máy thực nghiệm; repository chứa hash/audit để đối chiếu và hướng dẫn tái tạo.
+Đầu ra bàn giao: mã nguồn collector/ETL/Gold/serving/dashboard, cấu hình taxonomy, audit JSON, bộ kiểm thử, [README](../../README.md), [sơ đồ tiến độ](../planning/PROJECT_PROGRESS_DIAGRAM_2026-10-15.md), [trình chiếu 10 slide](BigData_Job_Analy_Final_2026-10-15_v2.pptx) (kèm [nội dung Markdown](PRESENTATION.md)) và [kịch bản demo](DEMO_SCRIPT.md). Bronze và Parquet dung lượng lớn, MongoDB local cùng log chạy nằm trên máy thực nghiệm; repository chứa hash/audit để đối chiếu và hướng dẫn tái tạo.
 
 ## 2. Dữ liệu và chất lượng
 

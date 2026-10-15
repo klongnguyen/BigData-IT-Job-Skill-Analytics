@@ -1,6 +1,6 @@
 # Nội dung trình bày dự án (10 slide)
 
-Tài liệu này là nội dung slide để nhóm chuyển sang PowerPoint/Google Slides khi nộp. Số liệu khóa theo audit ngày 15/10/2026; không cập nhật bằng số mới nếu chưa tái chạy audit.
+Tài liệu này là bản nội dung của [trình chiếu PowerPoint 10 slide](BigData_Job_Analy_Final_2026-10-15_v2.pptx). Số liệu khóa theo audit ngày 15/10/2026; không cập nhật bằng số mới nếu chưa tái chạy audit.
 
 ---
 
