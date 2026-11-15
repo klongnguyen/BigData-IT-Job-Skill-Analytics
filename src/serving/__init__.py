@@ -1,1 +1,0 @@
-"""Verified Gold serving backends."""

@@ -1,8 +1,0 @@
-{
-  "status": "deprecated",
-  "authoritative": false,
-  "reason": "This result combined a synthetic historical sample with a saved fresh snapshot and treated rule-based coverage as extraction accuracy. Its multi-year distribution and accuracy claims are invalid.",
-  "superseded_by": "docs/data/phase01_data_audit.json",
-  "replacement_diagnostic_script": "tests/test_phase01_feasibility.py",
-  "replacement_command": "python tests/test_phase01_feasibility.py"
-}

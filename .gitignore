@@ -45,8 +45,8 @@ data/**/*.zip
 data/**/*.gz
 !data/sample/historical/historical_sample_300.csv
 !data/fixtures/synthetic/phase01_historical_sample_300.csv
-!data/gold/predictions/predictions.parquet
-!data/gold/predictions/multi_year_predictions.parquet
+# Small, reproducible forecast artifacts (python -m src.ml.forecast_pipeline)
+!data/gold/forecast/*.parquet
 
 # Model artifacts
 artifacts/
@@ -69,3 +69,7 @@ data/gold/jobscope/runs/
 
 # Streamlit secrets
 .streamlit/secrets.toml
+
+# Skill Radar: raw downloads and text-bearing silver stay local; gold (small) is tracked
+skill_radar/data/raw/
+skill_radar/data/processed/

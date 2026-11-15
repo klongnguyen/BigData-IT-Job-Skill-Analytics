@@ -1,0 +1,844 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-11-12T07:30:40+00:00",
+  "evidence": {
+    "source": "Hacker News 'Ask HN: Who is hiring?' monthly threads",
+    "quarters": [
+      "2015Q3",
+      "2026Q3"
+    ],
+    "n_quarters": 45,
+    "postings_total": 79180,
+    "skills_total": 75,
+    "skills_eligible": 53,
+    "signals_available": {
+      "se_share": 4,
+      "npm_dl": 11,
+      "gh_share": 0
+    }
+  },
+  "backtest": {
+    "protocol": {
+      "horizons": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selection_end": "2022Q4",
+      "holdout_targets": "2023Q1..2026Q3",
+      "min_share": 0.01,
+      "band_pp": 1.0,
+      "quarters": 45,
+      "first": "2015Q3",
+      "last": "2026Q3"
+    },
+    "selection": {
+      "alpha_ses": 0.8,
+      "alpha_scores_mae_pp": {
+        "0.2": 1.0468,
+        "0.4": 0.7906,
+        "0.6": 0.7339,
+        "0.8": 0.7253
+      },
+      "phi_damped": 0.25,
+      "phi_scores_mae_pp": {
+        "0.25": 0.7202,
+        "0.5": 0.7225,
+        "0.75": 0.7457,
+        "0.9": 0.7835
+      }
+    },
+    "eligible_skills": 53,
+    "with_signal_skills": 10,
+    "all_eligible": {
+      "best_baseline": "naive_last",
+      "models": {
+        "naive_last": {
+          "mae_pp": 0.7746,
+          "mae_pp_by_horizon": {
+            "1": 0.6694,
+            "2": 0.7413,
+            "3": 0.817,
+            "4": 0.8993
+          }
+        },
+        "mean4": {
+          "mae_pp": 0.8421,
+          "mae_pp_by_horizon": {
+            "1": 0.6911,
+            "2": 0.801,
+            "3": 0.9058,
+            "4": 1.0096
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0674,
+            "ci95": [
+              0.0339,
+              0.109
+            ],
+            "skills": 53
+          }
+        },
+        "ses": {
+          "mae_pp": 0.7514,
+          "mae_pp_by_horizon": {
+            "1": 0.6353,
+            "2": 0.7159,
+            "3": 0.7964,
+            "4": 0.8889
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": -0.0233,
+            "ci95": [
+              -0.0312,
+              -0.0145
+            ],
+            "skills": 53
+          }
+        },
+        "damped": {
+          "mae_pp": 0.7995,
+          "mae_pp_by_horizon": {
+            "1": 0.6677,
+            "2": 0.7618,
+            "3": 0.8534,
+            "4": 0.9499
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0249,
+            "ci95": [
+              -0.0062,
+              0.0593
+            ],
+            "skills": 53
+          }
+        },
+        "ridge": {
+          "mae_pp": 0.8109,
+          "mae_pp_by_horizon": {
+            "1": 0.6369,
+            "2": 0.7428,
+            "3": 0.8827,
+            "4": 1.03
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0362,
+            "ci95": [
+              0.0039,
+              0.0713
+            ],
+            "skills": 53
+          }
+        },
+        "gbm": {
+          "mae_pp": 0.7679,
+          "mae_pp_by_horizon": {
+            "1": 0.6232,
+            "2": 0.7109,
+            "3": 0.8373,
+            "4": 0.9399
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": -0.0068,
+            "ci95": [
+              -0.0407,
+              0.0289
+            ],
+            "skills": 53
+          }
+        },
+        "ridge+signals": {
+          "mae_pp": 0.8089,
+          "mae_pp_by_horizon": {
+            "1": 0.6369,
+            "2": 0.7381,
+            "3": 0.8797,
+            "4": 1.0299
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0343,
+            "ci95": [
+              0.002,
+              0.0689
+            ],
+            "skills": 53
+          },
+          "signal_effect": {
+            "vs": "ridge",
+            "diff_pp": -0.002,
+            "ci95": [
+              -0.0074,
+              0.0044
+            ],
+            "skills": 53
+          }
+        },
+        "gbm+signals": {
+          "mae_pp": 0.7656,
+          "mae_pp_by_horizon": {
+            "1": 0.6217,
+            "2": 0.711,
+            "3": 0.8311,
+            "4": 0.9384
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": -0.009,
+            "ci95": [
+              -0.0434,
+              0.028
+            ],
+            "skills": 53
+          },
+          "signal_effect": {
+            "vs": "gbm",
+            "diff_pp": -0.0022,
+            "ci95": [
+              -0.0061,
+              0.0027
+            ],
+            "skills": 53
+          }
+        }
+      },
+      "cells": 54,
+      "skills": 53
+    },
+    "signal_covered": {
+      "best_baseline": "naive_last",
+      "models": {
+        "naive_last": {
+          "mae_pp": 1.1671,
+          "mae_pp_by_horizon": {
+            "1": 1.0435,
+            "2": 1.088,
+            "3": 1.203,
+            "4": 1.375
+          }
+        },
+        "mean4": {
+          "mae_pp": 1.2879,
+          "mae_pp_by_horizon": {
+            "1": 1.0579,
+            "2": 1.2133,
+            "3": 1.3642,
+            "4": 1.5798
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.1208,
+            "ci95": [
+              0.0328,
+              0.2233
+            ],
+            "skills": 10
+          }
+        },
+        "ses": {
+          "mae_pp": 1.1347,
+          "mae_pp_by_horizon": {
+            "1": 0.9962,
+            "2": 1.0535,
+            "3": 1.1732,
+            "4": 1.3607
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": -0.0324,
+            "ci95": [
+              -0.0602,
+              -0.0047
+            ],
+            "skills": 10
+          }
+        },
+        "damped": {
+          "mae_pp": 1.1675,
+          "mae_pp_by_horizon": {
+            "1": 1.0252,
+            "2": 1.1022,
+            "3": 1.2021,
+            "4": 1.3839
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0004,
+            "ci95": [
+              -0.0585,
+              0.0721
+            ],
+            "skills": 10
+          }
+        },
+        "ridge": {
+          "mae_pp": 1.2184,
+          "mae_pp_by_horizon": {
+            "1": 0.9935,
+            "2": 1.1125,
+            "3": 1.3125,
+            "4": 1.521
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0513,
+            "ci95": [
+              -0.0373,
+              0.152
+            ],
+            "skills": 10
+          }
+        },
+        "gbm": {
+          "mae_pp": 1.1701,
+          "mae_pp_by_horizon": {
+            "1": 0.9807,
+            "2": 1.068,
+            "3": 1.2577,
+            "4": 1.4309
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.003,
+            "ci95": [
+              -0.1115,
+              0.139
+            ],
+            "skills": 10
+          }
+        },
+        "ridge+signals": {
+          "mae_pp": 1.2369,
+          "mae_pp_by_horizon": {
+            "1": 0.9987,
+            "2": 1.1059,
+            "3": 1.3372,
+            "4": 1.5788
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0698,
+            "ci95": [
+              -0.0183,
+              0.1582
+            ],
+            "skills": 10
+          },
+          "signal_effect": {
+            "vs": "ridge",
+            "diff_pp": 0.0185,
+            "ci95": [
+              -0.0064,
+              0.0449
+            ],
+            "skills": 10
+          }
+        },
+        "gbm+signals": {
+          "mae_pp": 1.1715,
+          "mae_pp_by_horizon": {
+            "1": 0.9689,
+            "2": 1.0748,
+            "3": 1.2626,
+            "4": 1.439
+          },
+          "vs_best_baseline": {
+            "baseline": "naive_last",
+            "diff_pp": 0.0044,
+            "ci95": [
+              -0.1139,
+              0.1646
+            ],
+            "skills": 10
+          },
+          "signal_effect": {
+            "vs": "gbm",
+            "diff_pp": 0.0015,
+            "ci95": [
+              -0.0158,
+              0.0261
+            ],
+            "skills": 10
+          }
+        }
+      },
+      "cells": 54,
+      "skills": 10
+    },
+    "labels": {
+      "0.5": {
+        "always_stable": {
+          "macro_f1": 0.1945,
+          "n": 636,
+          "support": {
+            "Fading": 258,
+            "Stable": 262,
+            "Rising": 116
+          }
+        },
+        "naive_last": {
+          "macro_f1": 0.5057,
+          "n": 636
+        },
+        "mean4": {
+          "macro_f1": 0.1945,
+          "n": 636
+        },
+        "ses": {
+          "macro_f1": 0.4837,
+          "n": 636
+        },
+        "damped": {
+          "macro_f1": 0.392,
+          "n": 636
+        },
+        "ridge": {
+          "macro_f1": 0.4765,
+          "n": 636
+        },
+        "gbm": {
+          "macro_f1": 0.4651,
+          "n": 636
+        },
+        "ridge+signals": {
+          "macro_f1": 0.4659,
+          "n": 636
+        },
+        "gbm+signals": {
+          "macro_f1": 0.4579,
+          "n": 636
+        }
+      },
+      "1.0": {
+        "always_stable": {
+          "macro_f1": 0.2636,
+          "n": 636,
+          "support": {
+            "Fading": 148,
+            "Stable": 416,
+            "Rising": 72
+          }
+        },
+        "naive_last": {
+          "macro_f1": 0.4977,
+          "n": 636
+        },
+        "mean4": {
+          "macro_f1": 0.2636,
+          "n": 636
+        },
+        "ses": {
+          "macro_f1": 0.462,
+          "n": 636
+        },
+        "damped": {
+          "macro_f1": 0.3683,
+          "n": 636
+        },
+        "ridge": {
+          "macro_f1": 0.4766,
+          "n": 636
+        },
+        "gbm": {
+          "macro_f1": 0.4662,
+          "n": 636
+        },
+        "ridge+signals": {
+          "macro_f1": 0.4648,
+          "n": 636
+        },
+        "gbm+signals": {
+          "macro_f1": 0.442,
+          "n": 636
+        }
+      },
+      "2.0": {
+        "always_stable": {
+          "macro_f1": 0.3098,
+          "n": 636,
+          "support": {
+            "Fading": 46,
+            "Stable": 552,
+            "Rising": 38
+          }
+        },
+        "naive_last": {
+          "macro_f1": 0.4171,
+          "n": 636
+        },
+        "mean4": {
+          "macro_f1": 0.3098,
+          "n": 636
+        },
+        "ses": {
+          "macro_f1": 0.3535,
+          "n": 636
+        },
+        "damped": {
+          "macro_f1": 0.3653,
+          "n": 636
+        },
+        "ridge": {
+          "macro_f1": 0.4216,
+          "n": 636
+        },
+        "gbm": {
+          "macro_f1": 0.3834,
+          "n": 636
+        },
+        "ridge+signals": {
+          "macro_f1": 0.4383,
+          "n": 636
+        },
+        "gbm+signals": {
+          "macro_f1": 0.4182,
+          "n": 636
+        }
+      }
+    }
+  },
+  "production": {
+    "model": "damped",
+    "selection_mae_pp": {
+      "naive_last": 0.7407,
+      "mean4": 0.8077,
+      "ses": 0.7253,
+      "damped": 0.7202,
+      "ridge": 0.828,
+      "gbm": 0.764
+    },
+    "direction_model": "gbm",
+    "selection_direction_f1": {
+      "naive_last": 0.4581,
+      "mean4": 0.267,
+      "ses": 0.409,
+      "damped": 0.4213,
+      "ridge": 0.556,
+      "gbm": 0.5989
+    },
+    "direction_validation": {
+      "macro_f1_model": 0.4662,
+      "macro_f1_always_stable": 0.2636,
+      "gain": 0.2026,
+      "gain_ci95": [
+        0.1464,
+        0.2537
+      ],
+      "validated": true
+    },
+    "interval_quantiles": {
+      "1": 0.0531,
+      "2": 0.0602,
+      "3": 0.0689,
+      "4": 0.0727
+    },
+    "interval_coverage_80_holdout": 0.7998
+  },
+  "lead_lag": {
+    "se_share": {
+      "signal": "se_share",
+      "skills": [
+        "python",
+        "javascript",
+        "typescript"
+      ],
+      "lags": {
+        "0": {
+          "mean_corr": -0.0067,
+          "ci95": [
+            -0.0134,
+            0.0031
+          ],
+          "placebo_p": 1.0,
+          "share_positive": 0.333,
+          "skills": 3,
+          "per_skill": {
+            "python": -0.013,
+            "javascript": -0.01,
+            "typescript": 0.003
+          }
+        },
+        "1": {
+          "mean_corr": -0.037,
+          "ci95": [
+            -0.1258,
+            0.023
+          ],
+          "placebo_p": 1.0,
+          "share_positive": 0.333,
+          "skills": 3,
+          "per_skill": {
+            "python": -0.008,
+            "javascript": -0.126,
+            "typescript": 0.023
+          }
+        },
+        "2": {
+          "mean_corr": -0.094,
+          "ci95": [
+            -0.2256,
+            -0.0265
+          ],
+          "placebo_p": 0.2291,
+          "share_positive": 0.0,
+          "skills": 3,
+          "per_skill": {
+            "python": -0.03,
+            "javascript": -0.226,
+            "typescript": -0.027
+          }
+        },
+        "3": {
+          "mean_corr": -0.1269,
+          "ci95": [
+            -0.268,
+            -0.0494
+          ],
+          "placebo_p": 0.1827,
+          "share_positive": 0.0,
+          "skills": 3,
+          "per_skill": {
+            "python": -0.063,
+            "javascript": -0.268,
+            "typescript": -0.049
+          }
+        },
+        "4": {
+          "mean_corr": -0.1293,
+          "ci95": [
+            -0.2274,
+            -0.0611
+          ],
+          "placebo_p": 0.1863,
+          "share_positive": 0.0,
+          "skills": 3,
+          "per_skill": {
+            "python": -0.099,
+            "javascript": -0.227,
+            "typescript": -0.061
+          }
+        },
+        "5": {
+          "mean_corr": -0.1148,
+          "ci95": [
+            -0.1465,
+            -0.0623
+          ],
+          "placebo_p": 0.0,
+          "share_positive": 0.0,
+          "skills": 3,
+          "per_skill": {
+            "python": -0.147,
+            "javascript": -0.136,
+            "typescript": -0.062
+          }
+        },
+        "6": {
+          "mean_corr": -0.1221,
+          "ci95": [
+            -0.2552,
+            0.0278
+          ],
+          "placebo_p": 0.0,
+          "share_positive": 0.333,
+          "skills": 3,
+          "per_skill": {
+            "python": -0.255,
+            "javascript": -0.139,
+            "typescript": 0.028
+          }
+        }
+      }
+    },
+    "npm_dl": {
+      "signal": "npm_dl",
+      "skills": [
+        "typescript",
+        "react",
+        "angular",
+        "vue",
+        "jquery",
+        "svelte",
+        "nextjs",
+        "graphql",
+        "tailwind",
+        "langchain",
+        "reactnative"
+      ],
+      "lags": {
+        "0": {
+          "mean_corr": 0.0706,
+          "ci95": [
+            -0.1739,
+            0.3364
+          ],
+          "placebo_p": 0.36,
+          "share_positive": 0.545,
+          "skills": 11,
+          "per_skill": {
+            "typescript": 0.051,
+            "react": 0.663,
+            "angular": -0.406,
+            "vue": 0.558,
+            "jquery": -0.628,
+            "svelte": -0.137,
+            "nextjs": -0.322,
+            "graphql": 0.581,
+            "tailwind": -0.151,
+            "langchain": 0.067,
+            "reactnative": 0.501
+          }
+        },
+        "1": {
+          "mean_corr": 0.0457,
+          "ci95": [
+            -0.2221,
+            0.3297
+          ],
+          "placebo_p": 0.64,
+          "share_positive": 0.545,
+          "skills": 11,
+          "per_skill": {
+            "typescript": 0.079,
+            "react": 0.615,
+            "angular": -0.632,
+            "vue": 0.491,
+            "jquery": -0.65,
+            "svelte": -0.115,
+            "nextjs": -0.401,
+            "graphql": 0.603,
+            "tailwind": -0.15,
+            "langchain": 0.085,
+            "reactnative": 0.577
+          }
+        },
+        "2": {
+          "mean_corr": 0.0777,
+          "ci95": [
+            -0.1896,
+            0.3417
+          ],
+          "placebo_p": 0.358,
+          "share_positive": 0.545,
+          "skills": 11,
+          "per_skill": {
+            "typescript": 0.053,
+            "react": 0.609,
+            "angular": -0.371,
+            "vue": 0.597,
+            "jquery": -0.618,
+            "svelte": -0.154,
+            "nextjs": -0.406,
+            "graphql": 0.641,
+            "tailwind": -0.142,
+            "langchain": 0.064,
+            "reactnative": 0.582
+          }
+        },
+        "3": {
+          "mean_corr": 0.1114,
+          "ci95": [
+            -0.1545,
+            0.3608
+          ],
+          "placebo_p": 0.17,
+          "share_positive": 0.545,
+          "skills": 11,
+          "per_skill": {
+            "typescript": 0.12,
+            "react": 0.563,
+            "angular": -0.426,
+            "vue": 0.703,
+            "jquery": -0.537,
+            "svelte": -0.073,
+            "nextjs": -0.417,
+            "graphql": 0.675,
+            "tailwind": -0.114,
+            "langchain": 0.16,
+            "reactnative": 0.571
+          }
+        },
+        "4": {
+          "mean_corr": 0.0786,
+          "ci95": [
+            -0.1722,
+            0.3443
+          ],
+          "placebo_p": 0.312,
+          "share_positive": 0.545,
+          "skills": 11,
+          "per_skill": {
+            "typescript": 0.097,
+            "react": 0.503,
+            "angular": -0.378,
+            "vue": 0.628,
+            "jquery": -0.663,
+            "svelte": -0.099,
+            "nextjs": -0.437,
+            "graphql": 0.668,
+            "tailwind": -0.105,
+            "langchain": 0.059,
+            "reactnative": 0.591
+          }
+        },
+        "5": {
+          "mean_corr": 0.1063,
+          "ci95": [
+            -0.1649,
+            0.3604
+          ],
+          "placebo_p": 0.158,
+          "share_positive": 0.545,
+          "skills": 11,
+          "per_skill": {
+            "typescript": 0.118,
+            "react": 0.458,
+            "angular": -0.148,
+            "vue": 0.762,
+            "jquery": -0.687,
+            "svelte": -0.13,
+            "nextjs": -0.421,
+            "graphql": 0.666,
+            "tailwind": -0.116,
+            "langchain": 0.095,
+            "reactnative": 0.573
+          }
+        },
+        "6": {
+          "mean_corr": 0.1103,
+          "ci95": [
+            -0.1354,
+            0.3649
+          ],
+          "placebo_p": 0.156,
+          "share_positive": 0.545,
+          "skills": 11,
+          "per_skill": {
+            "typescript": 0.218,
+            "react": 0.439,
+            "angular": -0.41,
+            "vue": 0.616,
+            "jquery": -0.591,
+            "svelte": -0.036,
+            "nextjs": -0.444,
+            "graphql": 0.678,
+            "tailwind": -0.099,
+            "langchain": 0.267,
+            "reactnative": 0.576
+          }
+        }
+      }
+    },
+    "gh_share": {
+      "signal": "gh_share",
+      "skills": [],
+      "note": "too few skills with this signal"
+    }
+  }
+}
