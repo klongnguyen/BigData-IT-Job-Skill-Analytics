@@ -17,7 +17,7 @@ PAGES = {
     "Xu hướng": (trends, "So sánh kỹ năng theo thời gian"),
     "Hồ sơ kỹ năng": (profile, "Mọi góc nhìn về một kỹ năng"),
     "Hệ sinh thái": (ecosystem, "Kỹ năng nào đi cùng nhau"),
-    "Thị trường": (market, "Remote, lương, cấp bậc, địa lý"),
+    "Thị trường": (market, "Remote, lương, cấp bậc"),
     "Skill Navigator": (navigator, "Độ phủ kỹ năng của bạn"),
     "Dự báo & độ tin cậy": (forecast, "Dự báo và kiểm chứng"),
 }

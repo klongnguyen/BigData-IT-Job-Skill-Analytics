@@ -107,8 +107,8 @@ def header(title, subtitle=None):
 
 
 CSS = """<style>
-.block-container {padding-top: 2.2rem; padding-bottom: 3rem; max-width: 1280px;}
-.hero {font-size: 30px; line-height: 1.15; font-weight: 750; letter-spacing: -0.4px; margin: 0;}
+.block-container {padding-top: 4.75rem; padding-bottom: 3rem; max-width: 1280px;}
+.hero {font-size: 30px; line-height: 1.3; font-weight: 750; letter-spacing: -0.4px; margin: 0; padding-top: 4px;}
 .subtitle {opacity: .72; font-size: 14px; margin: 2px 0 14px 0;}
 h5 {margin-top: 1.1rem !important; margin-bottom: .1rem !important;}
 button[data-baseweb="tab"] {font-size: 15px;}
@@ -118,6 +118,4 @@ button[data-baseweb="tab"] {font-size: 15px;}
 [data-testid="stMetricValue"] {font-size: 1.35rem; line-height: 1.2;}
 [data-testid="stMetric"] {min-height: 7.4rem;}
 [data-testid="stMetricDelta"] {font-size: .85rem; line-height: 1.25;}
-.insight-title {font-weight: 650; font-size: 15px; margin-bottom: 2px;}
-.insight-body {opacity: .8; font-size: 13.5px; line-height: 1.4;}
 </style>"""

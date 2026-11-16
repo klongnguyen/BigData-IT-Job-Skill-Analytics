@@ -104,57 +104,8 @@ def _level(g):
         _lines(m, ["fulltime", "parttime", "contract"], ["Toàn thời gian", "Bán thời gian", "Hợp đồng / freelance"], g, "mk_contract", height=360)
 
 
-def _geo(g):
-    loc = g["location_year"]
-    left, right = st.columns([1, 1])
-    with left:
-        by_region = loc.groupby(["year", "region"]).posts.sum().reset_index()
-        palette = {"NA": theme.series_colors()[0], "EU": theme.series_colors()[1], "APAC": theme.series_colors()[2], "UNKNOWN": theme.tokens()["flat"]}
-        fig = go.Figure()
-        for r in ["NA", "EU", "APAC", "UNKNOWN"]:
-            sub = by_region[by_region.region == r]
-            fig.add_trace(go.Bar(x=sub.year, y=sub.posts, name=theme.REGION_VI[r], marker={"color": palette[r]}, hovertemplate="%{y:,} tin<extra>" + theme.REGION_VI[r] + "</extra>"))
-        theme.style(fig, height=400, hover="x unified", ytitle="% số tin")
-        fig.update_layout(barmode="stack", barnorm="percent", bargap=0.25)
-        fig.update_yaxes(ticksuffix="%")
-        fig.update_xaxes(dtick=1, tickformat="d")
-        theme.header("Khu vực của các tin", "Nhận diện từ 250 ký tự đầu của tin. “Không nêu địa điểm” gồm cả tin chỉ ghi Remote.")
-        theme.show(fig, "mk_region")
-    with right:
-        years = sorted(loc.year.unique())
-        lo, hi = st.select_slider("Khoảng năm", years, value=(years[-3], years[-1]), key="mk_city_years")
-        sub = loc[(loc.year >= lo) & (loc.year <= hi) & (loc.city != "")].groupby(["city", "region"]).posts.sum().reset_index().nlargest(15, "posts").sort_values("posts")
-        palette_r = {"NA": palette["NA"], "EU": palette["EU"], "APAC": palette["APAC"]}
-        fig = go.Figure(go.Bar(y=sub.city, x=sub.posts, orientation="h", marker={"color": [palette_r.get(r, theme.tokens()["flat"]) for r in sub.region]},
-                               customdata=[theme.REGION_VI.get(r, r) for r in sub.region], hovertemplate="<b>%{y}</b> (%{customdata})<br>%{x:,} tin<extra></extra>"))
-        theme.style(fig, height=400, legend=False, xtitle="Số tin")
-        fig.update_xaxes(showgrid=True)
-        fig.update_yaxes(showgrid=False)
-        theme.header(f"15 thành phố nhiều tin nhất, {lo}–{hi}", "Màu theo khu vực.")
-        theme.show(fig, "mk_cities")
-        vn = loc[(loc.city == "Việt Nam") & (loc.year >= lo) & (loc.year <= hi)].posts.sum()
-        total = loc[(loc.year >= lo) & (loc.year <= hi)].posts.sum()
-        st.info(f"**Việt Nam:** {n_fmt(vn)} tin ({theme.pct(vn / total, 2)}) trong giai đoạn này. Hacker News gần như không phản ánh thị trường Việt Nam; "
-                "muốn kết luận cho Việt Nam cần thêm nguồn tin tuyển dụng trong nước.")
-
-
-def _employers(g):
-    emp = g["employer"].head(20).iloc[::-1]
-    fig = go.Figure(go.Bar(y=emp.company, x=emp.posts, orientation="h", marker={"color": theme.series_colors()[0]},
-                           customdata=np.column_stack([emp.active_months, emp.first_month, emp.last_month]),
-                           hovertemplate="<b>%{y}</b><br>%{x} tin trong %{customdata[0]} tháng<br>%{customdata[1]} → %{customdata[2]}<extra></extra>"))
-    theme.style(fig, height=520, legend=False, xtitle="Số tin đăng")
-    fig.update_xaxes(showgrid=True)
-    fig.update_yaxes(showgrid=False)
-    f = g["facts"]
-    theme.header("Nhà tuyển dụng đăng nhiều nhất", f"Tên công ty lấy từ trường đầu của tin dạng 'Công ty | Địa điểm | …' ({theme.pct(f['company_parsed_share'], 0)} số tin đọc được).")
-    theme.show(fig, "mk_employers")
-    st.markdown(f"Những tác giả đăng từ 5 tin trở lên chiếm **{theme.pct(f['repeat_author_share'], 0)}** số tin: một phần lớn tin đến từ các công ty tuyển liên tục "
-                "nhiều tháng, nên tỷ lệ kỹ năng chịu ảnh hưởng của vài nhà tuyển dụng lớn.")
-
-
 def render(g):
-    tabs = st.tabs(["Làm từ xa", "Lương & quyền lợi", "Cấp bậc & hợp đồng", "Địa lý", "Nhà tuyển dụng"])
-    for tab, fn in zip(tabs, (_remote, _pay, _level, _geo, _employers)):
+    tabs = st.tabs(["Làm từ xa", "Lương & quyền lợi", "Cấp bậc & hợp đồng"])
+    for tab, fn in zip(tabs, (_remote, _pay, _level)):
         with tab:
             fn(g)

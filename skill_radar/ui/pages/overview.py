@@ -16,44 +16,23 @@ MIN_SHARE = 0.01
 
 
 def _kpis(g):
-    hist, radar, info = g["radar_history"], g["radar_series"], g["results"]["info"]
+    hist = g["radar_history"]
     last4, prev4 = insights.recent_periods(hist), insights.recent_periods(hist, 4, 4)
     now, before = insights.window_share(hist, last4), insights.window_share(hist, prev4)
     top = now.idxmax()
     change = ((now - before.reindex(now.index).fillna(0)) * 100)
     big = change[(now >= MIN_SHARE) | (before.reindex(now.index).fillna(0) >= MIN_SHARE)]      # ignore skills too rare to be meaningful
     up, down = big.idxmax(), big.idxmin()
-    rising = radar[radar.direction == "Rising"].sort_values("delta_pp_4q", ascending=False)
-    fading = radar[radar.direction == "Fading"].sort_values("delta_pp_4q")
-    f1, f1_base = float(info["dv_macro_f1_model"]), float(info["dv_macro_f1_always_stable"])
-    names = lambda frame: ", ".join(frame.label) or "không có"
-    first = st.columns(3)                                                  # what the data covers
-    first[0].metric("Tin đã phân tích", n_fmt(g["facts"]["postings"]), border=True,
-                    help=f"Hacker News 'Ask HN: Who is hiring?', {g['facts']['first_quarter']} đến {g['facts']['last_quarter']}")
-    first[1].metric("Kỹ năng theo dõi", len(g["skills"]), border=True, help="75 kỹ năng trong 8 nhóm, nhận diện bằng quy tắc từ khóa")
-    first[2].metric("Phổ biến nhất", g["label"][top], delta=f"{theme.pct(now[top])} số tin", delta_color="off", border=True,
-                    help="Kỹ năng được nhắc trong nhiều tin nhất ở 4 quý gần nhất.")
-    second = st.columns(4)                                                 # where skills are heading, and how far to trust it
-    second[0].metric("Tăng nhanh nhất", g["label"][up], delta=f"{big[up]:+.1f} điểm %".replace(".", ","), border=True,
-                     help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước đó. Chỉ xét kỹ năng có ít nhất 1% số tin ở một trong hai giai đoạn.")
-    second[1].metric("Giảm mạnh nhất", g["label"][down], delta=f"{big[down]:+.1f} điểm %".replace(".", ","), border=True,
-                     help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước đó (cùng điều kiện như thẻ Tăng nhanh nhất).")
-    second[2].metric("Dự báo sau 1 năm", f"{len(rising)} tăng, {len(fading)} giảm", delta=f"{int(info['skills_eligible'])} kỹ năng xét", delta_color="off", border=True,
-                     help=f"Mô hình dự báo thay đổi tỷ lệ vượt ±1 điểm % sau 4 quý. Tăng: {names(rising)}. Giảm: {names(fading)}. Phần còn lại dự báo ổn định hoặc chưa đủ dữ liệu.")
-    second[3].metric("Tin cậy dự báo", theme.vn(f1), delta=f"{f1 - f1_base:+.2f} hơn mốc cơ sở".replace(".", ","), border=True,
-                     help=f"Điểm macro-F1 của nhãn Tăng/Ổn định/Giảm trên giai đoạn kiểm tra {info['holdout_targets']} (mô hình không được dùng các quý này để chọn). "
-                          f"Mốc so sánh là đoán 'Ổn định' cho mọi kỹ năng, chỉ đạt {theme.vn(f1_base)}. 1,00 là hoàn hảo; mô hình mới ở mức trung bình, nên dùng để tham khảo.")
-    st.caption("Tăng/giảm so sánh 4 quý gần nhất với 4 quý trước đó.")
-
-
-def _insight_cards(g):
-    cards = insights.make_insights(g["radar_history"], g["skill_year"], g["market_quarter"], g["label"])
-    if not cards:
-        return
-    theme.header("Điểm nổi bật", "Tự sinh từ dữ liệu; thay đổi khi dữ liệu cập nhật.")
-    for col, card in zip(st.columns(len(cards)), cards):
-        with col, st.container(border=True, height=150):
-            st.markdown(f'<div class="insight-title">{card["title"]}</div><div class="insight-body">{card["body"]}</div>', unsafe_allow_html=True)
+    cols = st.columns(5)
+    cols[0].metric("Tin đã phân tích", n_fmt(g["facts"]["postings"]), border=True,
+                   help=f"Hacker News 'Ask HN: Who is hiring?', {g['facts']['first_quarter']} đến {g['facts']['last_quarter']}")
+    cols[1].metric("Kỹ năng theo dõi", len(g["skills"]), border=True, help="75 kỹ năng trong 8 nhóm, nhận diện bằng quy tắc từ khóa")
+    cols[2].metric("Phổ biến nhất", g["label"][top], delta=f"{theme.pct(now[top])} số tin", delta_color="off", border=True,
+                   help="Kỹ năng được nhắc trong nhiều tin nhất ở 4 quý gần nhất.")
+    cols[3].metric("Tăng nhanh nhất", g["label"][up], delta=f"{big[up]:+.1f} điểm %".replace(".", ","), border=True,
+                   help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước đó. Chỉ xét kỹ năng có ít nhất 1% số tin ở một trong hai giai đoạn.")
+    cols[4].metric("Giảm mạnh nhất", g["label"][down], delta=f"{big[down]:+.1f} điểm %".replace(".", ","), border=True,
+                   help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước đó (cùng điều kiện như thẻ Tăng nhanh nhất).")
 
 
 def _treemap(g):
@@ -144,7 +123,6 @@ def _bump(g):
 
 def render(g):
     _kpis(g)
-    _insight_cards(g)
     left, right = st.columns([1.15, 1])
     with left:
         _treemap(g)

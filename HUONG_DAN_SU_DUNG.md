@@ -84,19 +84,10 @@ Luồng dữ liệu: `API (Hacker News, npm, Stack Overflow)` → `warehouse.db`
 | Tin đã phân tích | Số tin trong giai đoạn mô hình | `gold_fact.postings` |
 | Kỹ năng theo dõi | Số kỹ năng trong danh mục | số dòng bảng `skills` |
 | Phổ biến nhất | Kỹ năng có tỷ lệ cao nhất trong 4 quý gần nhất, kèm tỷ lệ | `radar_history` (`posts`, `total`) |
-| *(hàng thứ hai)* Tăng nhanh nhất | Kỹ năng tăng nhiều điểm % nhất so với 4 quý trước đó (chỉ xét kỹ năng có ≥ 1% số tin ở một trong hai giai đoạn, để bỏ nhiễu từ kỹ năng quá hiếm) | `radar_history` |
+| Tăng nhanh nhất | Kỹ năng tăng nhiều điểm % nhất so với 4 quý trước đó (chỉ xét kỹ năng có ≥ 1% số tin ở một trong hai giai đoạn, để bỏ nhiễu từ kỹ năng quá hiếm) | `radar_history` |
 | Giảm mạnh nhất | Như trên, theo chiều giảm | `radar_history` |
-| Dự báo sau 1 năm | Số kỹ năng được dự báo Tăng và Giảm (vượt ±1 điểm % sau 4 quý) trong số kỹ năng đủ dữ liệu; tên từng kỹ năng nằm trong dấu "?" của ô | `radar_series.direction`, `run_info.skills_eligible` |
-| Tin cậy dự báo | Điểm macro-F1 của nhãn Tăng/Ổn định/Giảm trên giai đoạn kiểm tra 2023Q1–2026Q3, kèm chênh so với mốc "luôn đoán Ổn định". 1,00 là hoàn hảo; mô hình mới ở mức trung bình nên dùng để tham khảo | `run_info.dv_macro_f1_model`, `dv_macro_f1_always_stable` |
 
-Hàng đầu gồm 3 ô về phạm vi dữ liệu, hàng thứ hai gồm 4 ô về xu hướng và độ tin cậy. Tỷ lệ tin remote và tin nêu lương không còn ở đây; chúng thuộc trang **Thị trường**.
-
-### Điểm nổi bật (5 thẻ tự sinh)
-Câu chữ được sinh tự động từ dữ liệu mỗi lần mở (hàm `make_insights` trong `insights.py`):
-- **<Kỹ năng> tăng / giảm nhiều nhất:** so tỷ lệ năm 2019 với năm đầy đủ gần nhất (đủ 4 quý), trong các kỹ năng có tỷ lệ ≥ 1% ở ít nhất một trong hai năm. Từ bảng `skill_year` (`posts / total`).
-- **<Kỹ năng> bứt phá nhanh nhất:** tỷ lệ 4 quý gần nhất chia cho tỷ lệ cả năm 2022, chọn tỷ số cao nhất trong các kỹ năng có ≥ 50 tin gần đây và có mặt trong 2022.
-- **Làm việc từ xa đã qua đỉnh:** quý có tỷ lệ remote cao nhất so với 4 quý gần nhất. Từ `market_quarter`.
-- **Công khai mức lương:** tỷ lệ tin nêu lương năm 2019 so với 4 quý gần nhất. Từ `market_quarter`.
+Năm ô nằm trên một hàng. Tỷ lệ tin remote và tin nêu lương không còn ở đây; chúng thuộc trang **Thị trường**. Dự báo và độ tin cậy của dự báo xem ở trang **Dự báo & độ tin cậy**.
 
 ### Bản đồ kỹ năng năm qua (treemap)
 - **Diện tích:** số tin nhắc kỹ năng trong 4 quý gần nhất (`radar_history.posts`).
@@ -186,7 +177,9 @@ Thanh xanh = tỷ lệ tin **của kỹ năng này** có thuộc tính; thanh x�
 ### Hay đi kèm với
 Với kỹ năng A đang chọn, mỗi thanh là kỹ năng B và **xác suất có B khi tin nhắc A**: `số tin nhắc cả A và B / số tin nhắc A`. Tooltip có thêm **lift** (xem [mục 6](#6-hệ-sinh-thái)) và số tin. Dữ liệu: `skill_pair_window` (12 quý gần nhất).
 
-### Vì sao kỹ năng này tăng/giảm? (cuối trang)
+### Vì sao kỹ năng này tăng/giảm? (đang tạm tắt)
+> **Đang tạm ẩn khỏi giao diện.** Mã nguồn vẫn còn (`ui/pages/why.py`, `drivers.py`); đặt `SHOW_WHY = True` trong `ui/pages/profile.py` để bật lại. Phần mô tả dưới đây áp dụng khi bật.
+
 Mục này trả lời "thay đổi **đến từ đâu**". Nó là phân tích **mô tả** từ chính các tin tuyển dụng; dữ liệu không chứng minh được nguyên nhân. Phía trên cùng là nút chọn **So sánh 4 quý gần nhất với: 1 / 3 / 5 năm trước** (kỳ so sánh là 4 quý kết thúc cách đây 4, 12 hoặc 20 quý). Một khung **Tóm tắt** tự sinh các câu sau, rồi 5 thẻ minh họa chi tiết.
 
 **Khung Tóm tắt** (hàm `summarize` trong `skill_radar/drivers.py`):
@@ -262,14 +255,6 @@ Mỗi ô là **log₂(lift)** của một cặp kỹ năng. **Xanh:** đi cùng 
 - **Cấp bậc được nhắc tới:** % tin nhắc senior (senior/staff/principal/lead/head of…), junior (junior/entry-level/new grad…), thực tập, theo quý.
 - **Hình thức hợp đồng:** % tin nhắc full-time, part-time, contract/freelance (không tính "smart contract").
 - Từ `market_quarter.senior / junior / intern / fulltime / parttime / contract`.
-
-### Thẻ "Địa lý"
-- **Khu vực của các tin:** cột xếp chồng 100% theo năm: Bắc Mỹ, Châu Âu, Châu Á – Thái Bình Dương, Không nêu địa điểm (gồm cả tin chỉ ghi Remote). Từ `location_year` (`year`, `region`, `posts`).
-- **15 thành phố nhiều tin nhất:** thanh trượt **Khoảng năm** chọn giai đoạn; màu theo khu vực. Nhận diện địa điểm trong 250 ký tự đầu của tin; tin nhắc nhiều thành phố lấy thành phố xuất hiện đầu tiên.
-- Khung xanh **Việt Nam:** số tin nhắc Việt Nam (Việt Nam, TP.HCM, Hà Nội…) trong giai đoạn chọn. Con số nhỏ (~0,1%) cho thấy Hacker News gần như không phản ánh thị trường Việt Nam.
-
-### Thẻ "Nhà tuyển dụng"
-20 công ty đăng nhiều tin nhất (`employer.posts`); tooltip có số tháng hoạt động và tháng đầu/cuối. Tên công ty lấy từ trường đầu của tin dạng `Công ty | Địa điểm | …` (khoảng 85% tin đọc được; tin có trường đầu là tên chức danh bị loại). Dòng bên dưới: tác giả đăng từ 5 tin trở lên chiếm khoảng 56% số tin, nghĩa là tỷ lệ kỹ năng chịu ảnh hưởng của một số nhà tuyển dụng lớn tuyển liên tục.
 
 ---
 

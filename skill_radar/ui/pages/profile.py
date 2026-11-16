@@ -10,6 +10,8 @@ from skill_radar.ui import interact, theme
 from skill_radar.ui.pages import why
 from skill_radar.ui.common import add_events, n_fmt, qdate
 
+SHOW_WHY = False        # the "why did this skill rise/fall" section is switched off for now; set True to bring it back
+
 ATTRS = [("remote", "Làm từ xa"), ("hybrid", "Hybrid"), ("salary", "Nêu mức lương"), ("equity", "Có equity / cổ phần"),
          ("senior", "Vị trí senior trở lên"), ("junior", "Junior / thực tập"), ("visa", "Hỗ trợ visa")]
 MIN_SALARY_N = 20
@@ -150,4 +152,5 @@ def render(g):
         _attributes(g, skill)
     with right:
         _co_skills(g, skill)
-    why.render(g, skill)
+    if SHOW_WHY:
+        why.render(g, skill)
