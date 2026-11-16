@@ -70,6 +70,6 @@ data/gold/jobscope/runs/
 # Streamlit secrets
 .streamlit/secrets.toml
 
-# Skill Radar: raw downloads and text-bearing silver stay local; gold (small) is tracked
+# Skill Radar: raw downloads and the warehouse DB (raw + text-bearing silver) stay local; gold.db (small) is tracked
 skill_radar/data/raw/
-skill_radar/data/processed/
+skill_radar/data/warehouse.db

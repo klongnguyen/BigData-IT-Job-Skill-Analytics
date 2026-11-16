@@ -7,24 +7,25 @@ Rising/Stable/Fading label). Their holdout skill is then reported as measured, n
     python -m skill_radar.pipeline
 """
 
-import json
 import warnings
 from datetime import datetime, timezone
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import f1_score
 
+from skill_radar import analytics
 from skill_radar import backtest as B
+from skill_radar import db
 from skill_radar import leadlag as L
 from skill_radar import models as M
 from skill_radar import panel as P
+from skill_radar import store
 from skill_radar.taxonomy import BY_ID
 
-OUT_DIR = Path(__file__).resolve().parent / "data" / "gold"
 FORECAST_Q = 4
 INTERVAL = 0.80
+CELL_MODELS = ("naive_last", "ses", "damped", "gbm")      # models whose holdout predictions are kept for the dashboard
 NO_SIGNAL_MODELS = ("naive_last", "mean4", "ses", "damped", "ridge", "gbm")
 
 
@@ -122,39 +123,64 @@ def history_frame(panel):
     return pd.concat(rows, ignore_index=True)
 
 
-def run(processed=None, today=None, out_dir=OUT_DIR):
+def backtest_cells(table, panel, mask):
+    """Holdout predictions of the main models, with skill ids and quarter labels, for the reliability charts."""
+    t = table[table.model.isin(CELL_MODELS) & table.skill.isin(np.flatnonzero(mask))].dropna(subset=["pred"]).copy()
+    t["skill"] = [panel.skills[i] for i in t.skill]
+    t["origin_period"] = [panel.periods[T - 1] for T in t.origin]
+    t["target_period"] = [panel.periods[T + h - 1] for T, h in zip(t.origin, t.h)]
+    return t[["model", "skill", "origin_period", "target_period", "h", "pred", "actual", "base4"]].reset_index(drop=True)
+
+
+def signal_frame(long):
+    cols = [c for c in ("se_share", "npm_dl", "gh_share") if c in long]
+    out = long[["period", "skill", *cols]].dropna(subset=cols, how="all")
+    return out.reset_index(drop=True)
+
+
+def run(warehouse=db.WAREHOUSE, gold=db.GOLD, today=None):
     warnings.filterwarnings("ignore")
-    long = P.build_long(processed or P.DATA / "processed", today)
-    panel = P.to_panel(long)
-    result, table = B.run(panel)
-    selection, holdout, sel_end = B.cells(panel)
-    mask = B.eligible_mask(panel, sel_end)
-    models = build_models(result["selection"]["alpha_ses"], result["selection"]["phi_damped"])
-    production, sel_scores = pick_production(panel, models, selection, mask)
-    dir_model, dir_scores = pick_direction(panel, models, selection, mask)
-    direction = direction_validation(table, dir_model, mask)
-    quantiles = interval_quantiles(table, production, mask)
-    series, paths = production_forecast(panel, models[production], models[dir_model], quantiles, mask,
-                                        "validated" if direction["validated"] else "scenario_only")
-    lead = {name: L.analyse(panel, name) for name in panel.signals}
-    manifest = {
-        "schema_version": 1, "created_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "evidence": {"source": "Hacker News 'Ask HN: Who is hiring?' monthly threads", "quarters": [panel.periods[0], panel.periods[-1]],
-                     "n_quarters": len(panel.periods), "postings_total": int(panel.total.sum()), "skills_total": len(panel.skills),
-                     "skills_eligible": int(mask.sum()), "signals_available": {k: int((~np.isnan(v).all(axis=1)).sum()) for k, v in panel.signals.items()}},
-        "backtest": result,
-        "production": {"model": production, "selection_mae_pp": {k: round(v, 4) for k, v in sel_scores.items()},
-                       "direction_model": dir_model, "selection_direction_f1": {k: round(v, 4) for k, v in dir_scores.items()},
-                       "direction_validation": direction, "interval_quantiles": {str(k): round(v, 4) for k, v in quantiles.items()},
-                       "interval_coverage_80_holdout": round(coverage(table, production, mask, quantiles), 4)},
-        "lead_lag": lead,
-    }
-    out_dir = Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    series.to_parquet(out_dir / "radar_series.parquet", index=False)
-    paths.to_parquet(out_dir / "radar_paths.parquet", index=False)
-    history_frame(panel).to_parquet(out_dir / "radar_history.parquet", index=False)
-    (out_dir / "radar_manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False, default=float), encoding="utf-8")
+    wh = db.connect(warehouse, readonly=True)
+    try:
+        long = P.build_long(wh, today)
+        panel = P.to_panel(long)
+        result, table = B.run(panel)
+        selection, holdout, sel_end = B.cells(panel)
+        mask = B.eligible_mask(panel, sel_end)
+        models = build_models(result["selection"]["alpha_ses"], result["selection"]["phi_damped"])
+        production, sel_scores = pick_production(panel, models, selection, mask)
+        dir_model, dir_scores = pick_direction(panel, models, selection, mask)
+        direction = direction_validation(table, dir_model, mask)
+        quantiles = interval_quantiles(table, production, mask)
+        series, paths = production_forecast(panel, models[production], models[dir_model], quantiles, mask,
+                                            "validated" if direction["validated"] else "scenario_only")
+        lead = {name: L.analyse(panel, name) for name in panel.signals}
+        manifest = {
+            "schema_version": 2, "created_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "evidence": {"source": "Hacker News 'Ask HN: Who is hiring?' monthly threads", "quarters": [panel.periods[0], panel.periods[-1]],
+                         "n_quarters": len(panel.periods), "postings_total": int(panel.total.sum()), "skills_total": len(panel.skills),
+                         "skills_eligible": int(mask.sum()), "signals_available": {k: int((~np.isnan(v).all(axis=1)).sum()) for k, v in panel.signals.items()}},
+            "backtest": result,
+            "production": {"model": production, "selection_mae_pp": {k: round(v, 4) for k, v in sel_scores.items()},
+                           "direction_model": dir_model, "selection_direction_f1": {k: round(v, 4) for k, v in dir_scores.items()},
+                           "direction_validation": direction, "interval_quantiles": {str(k): round(v, 4) for k, v in quantiles.items()},
+                           "interval_coverage_80_holdout": round(coverage(table, production, mask, quantiles), 4)},
+            "lead_lag": lead,
+        }
+        with db.session(gold) as g:
+            db.write_table(g, "radar_series", series, indexes=["skill"])
+            db.write_table(g, "radar_paths", paths, indexes=["skill"])
+            db.write_table(g, "radar_history", history_frame(panel), indexes=[("skill", "period")])
+            db.write_table(g, "backtest_cell", backtest_cells(table, panel, mask), indexes=["model", "skill"])
+            db.write_table(g, "signal_quarter", signal_frame(long), indexes=["skill"])
+            store.save_results(g, manifest)
+            facts = analytics.build(wh, g, panel.periods, P.last_complete_month(today))
+        manifest["gold_facts"] = facts
+    finally:
+        wh.close()
+    vacuum = db.connect(gold)
+    vacuum.execute("VACUUM")
+    vacuum.close()
     return manifest, series, paths
 
 
@@ -163,3 +189,4 @@ if __name__ == "__main__":
     print("rate model:", manifest["production"]["model"], "| direction model:", manifest["production"]["direction_model"])
     print("direction validation:", manifest["production"]["direction_validation"])
     print(series[series.eligible].direction.value_counts().to_dict())
+    print("gold facts:", manifest["gold_facts"])

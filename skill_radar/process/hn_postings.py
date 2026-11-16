@@ -1,8 +1,11 @@
-"""Bronze -> Silver -> Gold for the Hacker News "Who is hiring?" series.
+"""Bronze -> Silver for the Hacker News "Who is hiring?" series, stored in SQLite (data/warehouse.db).
 
-Bronze  raw comment trees (data/raw/hn/*.json.gz), never modified.
-Silver  one row per job posting (top-level comment) + one row per (posting, skill).
-Gold    demand share per skill and period:  postings mentioning the skill / all postings.
+Bronze  bronze_thread, bronze_comment   raw top-level comments exactly as downloaded (HTML), never modified.
+Silver  postings                        one clean row per job posting
+        posting_skills                  one row per (posting, skill)
+        posting_features                one row per posting: work mode, pay, seniority, location, employer
+        demand_month, demand_quarter    postings mentioning a skill / all postings
+        etl_report                      row counts and every drop, so nothing disappears silently
 
 Rules that matter for the statistics:
 * only top-level comments are postings (replies are discussion);
@@ -19,11 +22,11 @@ from pathlib import Path
 
 import pandas as pd
 
+from skill_radar import db
+from skill_radar.process.features import extract_features
 from skill_radar.taxonomy import SKILLS, clean_html, extract_skills
 
-DATA = Path(__file__).resolve().parents[1] / "data"
-RAW_DIR = DATA / "raw" / "hn"
-OUT_DIR = DATA / "processed"
+RAW_DIR = db.DATA / "raw" / "hn"
 MIN_CHARS = 50
 MONTHS = {name.lower(): i for i, name in enumerate(calendar.month_name) if name}
 TITLE_MONTH = re.compile(r"\(([A-Za-z]+)\s+(\d{4})\)")
@@ -42,32 +45,46 @@ def quarter_of(month):
     return f"{year}Q{(int(m) - 1) // 3 + 1}"
 
 
-def build_postings(raw_dir=RAW_DIR):
+# ------------------------------------------------------------------- bronze
+def read_bronze(raw_dir=RAW_DIR):
+    """Load downloaded threads into (threads, comments) frames. Comments keep their raw HTML (None if deleted)."""
     raw_dir = Path(raw_dir)
     threads = json.loads((raw_dir / "threads.json").read_text(encoding="utf-8"))
-    rows, dropped = [], {"deleted_or_empty": 0, "too_short": 0, "duplicate_id": 0}
-    seen = set()
+    thread_rows, comment_rows = [], []
     for thread in threads:
         path = raw_dir / f"{thread['id']}.json.gz"
         if not path.exists():
             continue
         with gzip.open(path, "rt", encoding="utf-8") as handle:
             tree = json.load(handle)
-        month = thread_month(thread)
+        thread_rows.append({"thread_id": thread["id"], "title": thread["title"], "month": thread_month(thread),
+                            "created_at_i": thread.get("created_at_i")})
         for child in tree.get("children", []):
-            text = clean_html(child.get("text"))
-            if not text:
-                dropped["deleted_or_empty"] += 1
-            elif len(text) < MIN_CHARS:
-                dropped["too_short"] += 1
-            elif child["id"] in seen:
-                dropped["duplicate_id"] += 1
-            else:
-                seen.add(child["id"])
-                rows.append({"thread_id": thread["id"], "month": month, "quarter": quarter_of(month),
-                             "comment_id": child["id"], "author": child.get("author"),
-                             "created_at": child.get("created_at"), "text": text})
-    return pd.DataFrame(rows), dropped, len(threads)
+            comment_rows.append({"thread_id": thread["id"], "comment_id": child["id"], "author": child.get("author"),
+                                 "created_at": child.get("created_at"), "html": child.get("text")})
+    return pd.DataFrame(thread_rows), pd.DataFrame(comment_rows)
+
+
+# ------------------------------------------------------------------- silver
+def build_postings(threads, comments):
+    """Clean bronze comments into postings; returns (postings, dropped counts)."""
+    month_of = threads.set_index("thread_id").month
+    dropped = {"deleted_or_empty": 0, "too_short": 0, "duplicate_id": 0}
+    seen, rows = set(), []
+    for c in comments.itertuples(index=False):
+        text = clean_html(c.html if isinstance(c.html, str) else None)    # deleted comments arrive as None/NaN
+        if not text:
+            dropped["deleted_or_empty"] += 1
+        elif len(text) < MIN_CHARS:
+            dropped["too_short"] += 1
+        elif c.comment_id in seen:
+            dropped["duplicate_id"] += 1
+        else:
+            seen.add(c.comment_id)
+            month = month_of[c.thread_id]
+            rows.append({"thread_id": c.thread_id, "month": month, "quarter": quarter_of(month), "comment_id": c.comment_id,
+                         "author": c.author, "created_at": c.created_at, "text": text})
+    return pd.DataFrame(rows), dropped
 
 
 def attach_skills(postings):
@@ -75,6 +92,13 @@ def attach_skills(postings):
     for comment_id, text in zip(postings.comment_id, postings.text):
         pairs += [(comment_id, sid) for sid in extract_skills(text)]
     return pd.DataFrame(pairs, columns=["comment_id", "skill"])
+
+
+def attach_features(postings):
+    rows = [extract_features(text) for text in postings.text]
+    frame = pd.DataFrame(rows)
+    frame.insert(0, "comment_id", postings.comment_id.to_numpy())
+    return frame
 
 
 def demand_panel(postings, post_skills, period):
@@ -89,24 +113,36 @@ def demand_panel(postings, post_skills, period):
     return panel.rename(columns={period: "period"})
 
 
-def run(raw_dir=RAW_DIR, out_dir=OUT_DIR):
-    out_dir = Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    postings, dropped, n_threads = build_postings(raw_dir)
+def run(raw_dir=RAW_DIR, warehouse=db.WAREHOUSE):
+    threads, comments = read_bronze(raw_dir)
+    postings, dropped = build_postings(threads, comments)
     post_skills = attach_skills(postings)
-    postings.to_parquet(out_dir / "hn_postings.parquet", index=False)
-    post_skills.to_parquet(out_dir / "hn_posting_skills.parquet", index=False)
-    monthly = demand_panel(postings, post_skills, "month")
-    quarterly = demand_panel(postings, post_skills, "quarter")
-    monthly.to_parquet(out_dir / "hn_demand_month.parquet", index=False)
-    quarterly.to_parquet(out_dir / "hn_demand_quarter.parquet", index=False)
-    report = {"threads": n_threads, "postings": int(len(postings)), "months": int(postings.month.nunique()),
-              "quarters": int(postings.quarter.nunique()), "dropped": dropped,
+    features = attach_features(postings)
+    report = {"threads": len(threads), "postings": int(len(postings)), "months": int(postings.month.nunique()),
+              "quarters": int(postings.quarter.nunique()), "bronze_comments": int(len(comments)),
+              **{f"dropped_{k}": v for k, v in dropped.items()},
               "postings_with_any_skill": int(post_skills.comment_id.nunique()),
               "first_month": postings.month.min(), "last_month": postings.month.max()}
-    (out_dir / "hn_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    with db.session(warehouse) as conn:
+        db.write_table(conn, "bronze_thread", threads, indexes=["thread_id"])
+        db.write_table(conn, "bronze_comment", comments, indexes=["comment_id", "thread_id"])
+        db.write_table(conn, "postings", postings, indexes=["comment_id", "month", "quarter", "author"])
+        db.write_table(conn, "posting_skills", post_skills, indexes=["comment_id", "skill"])
+        db.write_table(conn, "posting_features", features, indexes=["comment_id"])
+        db.write_table(conn, "demand_month", demand_panel(postings, post_skills, "month"), indexes=[("period", "skill")])
+        db.write_table(conn, "demand_quarter", demand_panel(postings, post_skills, "quarter"), indexes=[("period", "skill")])
+        db.kv_write(conn, "etl_report", report)
     return report
 
 
+def rebuild_features(warehouse=db.WAREHOUSE):
+    """Recompute posting_features from the stored postings (use after editing the rules in features.py)."""
+    with db.session(warehouse) as conn:
+        postings = db.read_sql(conn, "SELECT comment_id, text FROM postings ORDER BY comment_id")
+        features = attach_features(postings)
+        return db.write_table(conn, "posting_features", features, indexes=["comment_id"])
+
+
 if __name__ == "__main__":
-    print(json.dumps(run(), indent=2))
+    import sys
+    print(rebuild_features() if "--features-only" in sys.argv else json.dumps(run(), indent=2))
