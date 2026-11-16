@@ -14,7 +14,7 @@
 
 **Nguồn nhu cầu:** các chuỗi hằng tháng "Ask HN: Who is hiring?" trên Hacker News (185 chuỗi, 93.354 tin; 79.180 tin trong khoảng mô hình hóa 2015Q3–2026Q3).
 
-**Sản phẩm:** một kho dữ liệu SQLite theo mô hình Bronze → Silver → Gold, một pipeline phân tích và dự báo có kiểm chứng, và một dashboard Streamlit 7 màn hình (nền trắng, biểu đồ tương tác) để người dùng khám phá xu hướng kỹ năng và kiểm tra độ tin cậy của dự báo.
+**Sản phẩm:** một kho dữ liệu SQLite theo mô hình Bronze → Silver → Gold, một pipeline phân tích và dự báo có kiểm chứng, và một dashboard Streamlit 6 màn hình (nền trắng, biểu đồ tương tác) để người dùng khám phá xu hướng kỹ năng và kiểm tra độ tin cậy của dự báo.
 
 **Kết luận ngắn (chi tiết ở mục 7):**
 - Dự báo **hướng** thay đổi sau 4 quý (Đang lên / Ổn định / Suy giảm) **vượt** baseline "luôn Ổn định" (macro-F1 0,4672 so với 0,2636, khoảng tin cậy 95% của mức chênh [0,147; 0,255]) và đã được kiểm chứng trên holdout 2023–2026.
@@ -51,7 +51,7 @@ BigData_Job_Analy/
     ├── analytics.py           # các bảng phân tích cho dashboard
     ├── ecosystem.py, navigator.py, insights.py, drivers.py   # phân cụm, lộ trình học, tóm tắt, giải thích tăng/giảm
     ├── app.py                 # dashboard Streamlit (điểm vào)
-    ├── ui/                    # giao diện: theme.py, interact.py, data.py và 7 trang trong ui/pages/
+    ├── ui/                    # giao diện: theme.py, interact.py, data.py và 6 trang trong ui/pages/
     └── data/
         ├── raw/               # bộ nhớ đệm phản hồi API (≈46 MB, không đưa lên git)
         ├── warehouse.db       # Bronze + Silver (≈303 MB, không đưa lên git)
@@ -318,7 +318,7 @@ Dự báo sản xuất cho các quý **2026Q4, 2027Q1, 2027Q2, 2027Q3** (4 quý 
 
 ## 8. Phân tích mô tả thị trường
 
-Ngoài dự báo, pipeline tạo các bảng phân tích để người dùng hiểu thị trường. Phần này là **thống kê mô tả** từ luật regex, không thuộc quy trình kiểm chứng ở mục 6.
+Ngoài dự báo, pipeline tạo các bảng phân tích để hiểu thị trường. Phần này là **thống kê mô tả** từ luật regex, không thuộc quy trình kiểm chứng ở mục 6. Dashboard không còn trang riêng cho phần này (trang "Thị trường" đã bỏ); với từng kỹ năng, tỷ lệ remote, lương, cấp bậc vẫn xem được ở mục "Chân dung tin tuyển" của trang Hồ sơ kỹ năng.
 
 ### 8.1 Làm từ xa, lương, cấp bậc (`market_quarter`, `skill_attr_year`, `skill_salary`)
 
@@ -367,26 +367,25 @@ Chạy: `python -m streamlit run skill_radar/app.py --server.port 8502` → http
 
 | Màn hình | Nội dung |
 | --- | --- |
-| **Tổng quan** | 5 ô chỉ số (số tin phân tích, số kỹ năng theo dõi, kỹ năng phổ biến nhất, kỹ năng tăng nhanh nhất, giảm mạnh nhất so với 4 quý trước); treemap kỹ năng theo nhóm (diện tích = số tin, màu = thay đổi); biểu đồ vùng cơ cấu lượt nhắc theo nhóm; biểu đồ cuộc đua xếp hạng theo năm với thanh trượt chọn khoảng hạng (xem được cả hạng 16 trở xuống, bấm vào đường để mở chi tiết) |
+| **Tổng quan** | 5 ô chỉ số (số tin phân tích, số kỹ năng theo dõi, kỹ năng phổ biến nhất, kỹ năng tăng nhanh nhất, giảm mạnh nhất so với 4 quý trước); treemap kỹ năng theo nhóm (diện tích = số tin, màu = thay đổi; bấm để phóng to, quay lại bằng thanh đường dẫn "Tất cả › nhóm" hoặc nút "Về toàn cảnh"); biểu đồ vùng cơ cấu lượt nhắc theo nhóm; biểu đồ cuộc đua xếp hạng theo năm với thanh trượt chọn khoảng hạng (xem được cả hạng 16 trở xuống, bấm vào đường để mở chi tiết) |
 | **Xu hướng** | 4 thẻ: So sánh kỹ năng (chọn tới 8 kỹ năng, tỷ lệ hoặc chỉ số đỉnh = 100, làm mượt 4 quý, vạch sự kiện COVID-19 / ChatGPT / sa thải hàng loạt), Bản đồ nhiệt, Thắng – thua, Vị thế & động lượng (bong bóng, bấm được) |
 | **Hồ sơ kỹ năng** | Một kỹ năng: 5 ô chỉ số, lịch sử + kịch bản 4 quý tới có dải 80%, "chân dung" tin tuyển so với thị trường (remote, lương, senior…), kỹ năng hay đi kèm |
 | **Hệ sinh thái** | 3 thẻ: Bản đồ công nghệ (t-SNE, tô màu theo cụm, bấm được), Bạn đồng hành của một kỹ năng, Ma trận lift |
-| **Thị trường** | 3 thẻ: Làm từ xa (remote/onsite/hybrid theo quý; kỹ năng nào "remote" nhất), Lương & quyền lợi (minh bạch lương, trung vị lương công bố, lương theo kỹ năng), Cấp bậc & hợp đồng |
 | **Skill Navigator** | Chọn bộ kỹ năng, hồ sơ mẫu, ngưỡng phù hợp, lọc remote/có lương; kết quả độ phủ, kỹ năng nên học tiếp, lộ trình tham lam, độ "ăn khách" của bộ kỹ năng theo thời gian |
 | **Dự báo & độ tin cậy** | Hai khung trạng thái ("Đã kiểm chứng" cho nhãn hướng, "Chưa kiểm chứng" cho giá trị); 4 thẻ: Radar 1 năm tới (bấm được, có bảng và tải CSV), Kiểm chứng nhãn hướng (ma trận nhầm lẫn, macro-F1 từng mô hình), Kiểm chứng giá trị dự báo (chênh sai số so với baseline, sai số theo horizon, dự đoán so với thực tế), Tín hiệu cộng đồng (hiệu ứng thêm tín hiệu, dẫn trước – trễ npm) |
 
-Bảng màu 8 nhóm kỹ năng cố định ở mọi biểu đồ; hai màu xanh/đỏ dành cho tăng/giảm. Các bảng địa lý (`location_year`) và nhà tuyển dụng (`employer`) vẫn nằm trong `gold.db` nhưng đã bỏ khỏi giao diện vì ít liên quan tới câu hỏi chọn kỹ năng.
+Bảng màu 8 nhóm kỹ năng cố định ở mọi biểu đồ; hai màu xanh/đỏ dành cho tăng/giảm. Các trang/biểu đồ về địa lý, nhà tuyển dụng và trang "Thị trường" (remote, lương, cấp bậc theo quý) đã bỏ khỏi giao diện vì ít liên quan tới câu hỏi chọn kỹ năng; các bảng tương ứng (`market_quarter`, `location_year`, `employer`) vẫn nằm trong `gold.db`, trong đó `market_quarter` còn phục vụ trang Hồ sơ kỹ năng.
 
 ---
 
 ## 10. Kiểm thử
 
-**75 test**, đã chạy lại và **đạt cả 75** (`python -m pytest -q tests`, khoảng 30 giây).
+**74 test**, đã chạy lại và **đạt cả 74** (`python -m pytest -q tests`, khoảng 30 giây).
 
 - `tests/test_skill_radar.py` (13 test): luật nhận diện kỹ năng; bỏ thẻ HTML trước khi giải mã entity; taxonomy hợp lệ; kỳ lấy từ tiêu đề; mẫu số của tỷ lệ là toàn bộ tin; `to_panel` từ chối khoảng trống; **không mô hình nào nhìn thấy quý sau mốc dự báo**; mô hình gộp trả NaN khi lịch sử ngắn; `damped` khớp đường thẳng đã biết; ô chọn mô hình không chạm holdout; tính đủ điều kiện không dùng holdout; ranh giới nhãn; backtest chạy end-to-end và **tái lập được**.
-- `tests/test_features_db.py` (62 ca sau khi mở rộng tham số): trích xuất đặc trưng (remote/hybrid, lương, cấp bậc, địa điểm, công ty); ghi/đọc SQLite và vòng khứ hồi `store`; hệ sinh thái (co-occurrence, lift, phân cụm); Skill Navigator; các hàm `insights`; `drivers` (điểm gãy, shift-share cộng đúng tổng, độ rộng, đồng biến); và **mọi trang dashboard import được** (một lỗi cú pháp ở một trang từng làm cả ứng dụng không chạy mà các test khác không phát hiện).
+- `tests/test_features_db.py` (61 ca sau khi mở rộng tham số): trích xuất đặc trưng (remote/hybrid, lương, cấp bậc, địa điểm, công ty); ghi/đọc SQLite và vòng khứ hồi `store`; hệ sinh thái (co-occurrence, lift, phân cụm); Skill Navigator; các hàm `insights`; `drivers` (điểm gãy, shift-share cộng đúng tổng, độ rộng, đồng biến); và **mọi trang dashboard import được** (một lỗi cú pháp ở một trang từng làm cả ứng dụng không chạy mà các test khác không phát hiện).
 
-Ngoài test tự động, dashboard được kiểm tra thủ công bằng trình duyệt thật (Playwright): bấm chọn kỹ năng trên các biểu đồ bấm được, nền trắng khi hệ điều hành đặt chế độ tối, không còn nút thanh công cụ Plotly, kéo chuột không làm biểu đồ nhảy trục, thanh trượt hạng, tiêu đề không bị thanh header che.
+Ngoài test tự động, dashboard được kiểm tra thủ công bằng trình duyệt thật (Playwright): bấm chọn kỹ năng trên các biểu đồ bấm được, nền trắng khi hệ điều hành đặt chế độ tối, không còn nút thanh công cụ Plotly, kéo chuột không làm biểu đồ nhảy trục, thanh trượt hạng, tiêu đề không bị thanh header che, treemap bấm vào kỹ năng rồi quay lại được.
 
 ---
 

@@ -10,14 +10,13 @@ if str(ROOT) not in sys.path:
 import streamlit as st
 
 from skill_radar.ui import data, interact, theme
-from skill_radar.ui.pages import ecosystem, forecast, market, navigator, overview, profile, trends
+from skill_radar.ui.pages import ecosystem, forecast, navigator, overview, profile, trends
 
 PAGES = {
     "Tổng quan": (overview, "Bức tranh toàn thị trường"),
     "Xu hướng": (trends, "So sánh kỹ năng theo thời gian"),
     "Hồ sơ kỹ năng": (profile, "Mọi góc nhìn về một kỹ năng"),
     "Hệ sinh thái": (ecosystem, "Kỹ năng nào đi cùng nhau"),
-    "Thị trường": (market, "Remote, lương, cấp bậc"),
     "Skill Navigator": (navigator, "Độ phủ kỹ năng của bạn"),
     "Dự báo & độ tin cậy": (forecast, "Dự báo và kiểm chứng"),
 }
@@ -35,7 +34,7 @@ def main():
         st.markdown("### ◈ Skill Radar")
         names = list(PAGES)
         if "page" not in st.session_state and st.query_params.get("page") in names:
-            st.session_state["page"] = st.query_params["page"]          # deep link: ?page=Thị trường
+            st.session_state["page"] = st.query_params["page"]          # deep link: ?page=Xu hướng
         page = st.radio("Chuyên mục", names, key="page", label_visibility="collapsed", captions=[v[1] for v in PAGES.values()])
         st.query_params["page"] = page
         st.divider()

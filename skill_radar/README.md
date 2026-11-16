@@ -35,8 +35,8 @@ python -m pytest -q tests
 ```
 Đổi luật trích xuất đặc trưng trong `process/features.py`: chạy `python -m skill_radar.process.hn_postings --features-only` (~1,5 phút) rồi chạy lại `pipeline`.
 
-## Dashboard (7 trang)
-Tổng quan · Xu hướng · Hồ sơ kỹ năng · Hệ sinh thái · Thị trường · Skill Navigator · Dự báo & độ tin cậy. Liên kết trực tiếp: `?page=Thị trường`. Giao diện nền trắng; biểu đồ tương tác (rê chuột, phóng to, bấm để chọn kỹ năng và xem chi tiết).
+## Dashboard (6 trang)
+Tổng quan · Xu hướng · Hồ sơ kỹ năng · Hệ sinh thái · Skill Navigator · Dự báo & độ tin cậy. Liên kết trực tiếp: `?page=Xu hướng`. Giao diện nền trắng; biểu đồ tương tác (rê chuột, phóng to, bấm để chọn kỹ năng và xem chi tiết).
 
 ## Quy trình đánh giá (đặt trước)
 Chuỗi quý 2015Q3–2026Q3 (45 quý). Chọn tham số và mô hình chỉ bằng dữ liệu tới 2022Q4. Holdout 2023Q1–2026Q3 chấm một lần.

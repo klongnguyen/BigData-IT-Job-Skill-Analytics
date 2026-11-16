@@ -287,7 +287,7 @@ def test_nearby_events_uses_a_two_quarter_window():
 
 
 # ------------------------------------------------------------------- ui
-@pytest.mark.parametrize("module", ["overview", "trends", "profile", "why", "ecosystem", "market", "navigator", "forecast"])
+@pytest.mark.parametrize("module", ["overview", "trends", "profile", "why", "ecosystem", "navigator", "forecast"])
 def test_every_dashboard_page_imports(module):
     """A syntax or import error in a page would stop the whole dashboard from starting."""
     import importlib

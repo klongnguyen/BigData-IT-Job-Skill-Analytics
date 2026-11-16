@@ -247,7 +247,7 @@ python -m pytest -q tests
 ```
 
 ## Phần 10. Các phân tích bổ sung (từ 2026-11-16)
-Chi tiết kế hoạch và trạng thái: [KE_HOACH_CAI_TIEN.md](KE_HOACH_CAI_TIEN.md). Dashboard có 7 trang; các chỉ số dưới đây là **thống kê mô tả** từ regex, không thuộc quy trình kiểm chứng ở Phần 5.
+Chi tiết kế hoạch và trạng thái: [KE_HOACH_CAI_TIEN.md](KE_HOACH_CAI_TIEN.md). Dashboard có 6 trang; các chỉ số dưới đây là **thống kê mô tả** từ regex, không thuộc quy trình kiểm chứng ở Phần 5.
 
 - **Đặc trưng tin** (`process/features.py`): làm từ xa / onsite / hybrid, có nêu lương (kèm lương USD/năm trung điểm cho khoảng 5,2 nghìn tin), equity, visa, cấp bậc, loại hợp đồng, thành phố/khu vực (250 ký tự đầu), công ty (trường đầu của tin dạng `Công ty | Địa điểm | ...`).
 - **Quan sát chính:** remote tăng từ ~19% (2015) lên 83% (2022) rồi giảm còn ~54% (2026); tỷ lệ tin nêu lương từ 2% lên 26%; tin nhắc cấp senior từ 34% lên 57%; Việt Nam gần như không xuất hiện (~0,1%), nên kết quả không nói được gì về thị trường Việt Nam.

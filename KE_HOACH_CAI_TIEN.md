@@ -47,9 +47,8 @@ Dùng **SQLite** (thư viện chuẩn Python, không phụ thuộc thêm), hai c
 2. **Xu hướng**: heatmap kỹ năng × năm, dumbbell chart so sánh hai năm, bong bóng "mức hiện tại × động lượng" chia 4 góc phần tư, đường so sánh có chuẩn hóa và chú thích sự kiện.
 3. **Hồ sơ kỹ năng**: một kỹ năng, mọi góc nhìn: lịch sử + dự báo (quạt), xếp hạng theo thời gian, tỷ lệ remote/lương/cấp bậc, kỹ năng hay đi kèm.
 4. **Hệ sinh thái**: bản đồ công nghệ (cụm + cạnh), ma trận lift, kỹ năng đi kèm một kỹ năng.
-5. **Thị trường**: remote/onsite/hybrid, minh bạch lương và lương công bố theo kỹ năng, equity, cấp bậc, loại hợp đồng, thành phố/khu vực, nhà tuyển dụng.
-6. **Skill Navigator**: chọn kỹ năng đã biết → % tin phù hợp, gợi ý kỹ năng tiếp theo làm tăng độ phủ nhiều nhất.
-7. **Dự báo & độ tin cậy**: dự báo toàn bộ, thực tế so với dự đoán trên holdout, ma trận nhầm lẫn của nhãn hướng, sai số theo kỳ hạn, tín hiệu cộng đồng (npm/Stack Overflow) và lead-lag.
+5. **Skill Navigator**: chọn kỹ năng đã biết → % tin phù hợp, gợi ý kỹ năng tiếp theo làm tăng độ phủ nhiều nhất.
+6. **Dự báo & độ tin cậy**: dự báo toàn bộ, thực tế so với dự đoán trên holdout, ma trận nhầm lẫn của nhãn hướng, sai số theo kỳ hạn, tín hiệu cộng đồng (npm/Stack Overflow) và lead-lag.
 
 ## 5. Bảng Gold mới
 
@@ -76,7 +75,7 @@ Không dùng Spark: dữ liệu 46 MB, không cần. GitHub Archive (~17 GB) là
 | GĐ | Nội dung | Tiêu chí rubric | Trạng thái |
 | --- | --- | --- | --- |
 | 1 | Cơ sở dữ liệu (warehouse + gold), trích xuất đặc trưng, bảng phân tích, test | Xử lý dữ liệu 20% | ✅ xong |
-| 2 | Dashboard 7 trang + Skill Navigator | Trực quan hóa/ứng dụng 25% | ✅ xong |
+| 2 | Dashboard 6 trang + Skill Navigator (trang Thị trường đã bỏ theo yêu cầu, 2026-11-17) | Trực quan hóa/ứng dụng 25% | ✅ xong |
 | 3a | Phân cụm kỹ năng (Ward trên PPMI, k chọn theo silhouette có ràng buộc kích thước, bố cục t-SNE) | Mô hình/công nghệ 25% | ✅ xong |
 | 3d | Phân tích "vì sao tăng/giảm" (bước ngoặt, shift-share, độ rộng nhà tuyển dụng, đồng biến, mô hình dựa vào gì) | Mô hình/công nghệ 25% | ✅ xong (2026-11-16, `drivers.py`) |
 | 3b | Topic model (NMF), bước ngoặt đã làm ở 3d; còn lại: gán nhãn tay 200–300 tin, dự báo theo nhóm kỹ năng | Mô hình/công nghệ 25% | ⬜ chưa làm |

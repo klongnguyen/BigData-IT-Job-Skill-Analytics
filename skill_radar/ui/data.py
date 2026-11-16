@@ -5,8 +5,8 @@ import streamlit as st
 
 from skill_radar import db, store
 
-TABLES = ["skills", "radar_series", "radar_paths", "radar_history", "market_quarter", "location_year", "skill_year",
-          "skill_pair_year", "skill_pair_window", "skill_attr_year", "skill_salary", "employer", "skill_cluster", "event",
+TABLES = ["skills", "radar_series", "radar_paths", "radar_history", "market_quarter", "skill_year",
+          "skill_pair_year", "skill_pair_window", "skill_attr_year", "skill_salary", "skill_cluster", "event",
           "signal_quarter", "backtest_cell"]
 
 

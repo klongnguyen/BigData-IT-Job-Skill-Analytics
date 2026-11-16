@@ -46,7 +46,7 @@ def _treemap(g):
     cats = sorted({g["category"][s] for s in skills}, key=theme.CATEGORY_ORDER.index)
     cat_values = [float(sum(posts[s] for s in skills if g["category"][s] == c)) for c in cats]
     ids = ["root"] + [f"c:{c}" for c in cats] + [f"s:{s}" for s in skills]
-    labels = [" "] + [theme.CATEGORY_VI[c] for c in cats] + [g["label"][s] for s in skills]
+    labels = ["Tất cả"] + [theme.CATEGORY_VI[c] for c in cats] + [g["label"][s] for s in skills]
     parents = [""] + ["root"] * len(cats) + [f"c:{g['category'][s]}" for s in skills]
     values = [float(sum(cat_values))] + cat_values + [float(posts[s]) for s in skills]
     colors = [0.0] * (len(cats) + 1) + [float(np.clip(change[s], -limit, limit)) for s in skills]
@@ -57,12 +57,15 @@ def _treemap(g):
         marker={"colors": colors, "colorscale": theme.diverging_scale(), "cmid": 0, "cmin": -limit, "cmax": limit,
                 "line": {"width": 2, "color": t["surface"]},
                 "colorbar": {"title": {"text": "Thay đổi<br>(điểm %)", "font": {"size": 11}}, "tickfont": {"size": 11}, "thickness": 10, "len": 0.6}},
-        texttemplate="<b>%{label}</b><br>%{customdata[0]}", textfont={"size": 13}, pathbar={"visible": True, "thickness": 22}, root_color="rgba(0,0,0,0)",
+        texttemplate="<b>%{label}</b><br>%{customdata[0]}", textfont={"size": 13}, pathbar={"visible": True, "thickness": 26}, root_color="rgba(0,0,0,0)",
         hovertemplate="<b>%{label}</b><br>%{customdata[2]} tin nhắc tới (%{customdata[0]} số tin)<br>Thay đổi so với 4 quý trước: %{customdata[1]} điểm %<extra></extra>"))
-    fig.update_layout(height=470, margin={"l": 0, "r": 0, "t": 8, "b": 0}, paper_bgcolor="rgba(0,0,0,0)",
+    fig.update_layout(height=490, margin={"l": 0, "r": 0, "t": 34, "b": 0}, paper_bgcolor="rgba(0,0,0,0)",       # top margin holds the path bar
                       font={"color": t["text"], "size": 13})
-    theme.header("Bản đồ kỹ năng năm qua", "Diện tích = số tin nhắc tới kỹ năng trong 4 quý gần nhất. Màu = thay đổi tỷ lệ so với 4 quý trước (xanh: tăng, đỏ: giảm). **Bấm vào một nhóm** để phóng to; bấm thanh đường dẫn phía trên để quay lại.")
-    theme.show(fig, "ov_treemap")
+    theme.header("Bản đồ kỹ năng năm qua", "Diện tích = số tin nhắc tới kỹ năng trong 4 quý gần nhất. Màu = thay đổi tỷ lệ so với 4 quý trước (xanh: tăng, đỏ: giảm). **Bấm vào một nhóm hoặc kỹ năng** để phóng to; muốn quay lại, bấm tên ở thanh đường dẫn phía trên biểu đồ hoặc nút bên dưới.")
+    nonce = st.session_state.get("ov_tm_nonce", 0)
+    st.button("↺ Về toàn cảnh", key="ov_tm_reset", help="Thu biểu đồ về cấp nhóm kỹ năng ban đầu",
+              on_click=lambda: st.session_state.update(ov_tm_nonce=st.session_state.get("ov_tm_nonce", 0) + 1))
+    theme.show(fig, f"ov_treemap_{nonce}")
 
 
 def _composition(g):

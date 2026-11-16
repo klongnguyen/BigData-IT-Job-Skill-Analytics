@@ -9,12 +9,11 @@ Mục lục
 4. [Xu hướng](#4-xu-hướng)
 5. [Hồ sơ kỹ năng](#5-hồ-sơ-kỹ-năng)
 6. [Hệ sinh thái](#6-hệ-sinh-thái)
-7. [Thị trường](#7-thị-trường)
-8. [Skill Navigator](#8-skill-navigator)
-9. [Dự báo & độ tin cậy](#9-dự-báo--độ-tin-cậy)
-10. [Cách đọc kết quả cho đúng (giới hạn)](#10-cách-đọc-kết-quả-cho-đúng-giới-hạn)
-11. [Phụ lục A: từ điển bảng dữ liệu](#phụ-lục-a-từ-điển-bảng-dữ-liệu)
-12. [Phụ lục B: luật trích xuất từ văn bản tin](#phụ-lục-b-luật-trích-xuất-từ-văn-bản-tin)
+7. [Skill Navigator](#7-skill-navigator)
+8. [Dự báo & độ tin cậy](#8-dự-báo--độ-tin-cậy)
+9. [Cách đọc kết quả cho đúng (giới hạn)](#9-cách-đọc-kết-quả-cho-đúng-giới-hạn)
+10. [Phụ lục A: từ điển bảng dữ liệu](#phụ-lục-a-từ-điển-bảng-dữ-liệu)
+11. [Phụ lục B: luật trích xuất từ văn bản tin](#phụ-lục-b-luật-trích-xuất-từ-văn-bản-tin)
 
 ---
 
@@ -28,12 +27,12 @@ python -m streamlit run skill_radar/app.py --server.port 8502
 Mở trình duyệt tại http://127.0.0.1:8502. Dashboard chỉ cần file `skill_radar/data/gold.db`; không cần chạy lại pipeline.
 Giao diện luôn nền trắng.
 
-Liên kết trực tiếp tới một màn hình: thêm `?page=` + tên màn hình, ví dụ `http://127.0.0.1:8502/?page=Thị trường`.
+Liên kết trực tiếp tới một màn hình: thêm `?page=` + tên màn hình, ví dụ `http://127.0.0.1:8502/?page=Xu hướng`.
 
 ### Thanh bên trái
 | Thành phần | Chức năng |
 | --- | --- |
-| Danh sách 7 chuyên mục | Bấm để chuyển màn hình. |
+| Danh sách 6 chuyên mục | Bấm để chuyển màn hình. |
 | **Đang chọn: …** và nút **Bỏ chọn** | Chỉ hiện sau khi bạn bấm vào một kỹ năng trên biểu đồ (xem mục dưới). **Bỏ chọn** xóa kỹ năng đang chọn và mọi vùng chọn trên biểu đồ. |
 | Khung "Nguồn / Giai đoạn / Tin phân tích" | Nguồn dữ liệu, khoảng quý được phân tích, số tin. Lấy từ bảng `gold_fact`. |
 
@@ -52,7 +51,7 @@ Một số biểu đồ cho phép **bấm vào một cột / bong bóng / chấm
 - Kỹ năng vừa bấm trở thành **kỹ năng đang chọn**: được làm nổi trên biểu đồ xếp hạng (Tổng quan) và biểu đồ so sánh (Xu hướng); màn hình Hồ sơ kỹ năng mở sẵn kỹ năng đó.
 - **Bấm đúp** vào biểu đồ để bỏ chọn trong biểu đồ đó; nút **Bỏ chọn** ở thanh bên xóa kỹ năng đang chọn và mọi vùng chọn.
 
-Biểu đồ bấm được: *Cuộc đua xếp hạng kỹ năng* (Tổng quan), *Radar 1 năm tới* (Dự báo), *Vị thế và động lượng* (Xu hướng), *Kỹ năng nào "remote" nhất?* (Thị trường), *Bản đồ công nghệ* (Hệ sinh thái). Treemap ở Tổng quan có kiểu tương tác riêng: bấm một nhóm để phóng to, bấm thanh đường dẫn phía trên để quay lại.
+Biểu đồ bấm được: *Cuộc đua xếp hạng kỹ năng* (Tổng quan), *Radar 1 năm tới* (Dự báo), *Vị thế và động lượng* (Xu hướng), *Bản đồ công nghệ* (Hệ sinh thái). Treemap ở Tổng quan có kiểu tương tác riêng: bấm một nhóm để phóng to, bấm thanh đường dẫn phía trên để quay lại.
 
 ---
 
@@ -87,7 +86,7 @@ Luồng dữ liệu: `API (Hacker News, npm, Stack Overflow)` → `warehouse.db`
 | Tăng nhanh nhất | Kỹ năng tăng nhiều điểm % nhất so với 4 quý trước đó (chỉ xét kỹ năng có ≥ 1% số tin ở một trong hai giai đoạn, để bỏ nhiễu từ kỹ năng quá hiếm) | `radar_history` |
 | Giảm mạnh nhất | Như trên, theo chiều giảm | `radar_history` |
 
-Năm ô nằm trên một hàng. Tỷ lệ tin remote và tin nêu lương không còn ở đây; chúng thuộc trang **Thị trường**. Dự báo và độ tin cậy của dự báo xem ở trang **Dự báo & độ tin cậy**.
+Năm ô nằm trên một hàng. Tỷ lệ tin remote và tin nêu lương của **từng kỹ năng** xem ở mục "Chân dung tin tuyển" của trang Hồ sơ kỹ năng. Dự báo và độ tin cậy của dự báo xem ở trang **Dự báo & độ tin cậy**.
 
 ### Bản đồ kỹ năng năm qua (treemap)
 - **Diện tích:** số tin nhắc kỹ năng trong 4 quý gần nhất (`radar_history.posts`).
@@ -238,27 +237,7 @@ Mỗi ô là **log₂(lift)** của một cặp kỹ năng. **Xanh:** đi cùng 
 
 ---
 
-## 7. Thị trường
-
-**Mục đích:** bối cảnh của tin tuyển dụng ngoài danh sách kỹ năng. Có 3 thẻ. Các chỉ số ở đây đếm **từ khóa trong văn bản tin** (luật ở Phụ lục B).
-
-### Thẻ "Làm từ xa"
-- **Remote, onsite, hybrid theo quý:** `market_quarter.remote / onsite / hybrid` chia `n_posts`. Một tin có thể thuộc nhiều hình thức nên ba đường không cộng thành 100%. Nhãn ONSITE/REMOTE chỉ thành quy ước đăng bài của Hacker News từ khoảng 2015, nên số onsite trước đó không đáng tin; vì vậy biểu đồ bắt đầu từ 2015Q3.
-- **Kỹ năng nào "remote" nhất?** (bấm được): trong 2 năm gần nhất, tỷ lệ tin nhắc remote **trong số các tin của từng kỹ năng** (`skill_attr_year.remote / posts`); chỉ xét kỹ năng có ≥ 100 tin; hiện 10 kỹ năng cao nhất và 10 thấp nhất. Đường chấm dọc là tỷ lệ chung toàn thị trường.
-
-### Thẻ "Lương & quyền lợi"
-- **Minh bạch lương và quyền lợi:** % tin nêu mức lương, nhắc equity/cổ phần, nhắc visa/bảo lãnh theo quý (`market_quarter.salary / equity / visa`).
-- **Lương công bố (trung vị):** trung vị mức lương USD/năm (đơn vị nghìn USD) trong các tin có công bố lương USD; quý có dưới 15 tin như vậy bị bỏ (`market_quarter.salary_median_k`, `usd_salary`). Nhóm tin có nêu lương thay đổi theo thời gian, nên đường này **không phải mức lương thị trường**.
-- **Lương công bố theo kỹ năng:** nút chọn *8 quý gần nhất* hoặc *Toàn bộ*. Mỗi dòng là một kỹ năng có ≥ 20 tin nêu lương USD: thanh = khoảng tứ phân vị 25%–75%, chấm = trung vị (`skill_salary`: `q1`, `median`, `q3`, `n`). Đường chấm dọc là trung vị chung.
-
-### Thẻ "Cấp bậc & hợp đồng"
-- **Cấp bậc được nhắc tới:** % tin nhắc senior (senior/staff/principal/lead/head of…), junior (junior/entry-level/new grad…), thực tập, theo quý.
-- **Hình thức hợp đồng:** % tin nhắc full-time, part-time, contract/freelance (không tính "smart contract").
-- Từ `market_quarter.senior / junior / intern / fulltime / parttime / contract`.
-
----
-
-## 8. Skill Navigator
+## 7. Skill Navigator
 
 **Mục đích:** cho biết kỹ năng bạn đang có phù hợp bao nhiêu tin tuyển dụng và nên học gì tiếp.
 
@@ -285,7 +264,7 @@ Dữ liệu: `posting` (`pid`, `quarter`, `is_remote`, `has_salary`) và `postin
 
 ---
 
-## 9. Dự báo & độ tin cậy
+## 8. Dự báo & độ tin cậy
 
 **Mục đích:** xem dự báo và biết nó đáng tin tới mức nào. Hai khung màu ở trên cùng:
 - **Xanh "Đã kiểm chứng":** nhãn hướng thay đổi sau 1 năm (Đang lên / Ổn định / Suy giảm) tốt hơn đoán bừa. Macro-F1 0,47 so với 0,26 khi luôn đoán "Ổn định", chấm trên 2023Q1–2026Q3 chưa từng dùng để chọn mô hình.
@@ -327,13 +306,13 @@ Cuối trang, hộp **Dữ liệu và giới hạn** tóm tắt nguồn và các
 
 ---
 
-## 10. Cách đọc kết quả cho đúng (giới hạn)
+## 9. Cách đọc kết quả cho đúng (giới hạn)
 
 1. **Nguồn dữ liệu lệch:** Hacker News thiên về startup, công ty công nghệ, thị trường Mỹ và làm việc từ xa. Không đại diện toàn ngành CNTT và không đại diện Việt Nam (15 tin trên 79.180, dưới 0,1%).
 2. **"Nhắc tới" không bằng "đang tuyển":** một tin nhắc "Python, Ruby, WASM" như các ngôn ngữ sản phẩm hỗ trợ vẫn bị tính cả ba.
-3. **Chỉ nhãn hướng dự báo mới được kiểm chứng.** Con số tỷ lệ dự báo là kịch bản. Mọi chỉ số ở màn hình Thị trường, cụm công nghệ, Skill Navigator là **thống kê mô tả** từ luật từ khóa, **chưa đối chiếu với nhãn thủ công**.
+3. **Chỉ nhãn hướng dự báo mới được kiểm chứng.** Con số tỷ lệ dự báo là kịch bản. Mọi chỉ số remote/lương/cấp bậc (ở Hồ sơ kỹ năng), cụm công nghệ, Skill Navigator là **thống kê mô tả** từ luật từ khóa, **chưa đối chiếu với nhãn thủ công**.
 4. **Cụm công nghệ yếu:** silhouette khoảng 0,15, các cụm chồng lấn.
-5. **Lương công bố** chỉ từ tin có nêu lương (thiên về công ty Mỹ), nên không phải mức lương thị trường.
+5. **Lương công bố** (ở Hồ sơ kỹ năng) chỉ từ tin có nêu lương (thiên về công ty Mỹ), nên không phải mức lương thị trường.
 6. **Số tin mỗi quý giảm theo thời gian** (khoảng 2.200 tin/quý năm 2015–2022, thấp hơn nhiều gần đây), nên quý gần nhất nhiễu hơn, nhất là với kỹ năng hiếm.
 7. **Giải thích tăng/giảm chỉ là mô tả:** mục "Vì sao" cho biết thay đổi đến từ đâu (kỹ năng hay cơ cấu tin, rộng hay hẹp, đi cùng kỹ năng nào) chứ không chứng minh nguyên nhân (công nghệ mới, sa thải, xu hướng thị trường…); các nguyên nhân đó không có trong dữ liệu.
 8. **Kỹ năng mới nổi** (LLM, RAG, LangChain) chưa đủ điều kiện dự báo, chỉ có lịch sử.
@@ -351,11 +330,11 @@ Tất cả nằm trong `skill_radar/data/gold.db` (dashboard đọc ở chế đ
 | `radar_series` | một kỹ năng | `share_last_year`, `share_last_quarter`, `forecast_4q`, `delta_pp_4q`, `direction`, `evidence`, `eligible`, `peak_share`, `peak_period`, `posts_last_year` | Hồ sơ, Radar |
 | `radar_paths` | (kỹ năng, quý tương lai) | `h`, `forecast`, `lo`, `hi` | Hồ sơ (dải dự báo) |
 | `skill_year` | (năm, kỹ năng) | `posts`, `total` | Tổng quan, Xu hướng |
-| `market_quarter` | một quý | `n_posts`, `remote`, `onsite`, `hybrid`, `salary`, `usd_salary`, `equity`, `visa`, `senior`, `junior`, `intern`, `fulltime`, `parttime`, `contract`, `salary_median_k` | Tổng quan, Thị trường |
-| `skill_attr_year` | (năm, kỹ năng) | `posts`, `remote`, `hybrid`, `salary`, `usd_salary`, `equity`, `senior`, `junior`, `visa` | Hồ sơ, Thị trường |
-| `skill_salary` | (phạm vi, kỹ năng) | `scope` (`all`/`recent`), `n`, `q1`, `median`, `q3`; dòng `__all__` là chung | Hồ sơ, Thị trường |
-| `location_year` | (năm, khu vực, thành phố) | `posts` | Thị trường |
-| `employer` | một công ty (≥ 8 tin) | `company`, `posts`, `active_months`, `first_month`, `last_month` | Thị trường |
+| `market_quarter` | một quý | `n_posts`, `remote`, `onsite`, `hybrid`, `salary`, `usd_salary`, `equity`, `visa`, `senior`, `junior`, `intern`, `fulltime`, `parttime`, `contract`, `salary_median_k` | Hồ sơ kỹ năng |
+| `skill_attr_year` | (năm, kỹ năng) | `posts`, `remote`, `hybrid`, `salary`, `usd_salary`, `equity`, `senior`, `junior`, `visa` | Hồ sơ kỹ năng |
+| `skill_salary` | (phạm vi, kỹ năng) | `scope` (`all`/`recent`), `n`, `q1`, `median`, `q3`; dòng `__all__` là chung | Hồ sơ kỹ năng |
+| `location_year` | (năm, khu vực, thành phố) | `posts` | không còn trang nào hiển thị (vẫn có trong `gold.db`) |
+| `employer` | một công ty (≥ 8 tin) | `company`, `posts`, `active_months`, `first_month`, `last_month` | không còn trang nào hiển thị (vẫn có trong `gold.db`) |
 | `skill_pair_window` | cặp kỹ năng trong 12 quý gần nhất | `a`, `b`, `n`, `n_a`, `n_b`, `lift`, `window_postings` | Hệ sinh thái, Hồ sơ |
 | `skill_pair_year` | (năm, cặp kỹ năng) | `a`, `b`, `n` | dự phòng cho phân tích theo năm |
 | `skill_cluster` | một kỹ năng | `cluster`, `cluster_name`, `x`, `y`, `mentions` | Hệ sinh thái |
@@ -367,7 +346,7 @@ Tất cả nằm trong `skill_radar/data/gold.db` (dashboard đọc ở chế đ
 | `run_info` | một thông số (khóa–giá trị) | ngày chạy, giao thức, mô hình được chọn, kiểm chứng nhãn hướng, độ phủ khoảng 80% | Dự báo & độ tin cậy |
 | `model_score`, `model_horizon_error`, `label_score`, `selection_score`, `interval_quantile` | kết quả chấm điểm mô hình | `mae_pp`, `diff_pp`, `ci_lo`, `ci_hi`, `macro_f1`… | Dự báo & độ tin cậy |
 | `leadlag_signal`, `leadlag`, `leadlag_skill` | kết quả phân tích "đi trước" | `signal`, `lag`, `mean_corr`, `ci_lo`, `ci_hi`, `corr` | Tín hiệu cộng đồng |
-| `gold_fact` | một sự kiện chạy (khóa–giá trị) | số tin, số tác giả, tỷ lệ tác giả đăng lặp, kết quả phân cụm | Thanh bên, Thị trường, Hệ sinh thái |
+| `gold_fact` | một sự kiện chạy (khóa–giá trị) | số tin, số tác giả, tỷ lệ tác giả đăng lặp, kết quả phân cụm | Thanh bên, Hệ sinh thái |
 
 ---
 
