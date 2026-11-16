@@ -42,7 +42,7 @@ Liên kết trực tiếp tới một màn hình: thêm `?page=` + tên màn hì
 | --- | --- |
 | **Rê chuột** | Hiện chú thích (tooltip) với giá trị chính xác. |
 | **Bấm vào tên trong chú giải** | Ẩn/hiện chuỗi đó. **Bấm đúp** vào tên: chỉ giữ lại chuỗi đó. |
-| **Kéo chuột** trên biểu đồ | Phóng to vùng vừa kéo. **Bấm đúp** vào biểu đồ: quay về khung nhìn ban đầu. (Thanh công cụ của biểu đồ được ẩn cho gọn.) |
+| **Kéo chuột** trên biểu đồ | Không có tác dụng (đã khóa phóng to/kéo trục để biểu đồ không bị lệch mà không quay lại được). Muốn xem một khoảng thời gian, dùng nút 3 năm / 5 năm / Tất cả. |
 | **Nút "3 năm / 5 năm / Tất cả"** (trên các biểu đồ theo quý) | Chỉ xem 3 năm hoặc 5 năm gần nhất, hoặc toàn bộ. |
 
 ### Bấm để chọn kỹ năng (giống lọc chéo của Power BI)
@@ -52,7 +52,7 @@ Một số biểu đồ cho phép **bấm vào một cột / bong bóng / chấm
 - Kỹ năng vừa bấm trở thành **kỹ năng đang chọn**: được làm nổi trên biểu đồ xếp hạng (Tổng quan) và biểu đồ so sánh (Xu hướng); màn hình Hồ sơ kỹ năng mở sẵn kỹ năng đó.
 - **Bấm đúp** vào biểu đồ để bỏ chọn trong biểu đồ đó; nút **Bỏ chọn** ở thanh bên xóa kỹ năng đang chọn và mọi vùng chọn.
 
-Biểu đồ bấm được: *Radar 1 năm tới* (Dự báo), *Vị thế và động lượng* (Xu hướng), *Kỹ năng nào "remote" nhất?* (Thị trường), *Bản đồ công nghệ* (Hệ sinh thái). Treemap ở Tổng quan có kiểu tương tác riêng: bấm một nhóm để phóng to, bấm thanh đường dẫn phía trên để quay lại.
+Biểu đồ bấm được: *Cuộc đua xếp hạng kỹ năng* (Tổng quan), *Radar 1 năm tới* (Dự báo), *Vị thế và động lượng* (Xu hướng), *Kỹ năng nào "remote" nhất?* (Thị trường), *Bản đồ công nghệ* (Hệ sinh thái). Treemap ở Tổng quan có kiểu tương tác riêng: bấm một nhóm để phóng to, bấm thanh đường dẫn phía trên để quay lại.
 
 ---
 
@@ -240,7 +240,7 @@ Mỗi ô là **log₂(lift)** của một cặp kỹ năng. **Xanh:** đi cùng 
 
 ## 7. Thị trường
 
-**Mục đích:** bối cảnh của tin tuyển dụng ngoài danh sách kỹ năng. Có 5 thẻ. Các chỉ số ở đây đếm **từ khóa trong văn bản tin** (luật ở Phụ lục B).
+**Mục đích:** bối cảnh của tin tuyển dụng ngoài danh sách kỹ năng. Có 3 thẻ. Các chỉ số ở đây đếm **từ khóa trong văn bản tin** (luật ở Phụ lục B).
 
 ### Thẻ "Làm từ xa"
 - **Remote, onsite, hybrid theo quý:** `market_quarter.remote / onsite / hybrid` chia `n_posts`. Một tin có thể thuộc nhiều hình thức nên ba đường không cộng thành 100%. Nhãn ONSITE/REMOTE chỉ thành quy ước đăng bài của Hacker News từ khoảng 2015, nên số onsite trước đó không đáng tin; vì vậy biểu đồ bắt đầu từ 2015Q3.
@@ -329,7 +329,7 @@ Cuối trang, hộp **Dữ liệu và giới hạn** tóm tắt nguồn và các
 
 ## 10. Cách đọc kết quả cho đúng (giới hạn)
 
-1. **Nguồn dữ liệu lệch:** Hacker News thiên về startup, công ty công nghệ, thị trường Mỹ và làm việc từ xa. Không đại diện toàn ngành CNTT và không đại diện Việt Nam (~0,1% số tin).
+1. **Nguồn dữ liệu lệch:** Hacker News thiên về startup, công ty công nghệ, thị trường Mỹ và làm việc từ xa. Không đại diện toàn ngành CNTT và không đại diện Việt Nam (15 tin trên 79.180, dưới 0,1%).
 2. **"Nhắc tới" không bằng "đang tuyển":** một tin nhắc "Python, Ruby, WASM" như các ngôn ngữ sản phẩm hỗ trợ vẫn bị tính cả ba.
 3. **Chỉ nhãn hướng dự báo mới được kiểm chứng.** Con số tỷ lệ dự báo là kịch bản. Mọi chỉ số ở màn hình Thị trường, cụm công nghệ, Skill Navigator là **thống kê mô tả** từ luật từ khóa, **chưa đối chiếu với nhãn thủ công**.
 4. **Cụm công nghệ yếu:** silhouette khoảng 0,15, các cụm chồng lấn.
