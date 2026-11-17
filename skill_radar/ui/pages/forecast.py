@@ -214,15 +214,53 @@ def _signals(g):
     st.caption(f"Hiện chưa có bằng chứng cộng đồng đi trước tuyển dụng. Stack Overflow mới có {info.get('signal_skills_se_share', 0)} kỹ năng và GitHub chưa thu thập, nên chưa thể kết luận chắc chắn.")
 
 
+def _categories(g):
+    from plotly.subplots import make_subplots
+    info, hist, path, summary = g["category_info"], g["category_history"], g["category_path"], g["category_forecast"]
+    cats = [c for c in theme.CATEGORY_ORDER if c in set(summary.category)]
+    t = theme.tokens()
+    cols = 4
+    rows = -(-len(cats) // cols)
+    fig = make_subplots(rows=rows, cols=cols, subplot_titles=[theme.CATEGORY_VI[c] for c in cats], horizontal_spacing=0.06, vertical_spacing=0.16)
+    for i, cat in enumerate(cats):
+        r, c = i // cols + 1, i % cols + 1
+        h = hist[hist.category == cat].sort_values("period").tail(16)
+        p = path[path.category == cat].sort_values("h")
+        color = theme.category_color(cat)
+        fx = qdate(p.period)
+        fig.add_trace(go.Scatter(x=fx, y=p.hi * 100, mode="lines", line={"width": 0}, hoverinfo="skip", showlegend=False), row=r, col=c)
+        fig.add_trace(go.Scatter(x=fx, y=p.lo * 100, mode="lines", line={"width": 0}, fill="tonexty", fillcolor="rgba(128,128,128,0.22)", hoverinfo="skip", showlegend=False), row=r, col=c)
+        fig.add_trace(go.Scatter(x=qdate(h.period), y=h.share * 100, mode="lines", line={"color": color, "width": 2.5}, showlegend=False,
+                                 hovertemplate="%{x|%Y}: %{y:.1f}%<extra></extra>"), row=r, col=c)
+        fig.add_trace(go.Scatter(x=[qdate([h.period.iloc[-1]])[0], *fx], y=[h.share.iloc[-1] * 100, *p.forecast * 100], mode="lines", showlegend=False,
+                                 line={"color": t["text"], "width": 2, "dash": "dash"}, hovertemplate="Dự báo %{y:.1f}%<extra></extra>"), row=r, col=c)
+    theme.style(fig, height=250 * rows + 40, legend=False, hover="x")
+    fig.update_layout(margin={"l": 8, "r": 16, "t": 40, "b": 8})
+    fig.update_yaxes(ticksuffix="%", showgrid=True)
+    fig.update_xaxes(showgrid=False, tickformat="%Y", nticks=4)
+    fig.update_annotations(font={"size": 13, "color": t["text"]})
+    theme.header("Dự báo theo nhóm kỹ năng", "Đường liền là 4 năm gần nhất, nét đứt là dự báo 4 quý tới, vùng xám là khoảng 80%. Nhóm gộp nhiều kỹ năng nên ổn định hơn từng kỹ năng riêng lẻ.")
+    theme.show(fig, "fc_cat_paths")
+
+    table = summary.assign(Nhóm=summary.category.map(theme.CATEGORY_VI), Hướng=summary.direction.map(theme.DIRECTION_VI))
+    table = table.sort_values("delta_pp_4q", ascending=False)
+    table = table.assign(**{"Tỷ lệ năm qua": (table.share_last_year * 100).round(1), "Dự báo 4 quý": (table.forecast_4q * 100).round(1),
+                            "Thay đổi (điểm %)": table.delta_pp_4q.round(2)})[["Nhóm", "Tỷ lệ năm qua", "Dự báo 4 quý", "Thay đổi (điểm %)", "Hướng"]]
+    st.dataframe(table, hide_index=True, width="stretch")
+    st.caption(f"Tỷ lệ là % tin có nhắc ít nhất một kỹ năng của nhóm. Hướng dùng ngưỡng ±{theme.vn(info['band_pp'], 1)} điểm %. Con số dự báo chỉ là kịch bản.")
+
+
 def render(g):
-    tabs = st.tabs(["Radar 1 năm tới", "Độ chính xác của hướng", "Độ chính xác của số liệu", "Tín hiệu cộng đồng"])
+    tabs = st.tabs(["Radar 1 năm tới", "Theo nhóm kỹ năng", "Độ chính xác của hướng", "Độ chính xác của số liệu", "Tín hiệu cộng đồng"])
     with tabs[0]:
         _radar(g)
     with tabs[1]:
-        _direction(g)
+        _categories(g)
     with tabs[2]:
-        _values(g)
+        _direction(g)
     with tabs[3]:
+        _values(g)
+    with tabs[4]:
         _signals(g)
     with st.expander("Dữ liệu và giới hạn"):
         f, info = g["facts"], g["results"]["info"]

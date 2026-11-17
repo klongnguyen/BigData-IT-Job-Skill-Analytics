@@ -7,7 +7,7 @@ from skill_radar import db, store
 
 TABLES = ["skills", "radar_series", "radar_paths", "radar_history", "market_quarter", "skill_year",
           "skill_pair_year", "skill_pair_window", "skill_attr_year", "skill_salary", "skill_cluster", "event",
-          "signal_quarter", "backtest_cell"]
+          "signal_quarter", "backtest_cell", "category_history", "category_forecast", "category_path", "category_score", "category_label"]
 
 
 def is_ready():
@@ -20,6 +20,7 @@ def _load(stamp):
         data = {name: db.read_sql(conn, f"SELECT * FROM {name}") for name in TABLES}
         data["facts"] = store.typed_info(db.kv_read(conn, "gold_fact"))
         data["results"] = store.load_results(conn)
+        data["category_info"] = store.typed_info(db.kv_read(conn, "category_info"))
     skills = data["skills"]
     data["label"] = skills.set_index("skill").label.to_dict()
     data["category"] = skills.set_index("skill").category.to_dict()

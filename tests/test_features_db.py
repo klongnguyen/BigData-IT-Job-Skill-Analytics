@@ -292,3 +292,50 @@ def test_every_dashboard_page_imports(module):
     """A syntax or import error in a page would stop the whole dashboard from starting."""
     import importlib
     importlib.import_module(f"skill_radar.ui.pages.{module}")
+
+
+# ------------------------------------------------------------- category forecast
+from skill_radar import category_forecast as CF  # noqa: E402
+
+
+def _toy_gold(tmp_path):
+    """45 quarters, 60 postings each. Category 'a' appears in 50% of postings, 'b' in 20% (the share of b falls every quarter)."""
+    periods = pd.period_range("2015Q3", periods=45, freq="Q").astype(str)
+    postings, pairs, pid = [], [], 0
+    for q, period in enumerate(periods):
+        for i in range(60):
+            postings.append({"pid": pid, "quarter": period})
+            if i < 30:
+                pairs.append({"pid": pid, "skill": "x1" if i % 2 else "x2"})      # two skills of category a: counted once per posting
+            if i >= 60 - max(2, 12 - q // 4):
+                pairs.append({"pid": pid, "skill": "y1"})
+            pid += 1
+    conn = db.connect(tmp_path / "toy_gold.db")
+    db.write_table(conn, "posting", pd.DataFrame(postings))
+    db.write_table(conn, "posting_skill", pd.DataFrame(pairs))
+    db.write_table(conn, "skills", pd.DataFrame({"skill": ["x1", "x2", "y1", "z1"], "category": ["a", "a", "b", "other"]}))
+    db.write_table(conn, "radar_history", pd.DataFrame({"skill": "x1", "period": periods, "total": 60}))
+    return conn
+
+
+def test_category_series_counts_a_posting_once_per_category(tmp_path):
+    conn = _toy_gold(tmp_path)
+    share, posts, total = CF.category_series(conn)
+    assert list(share.columns) == ["a", "b"]                   # 'other' is dropped
+    assert share["a"].eq(0.5).all()                            # 30 of 60, although x1 and x2 are both in category a
+    assert share["b"].is_monotonic_decreasing
+    conn.close()
+
+
+def test_category_forecast_run_shapes_and_no_future_leak(tmp_path):
+    conn = _toy_gold(tmp_path)
+    out = CF.run(conn)
+    assert set(out["summary"].category) == {"a", "b"}
+    assert len(out["path"]) == 2 * len(CF.HORIZONS)
+    assert (out["path"].lo <= out["path"].forecast).all() and (out["path"].forecast <= out["path"].hi).all()
+    assert out["info"]["rate_model"] in {"naive_last", "mean4", "ses", "damped"}
+    assert out["info"]["selection_end"] == "2022Q4"
+    assert out["summary"].set_index("category").loc["a", "direction"] == "Stable"     # flat series must not be called Rising/Fading
+    again = CF.run(conn)
+    assert again["info"] == out["info"]                         # reproducible
+    conn.close()

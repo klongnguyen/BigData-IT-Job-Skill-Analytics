@@ -88,6 +88,12 @@ Luồng dữ liệu: `API (Hacker News, npm, Stack Overflow)` → `warehouse.db`
 
 Năm ô nằm trên một hàng. Tỷ lệ tin remote và tin nêu lương của **từng kỹ năng** xem ở mục "Chân dung tin tuyển" của trang Hồ sơ kỹ năng. Dự báo và độ tin cậy của dự báo xem ở trang **Dự báo & độ tin cậy**.
 
+### Dự báo năm tới
+Hai biểu đồ thanh ngay dưới các ô chỉ số, để thấy hướng đi của thị trường mà không cần sang trang khác.
+- **Kỹ năng:** 5 kỹ năng dự báo tăng nhiều nhất và 5 kỹ năng giảm nhiều nhất sau 4 quý so với trung bình năm vừa qua (điểm %). Chỉ xét kỹ năng đủ điều kiện dự báo. Dữ liệu: `radar_series` (`delta_pp_4q`, `direction`).
+- **Nhóm kỹ năng:** thay đổi dự báo của 7 nhóm (Ngôn ngữ, Front-end, Back-end, Dữ liệu, AI/ML, Cloud/DevOps, Mobile). Dữ liệu: `category_forecast`.
+- Màu: xanh là tăng, đỏ là giảm, xám là ổn định. Đây là hướng đi, chưa phải con số chính xác. Chi tiết và độ chính xác xem ở trang **Dự báo & độ tin cậy**.
+
 ### Bản đồ kỹ năng năm qua (treemap)
 - **Diện tích:** số tin nhắc kỹ năng trong 4 quý gần nhất (`radar_history.posts`).
 - **Màu:** thay đổi tỷ lệ so với 4 quý liền trước, tính bằng điểm %. Xanh: tăng, đỏ: giảm; thang màu cắt ở mức 90% của biến động tuyệt đối để vài kỹ năng cực đoan không làm nhạt phần còn lại.
@@ -266,9 +272,12 @@ Dữ liệu: `posting` (`pid`, `quarter`, `is_remote`, `has_salary`) và `postin
 
 ## 8. Dự báo & độ tin cậy
 
-**Mục đích:** xem dự báo và biết nó đáng tin tới mức nào. Hai khung màu ở trên cùng:
-- **Xanh "Đã kiểm chứng":** nhãn hướng thay đổi sau 1 năm (Đang lên / Ổn định / Suy giảm) tốt hơn đoán bừa. Macro-F1 0,47 so với 0,26 khi luôn đoán "Ổn định", chấm trên 2023Q1–2026Q3 chưa từng dùng để chọn mô hình.
-- **Vàng "Chưa kiểm chứng":** con số tỷ lệ dự báo chưa vượt baseline "giữ nguyên quý cuối", nên coi là **kịch bản**.
+**Mục đích:** xem dự báo và biết nó đáng tin tới mức nào. Có 5 tab: Radar 1 năm tới, Theo nhóm kỹ năng, Độ chính xác của hướng, Độ chính xác của số liệu, Tín hiệu cộng đồng.
+
+Tóm tắt độ tin cậy:
+- **Hướng** thay đổi sau 1 năm (Đang lên, Ổn định, Suy giảm) tốt hơn đoán bừa. Macro-F1 0,47 so với 0,26 khi luôn đoán Ổn định, chấm trên 2023Q1 đến 2026Q3 chưa từng dùng để chọn mô hình.
+- **Con số tỷ lệ** dự báo chưa vượt cách giữ nguyên quý cuối, nên coi là **kịch bản**.
+
 
 ### Thẻ "Radar 1 năm tới" (bấm được)
 | Điều khiển | Chức năng |
@@ -282,13 +291,22 @@ Dữ liệu: `posting` (`pid`, `quarter`, `is_remote`, `has_salary`) và `postin
 - Bảng: tỷ lệ năm qua, dự báo 4 quý, thay đổi, hướng, đỉnh lịch sử, quý đỉnh.
 - Lưu ý: nhãn lấy từ mô hình hướng (GBM), con số dự báo lấy từ mô hình giá trị (damped), hai mô hình khác nhau nên đôi khi nhãn và con số lệch chiều.
 
-### Thẻ "Kiểm chứng nhãn hướng"
+### Thẻ "Theo nhóm kỹ năng"
+Dự báo cho cả nhóm (Ngôn ngữ, Cloud/DevOps, AI/ML…) thay vì từng kỹ năng. Một nhóm gộp nhiều kỹ năng nên chuỗi lớn và mượt hơn.
+- **Chuỗi:** tỷ lệ tin có nhắc **ít nhất một** kỹ năng của nhóm (một tin chỉ tính một lần). Dữ liệu: `category_history`.
+- **Bảy biểu đồ nhỏ:** đường liền là 4 năm gần nhất, nét đứt là dự báo 4 quý tới, vùng xám là khoảng 80% (`category_path`).
+- **Bảng:** tỷ lệ năm qua, dự báo 4 quý, thay đổi và hướng (`category_forecast`). Ngưỡng hướng là ±2,0 điểm % vì tỷ lệ của nhóm lớn hơn nhiều so với từng kỹ năng.
+- Cách làm giống dự báo theo kỹ năng: chọn tham số và mô hình bằng dữ liệu đến 2022Q4, rồi chấm một lần trên giai đoạn kiểm tra. Chỉ dùng mô hình cổ điển (giữ nguyên quý cuối, trung bình 4 quý, làm mượt mũ, xu hướng giảm dần) vì chỉ có 7 chuỗi, không đủ để huấn luyện mô hình học máy chung.
+- **Kết quả:** nhãn hướng theo nhóm tốt hơn đoán bừa (macro-F1 0,43 so với 0,16, khoảng tin cậy 95% của chênh lệch là 0,13 đến 0,39). Giá trị dự báo vẫn chưa hơn "giữ nguyên quý cuối" (sai số 2,28 so với 2,65 của mô hình đang dùng), nên coi là kịch bản.
+- Lưu ý: chỉ có 7 nhóm và 12 thời điểm dự báo, các quý liền nhau lại giống nhau, nên kết quả ít chắc chắn hơn kết quả theo kỹ năng.
+
+### Thẻ "Độ chính xác của hướng"
 - **Ma trận nhầm lẫn:** hàng = hướng thực tế, cột = hướng mô hình đoán, dự báo trước 4 quý trên giai đoạn kiểm tra. Mỗi hàng chia 100% (số trong ngoặc là số trường hợp). Ô đậm dọc đường chéo = đoán đúng. Dữ liệu: `backtest_cell` (`pred`, `actual`, `base4`, lọc `h = 4`), nhãn tính bằng ngưỡng ±`band_pp` (1,0 điểm %).
 - **Mô hình nào đoán đúng hướng?** macro-F1 của từng mô hình (cao hơn là tốt hơn); cột xanh là mô hình dùng cho dashboard; đường đỏ là điểm chuẩn "luôn đoán Ổn định". Dữ liệu: `label_score`.
 - Dòng dưới: chênh macro-F1 so với đoán "luôn Ổn định" và khoảng tin cậy 95% (bootstrap theo kỹ năng). Khoảng không chứa 0 nghĩa là mô hình thật sự tốt hơn đoán bừa. Dữ liệu: `run_info` (`dv_gain`, `dv_gain_lo`, `dv_gain_hi`).
 - Ghi chú trung thực: mô hình "giữ nguyên quý cuối" còn nhỉnh hơn một chút ở ngưỡng 0,5 và 1,0; mô hình hướng được chọn từ trước trên dữ liệu chọn mô hình nên vẫn báo cáo nguyên trạng.
 
-### Thẻ "Kiểm chứng giá trị dự báo"
+### Thẻ "Độ chính xác của số liệu"
 - **Có mô hình nào đánh bại "giữ nguyên quý cuối"?** Mỗi chấm là chênh sai số tuyệt đối trung bình (điểm %) của một mô hình so với baseline, kèm khoảng tin cậy 95%. Âm = tốt hơn. **Xanh:** tốt hơn rõ ràng (khoảng nằm hẳn dưới 0); **đỏ:** tệ hơn rõ ràng; **xám:** chưa phân biệt được. Dữ liệu: `model_score` (`diff_pp`, `ci_lo`, `ci_hi`).
 - **Sai số tăng theo thời gian dự báo:** sai số tuyệt đối trung bình theo số quý dự báo trước (1–4) của 5 mô hình chính. Dữ liệu: `model_horizon_error`.
 - **Dự đoán so với thực tế:** chọn **Mô hình** và **Dự báo trước**. Mỗi chấm là một cặp (kỹ năng, quý) chưa từng thấy; càng gần đường chéo càng đúng. Hiện sai số trung bình và số điểm. Dữ liệu: `backtest_cell`.
@@ -310,7 +328,7 @@ Cuối trang, hộp **Dữ liệu và giới hạn** tóm tắt nguồn và các
 
 1. **Nguồn dữ liệu lệch:** Hacker News thiên về startup, công ty công nghệ, thị trường Mỹ và làm việc từ xa. Không đại diện toàn ngành CNTT và không đại diện Việt Nam (15 tin trên 79.180, dưới 0,1%).
 2. **"Nhắc tới" không bằng "đang tuyển":** một tin nhắc "Python, Ruby, WASM" như các ngôn ngữ sản phẩm hỗ trợ vẫn bị tính cả ba.
-3. **Chỉ nhãn hướng dự báo mới được kiểm chứng.** Con số tỷ lệ dự báo là kịch bản. Mọi chỉ số remote/lương/cấp bậc (ở Hồ sơ kỹ năng), cụm công nghệ, Skill Navigator là **thống kê mô tả** từ luật từ khóa, **chưa đối chiếu với nhãn thủ công**.
+3. **Chỉ nhãn hướng dự báo mới được kiểm chứng.** Con số tỷ lệ dự báo là kịch bản. Mọi chỉ số remote/lương/cấp bậc (ở Hồ sơ kỹ năng), cụm công nghệ, Skill Navigator là **thống kê mô tả** từ luật từ khóa, **chưa đối chiếu với nhãn thủ công**. Riêng nhận diện kỹ năng đã được kiểm tra nhanh trên 60 tin (chính xác 99,3%, phủ 97,3%, do Claude chấm), xem mục 4.5 của `PROJECT_REPORT.md`.
 4. **Cụm công nghệ yếu:** silhouette khoảng 0,15, các cụm chồng lấn.
 5. **Lương công bố** (ở Hồ sơ kỹ năng) chỉ từ tin có nêu lương (thiên về công ty Mỹ), nên không phải mức lương thị trường.
 6. **Số tin mỗi quý giảm theo thời gian** (khoảng 2.200 tin/quý năm 2015–2022, thấp hơn nhiều gần đây), nên quý gần nhất nhiễu hơn, nhất là với kỹ năng hiếm.
@@ -343,6 +361,8 @@ Tất cả nằm trong `skill_radar/data/gold.db` (dashboard đọc ở chế đ
 | `event` | một sự kiện | `period`, `label` | các biểu đồ theo quý |
 | `signal_quarter` | (quý, kỹ năng) | `npm_dl`, `se_share`, `gh_share` | Tín hiệu cộng đồng |
 | `backtest_cell` | một dự đoán kiểm tra | `model`, `skill`, `origin_period`, `target_period`, `h`, `pred`, `actual`, `base4` | Dự báo & độ tin cậy |
+| `category_history`, `category_forecast`, `category_path` | chuỗi, dự báo 4 quý và dải 80% của từng nhóm kỹ năng | `category`, `period`, `share`, `forecast`, `lo`, `hi`, `delta_pp_4q`, `direction` | Tổng quan, Dự báo (Theo nhóm kỹ năng) |
+| `category_score`, `category_label`, `category_info` | điểm chấm mô hình theo nhóm và thông số chạy | `mae_pp`, `macro_f1`, `rate_model`, `direction_model` | Dự báo (Theo nhóm kỹ năng) |
 | `run_info` | một thông số (khóa–giá trị) | ngày chạy, giao thức, mô hình được chọn, kiểm chứng nhãn hướng, độ phủ khoảng 80% | Dự báo & độ tin cậy |
 | `model_score`, `model_horizon_error`, `label_score`, `selection_score`, `interval_quantile` | kết quả chấm điểm mô hình | `mae_pp`, `diff_pp`, `ci_lo`, `ci_hi`, `macro_f1`… | Dự báo & độ tin cậy |
 | `leadlag_signal`, `leadlag`, `leadlag_skill` | kết quả phân tích "đi trước" | `signal`, `lag`, `mean_corr`, `ci_lo`, `ci_hi`, `corr` | Tín hiệu cộng đồng |

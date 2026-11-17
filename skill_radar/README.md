@@ -38,6 +38,17 @@ python -m pytest -q tests
 ## Dashboard (6 trang)
 Tổng quan · Xu hướng · Hồ sơ kỹ năng · Hệ sinh thái · Skill Navigator · Dự báo & độ tin cậy. Liên kết trực tiếp: `?page=Xu hướng`. Giao diện nền trắng; biểu đồ tương tác (rê chuột, phóng to, bấm để chọn kỹ năng và xem chi tiết).
 
+## Dự báo theo nhóm kỹ năng
+`category_forecast.py` dự báo 7 nhóm (Ngôn ngữ, Front-end, Back-end, Dữ liệu, AI/ML, Cloud/DevOps, Mobile) bằng bốn mô hình cổ điển, cùng quy trình chọn trước/chấm một lần. `pipeline` gọi nó tự động; chạy riêng: `python -m skill_radar.category_forecast` (chỉ đọc và ghi `gold.db`).
+
+## Triển khai online (Streamlit Community Cloud)
+Dashboard chỉ cần `gold.db` (đã nằm trong git) và `requirements.txt`, không cần `warehouse.db` hay mạng.
+1. Đẩy mã lên GitHub (nhánh `main`).
+2. Vào https://share.streamlit.io, đăng nhập bằng GitHub, chọn **Create app**.
+3. Chọn repo và nhánh `main`, **Main file path** là `skill_radar/app.py`. Trong **Advanced settings** chọn Python 3.11.
+4. Bấm **Deploy**, lần đầu mất vài phút để cài thư viện. Có link dạng `https://<tên>.streamlit.app`.
+Nếu repo ở chế độ riêng tư, cần cấp quyền cho Streamlit đọc repo trong lúc đăng nhập. Sau khi cập nhật `gold.db`, chỉ cần push, ứng dụng tự tải lại.
+
 ## Quy trình đánh giá (đặt trước)
 Chuỗi quý 2015Q3–2026Q3 (45 quý). Chọn tham số và mô hình chỉ bằng dữ liệu tới 2022Q4. Holdout 2023Q1–2026Q3 chấm một lần.
 Kỹ năng đủ điều kiện: tỷ lệ trung bình ≥ 1% trong cửa sổ chọn. Nhãn Rising/Stable/Fading: ngưỡng ±1,0 điểm phần trăm sau 4 quý.

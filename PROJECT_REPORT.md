@@ -19,6 +19,7 @@
 **Kết luận ngắn (chi tiết ở mục 7):**
 - Dự báo **hướng** thay đổi sau 4 quý (Đang lên / Ổn định / Suy giảm) **vượt** baseline "luôn Ổn định" (macro-F1 0,4672 so với 0,2636, khoảng tin cậy 95% của mức chênh [0,147; 0,255]) và đã được kiểm chứng trên holdout 2023–2026.
 - Dự báo **giá trị tỷ lệ** **không vượt** baseline đơn giản "giữ nguyên quý cuối", nên chỉ coi là kịch bản.
+- Dự báo **theo nhóm kỹ năng** (7 nhóm) cho kết quả cùng chiều: hướng vượt "luôn Ổn định" (0,43 so với 0,16), giá trị không vượt "giữ nguyên quý cuối" (mục 7.7).
 - **Tín hiệu cộng đồng không làm dự báo tốt hơn**: thêm tín hiệu không giảm sai số có ý nghĩa thống kê, và quan hệ dẫn trước – trễ không có bằng chứng (npm) hoặc chưa đủ dữ liệu (Stack Overflow, GitHub).
 - Phân tích mô tả cho thấy thị trường thay đổi mạnh: tin nhắc làm từ xa tăng từ 19% (2015) lên đỉnh 85% (2022Q1) rồi còn 54% (4 quý gần nhất); tin nêu mức lương tăng từ 1,4% (2015) lên 24% (4 quý gần nhất).
 
@@ -48,6 +49,7 @@ BigData_Job_Analy/
     ├── panel.py               # ghép nhu cầu + tín hiệu thành bảng quý
     ├── models.py, backtest.py, leadlag.py   # mô hình, backtest, dẫn trước – trễ
     ├── pipeline.py            # chạy toàn bộ và ghi gold.db
+    ├── category_forecast.py   # dự báo theo nhóm kỹ năng (7 nhóm), chạy trong pipeline
     ├── analytics.py           # các bảng phân tích cho dashboard
     ├── ecosystem.py, navigator.py, insights.py, drivers.py   # phân cụm, lộ trình học, tóm tắt, giải thích tăng/giảm
     ├── app.py                 # dashboard Streamlit (điểm vào)
@@ -156,6 +158,20 @@ Các đặc trưng này là **đếm từ khóa**, chưa được đối chiếu
 - Ghép tín hiệu bằng `left join`, thiếu vẫn là `NaN`, **không điền bù**: `se_share` = câu hỏi của tag / tổng câu hỏi trong quý; `npm_dl` = tổng lượt tải của quý (chỉ quý đủ 3 tháng); `gh_share` chưa có.
 - **Chuỗi mô hình:** từ **2015Q3** (các tháng 2015 trước đó bị thiếu ở nguồn) tới **2026Q3** = **45 quý liên tục**, không khoảng trống (`to_panel` báo lỗi nếu có). Tổng **79.180 tin**; trong đó 60.681 tin nhắc ít nhất một kỹ năng, từ 26.435 tác giả (ẩn danh).
 - Số tin mỗi quý giảm từ 2.315 (2015Q3) xuống 722 (2026Q3), nên tỷ lệ của kỹ năng hiếm dao động mạnh.
+
+### 4.5 Kiểm tra nhanh độ chính xác nhận diện kỹ năng (mẫu 60 tin)
+**Cách làm:** lấy ngẫu nhiên 60 tin trong khoảng mô hình hóa (`DataFrame.sample(60, random_state=7)` trên bảng `postings`, quý ≥ 2015Q3). Với mỗi kỹ năng mà luật từ khóa tìm thấy, xem đoạn văn bản xung quanh để xác nhận đúng nghĩa. Để tìm sót, tìm lỏng trong toàn văn từng tin (tên kỹ năng và các biến thể như Golang, Postgres, k8s, Objective-C) rồi xem lại các kết quả không được luật bắt.
+
+| Chỉ số | Kết quả | Khoảng tin cậy 95% (Wilson) |
+| --- | --- | --- |
+| Độ chính xác (đúng / số lượt nhận diện) | **99,3%** (146 / 147 lượt) | 96,2% – 99,9% |
+| Độ phủ (bắt được / số lượt thật sự có mặt) | **97,3%** (146 / 150 lượt) | 93,3% – 99,0% |
+| Tin không có kỹ năng nào | 18 / 60 tin; cả 18 tin đều đúng là không nêu kỹ năng trong danh mục | |
+
+- **Nhận diện nhầm (1):** "Azure DevOps" bị tính là Azure (dịch vụ đám mây). Đây là sản phẩm DevOps của Microsoft, nên đáng ra không tính.
+- **Bỏ sót (4):** chữ "Node" đứng một mình trong danh sách công nghệ ("React, Node, GCP"). Luật chỉ nhận "Node.js" và "NodeJS", đây là lựa chọn có chủ đích để tránh nhầm với "node" (nút mạng, nút cụm). Nhận thêm "Node" trong danh sách công nghệ sẽ tăng độ phủ của Node.js một chút.
+- **Giới hạn:** mẫu nhỏ (147 lượt nhận diện từ 42 tin có kỹ năng), và **người chấm là Claude, không phải nhóm gán nhãn độc lập**, nên đây là kiểm tra nhanh chứ không thay được đánh giá có nhãn người. Chỉ kiểm tra kỹ năng trong danh mục 75 kỹ năng, không kiểm tra kỹ năng ngoài danh mục (Dart, ReasonML, C…). Các đặc trưng khác (remote, lương, cấp bậc, địa điểm) chưa được kiểm tra bằng cách này.
+
 
 ---
 
@@ -316,6 +332,23 @@ Dự báo sản xuất cho các quý **2026Q4, 2027Q1, 2027Q2, 2027Q3** (4 quý 
 
 ---
 
+### 7.7 Dự báo theo nhóm kỹ năng (`category_forecast.py`)
+Gộp kỹ năng thành 7 nhóm (Ngôn ngữ, Front-end, Back-end, Dữ liệu, AI/ML, Cloud/DevOps, Mobile; nhóm "Khác" chỉ có một kỹ năng nên bỏ). Chuỗi là **tỷ lệ tin nhắc ít nhất một kỹ năng của nhóm** mỗi quý (một tin chỉ tính một lần). Cùng quy trình đánh giá: chọn tham số và mô hình bằng dữ liệu đến 2022Q4, chấm một lần trên 2023Q1–2026Q3. Chỉ có 7 chuỗi nên không dùng mô hình học máy chung, mà dùng bốn mô hình cổ điển (`naive_last`, `mean4`, `ses`, `damped`). Ngưỡng nhãn hướng là ±2,0 điểm % (tỷ lệ của nhóm 7–50%, lớn hơn nhiều so với kỹ năng đơn lẻ); ±1,0 và ±3,0 được ghi làm độ nhạy. Khoảng tin cậy của chênh macro-F1 dùng bootstrap theo thời điểm dự báo (7 nhóm cùng một thời điểm di chuyển cùng nhau).
+
+| Mô hình | Sai số giá trị trên holdout (điểm %) |
+| --- | --- |
+| `naive_last` | 2,28 |
+| `damped` | 2,44 |
+| `ses` (mô hình được chọn trên dữ liệu chọn mô hình) | 2,65 |
+| `mean4` | 2,77 |
+
+- **Giá trị:** không mô hình nào vượt `naive_last`, giống kết quả theo kỹ năng. Giá trị dự báo theo nhóm chỉ là kịch bản. Độ phủ khoảng 80% trên holdout: 79,9%.
+- **Hướng:** mô hình hướng được chọn là `naive_last` (so quý cuối với trung bình 4 quý). Macro-F1 = **0,43** so với **0,16** của "luôn Ổn định"; khoảng tin cậy 95% của chênh lệch **[0,13; 0,39]**, không chứa 0.
+- **Hạn chế:** chỉ có 7 nhóm và 12 thời điểm dự báo (84 quan sát, các quý liền nhau tương quan mạnh), nên kết quả ít chắc chắn hơn kết quả theo kỹ năng (636 quan sát). Dự báo hiện tại gần như đều là Ổn định, riêng Front-end là Suy giảm (−2,8 điểm %).
+- **Kết quả đã lưu:** bảng `category_history`, `category_forecast`, `category_path`, `category_score`, `category_label`, `category_info` trong `gold.db`; hiển thị ở tab "Theo nhóm kỹ năng" của trang Dự báo (biểu đồ và bảng dự báo) và ở trang Tổng quan. Điểm chấm mô hình theo nhóm không hiện trên giao diện, chỉ lưu trong `category_score` và `category_label`.
+
+---
+
 ## 8. Phân tích mô tả thị trường
 
 Ngoài dự báo, pipeline tạo các bảng phân tích để hiểu thị trường. Phần này là **thống kê mô tả** từ luật regex, không thuộc quy trình kiểm chứng ở mục 6. Dashboard không còn trang riêng cho phần này (trang "Thị trường" đã bỏ); với từng kỹ năng, tỷ lệ remote, lương, cấp bậc vẫn xem được ở mục "Chân dung tin tuyển" của trang Hồ sơ kỹ năng.
@@ -367,12 +400,12 @@ Chạy: `python -m streamlit run skill_radar/app.py --server.port 8502` → http
 
 | Màn hình | Nội dung |
 | --- | --- |
-| **Tổng quan** | 5 ô chỉ số (số tin phân tích, số kỹ năng theo dõi, kỹ năng phổ biến nhất, kỹ năng tăng nhanh nhất, giảm mạnh nhất so với 4 quý trước); treemap kỹ năng theo nhóm (diện tích = số tin, màu = thay đổi; bấm để phóng to, quay lại bằng thanh đường dẫn "Tất cả › nhóm" hoặc nút "Về toàn cảnh"); biểu đồ vùng cơ cấu lượt nhắc theo nhóm; biểu đồ cuộc đua xếp hạng theo năm với thanh trượt chọn khoảng hạng (xem được cả hạng 16 trở xuống, bấm vào đường để mở chi tiết) |
+| **Tổng quan** | 5 ô chỉ số (số tin phân tích, số kỹ năng theo dõi, kỹ năng phổ biến nhất, kỹ năng tăng nhanh nhất, giảm mạnh nhất so với 4 quý trước); hai biểu đồ **Dự báo năm tới** (5 kỹ năng tăng và 5 giảm nhiều nhất, thay đổi dự báo của 7 nhóm kỹ năng); treemap kỹ năng theo nhóm (diện tích = số tin, màu = thay đổi; bấm để phóng to, quay lại bằng thanh đường dẫn "Tất cả › nhóm" hoặc nút "Về toàn cảnh"); biểu đồ vùng cơ cấu lượt nhắc theo nhóm; biểu đồ cuộc đua xếp hạng theo năm với thanh trượt chọn khoảng hạng (xem được cả hạng 16 trở xuống, bấm vào đường để mở chi tiết) |
 | **Xu hướng** | 4 thẻ: So sánh kỹ năng (chọn tới 8 kỹ năng, tỷ lệ hoặc chỉ số đỉnh = 100, làm mượt 4 quý, vạch sự kiện COVID-19 / ChatGPT / sa thải hàng loạt), Bản đồ nhiệt, Thắng – thua, Vị thế & động lượng (bong bóng, bấm được) |
 | **Hồ sơ kỹ năng** | Một kỹ năng: 5 ô chỉ số, lịch sử + kịch bản 4 quý tới có dải 80%, "chân dung" tin tuyển so với thị trường (remote, lương, senior…), kỹ năng hay đi kèm |
 | **Hệ sinh thái** | 3 thẻ: Bản đồ công nghệ (t-SNE, tô màu theo cụm, bấm được), Bạn đồng hành của một kỹ năng, Ma trận lift |
 | **Skill Navigator** | Chọn bộ kỹ năng, hồ sơ mẫu, ngưỡng phù hợp, lọc remote/có lương; kết quả độ phủ, kỹ năng nên học tiếp, lộ trình tham lam, độ "ăn khách" của bộ kỹ năng theo thời gian |
-| **Dự báo & độ tin cậy** | Hai khung trạng thái ("Đã kiểm chứng" cho nhãn hướng, "Chưa kiểm chứng" cho giá trị); 4 thẻ: Radar 1 năm tới (bấm được, có bảng và tải CSV), Kiểm chứng nhãn hướng (ma trận nhầm lẫn, macro-F1 từng mô hình), Kiểm chứng giá trị dự báo (chênh sai số so với baseline, sai số theo horizon, dự đoán so với thực tế), Tín hiệu cộng đồng (hiệu ứng thêm tín hiệu, dẫn trước – trễ npm) |
+| **Dự báo & độ tin cậy** | 5 thẻ: Radar 1 năm tới (bấm được, có bảng và tải CSV), Theo nhóm kỹ năng (dự báo 4 quý cho 7 nhóm và bảng), Độ chính xác của hướng (ma trận nhầm lẫn, macro-F1 từng mô hình), Độ chính xác của số liệu (chênh sai số so với baseline, sai số theo horizon, dự đoán so với thực tế), Tín hiệu cộng đồng (hiệu ứng thêm tín hiệu, dẫn trước – trễ npm) |
 
 Bảng màu 8 nhóm kỹ năng cố định ở mọi biểu đồ; hai màu xanh/đỏ dành cho tăng/giảm. Các trang/biểu đồ về địa lý, nhà tuyển dụng và trang "Thị trường" (remote, lương, cấp bậc theo quý) đã bỏ khỏi giao diện vì ít liên quan tới câu hỏi chọn kỹ năng; các bảng tương ứng (`market_quarter`, `location_year`, `employer`) vẫn nằm trong `gold.db`, trong đó `market_quarter` còn phục vụ trang Hồ sơ kỹ năng.
 
@@ -380,10 +413,10 @@ Bảng màu 8 nhóm kỹ năng cố định ở mọi biểu đồ; hai màu xan
 
 ## 10. Kiểm thử
 
-**74 test**, đã chạy lại và **đạt cả 74** (`python -m pytest -q tests`, khoảng 30 giây).
+**76 test**, đã chạy lại và **đạt cả 76** (`python -m pytest -q tests`, khoảng 30 giây).
 
 - `tests/test_skill_radar.py` (13 test): luật nhận diện kỹ năng; bỏ thẻ HTML trước khi giải mã entity; taxonomy hợp lệ; kỳ lấy từ tiêu đề; mẫu số của tỷ lệ là toàn bộ tin; `to_panel` từ chối khoảng trống; **không mô hình nào nhìn thấy quý sau mốc dự báo**; mô hình gộp trả NaN khi lịch sử ngắn; `damped` khớp đường thẳng đã biết; ô chọn mô hình không chạm holdout; tính đủ điều kiện không dùng holdout; ranh giới nhãn; backtest chạy end-to-end và **tái lập được**.
-- `tests/test_features_db.py` (61 ca sau khi mở rộng tham số): trích xuất đặc trưng (remote/hybrid, lương, cấp bậc, địa điểm, công ty); ghi/đọc SQLite và vòng khứ hồi `store`; hệ sinh thái (co-occurrence, lift, phân cụm); Skill Navigator; các hàm `insights`; `drivers` (điểm gãy, shift-share cộng đúng tổng, độ rộng, đồng biến); và **mọi trang dashboard import được** (một lỗi cú pháp ở một trang từng làm cả ứng dụng không chạy mà các test khác không phát hiện).
+- `tests/test_features_db.py` (63 ca sau khi mở rộng tham số): dự báo theo nhóm kỹ năng (mỗi tin chỉ tính một lần cho mỗi nhóm, kết quả tái lập được); trích xuất đặc trưng (remote/hybrid, lương, cấp bậc, địa điểm, công ty); ghi/đọc SQLite và vòng khứ hồi `store`; hệ sinh thái (co-occurrence, lift, phân cụm); Skill Navigator; các hàm `insights`; `drivers` (điểm gãy, shift-share cộng đúng tổng, độ rộng, đồng biến); và **mọi trang dashboard import được** (một lỗi cú pháp ở một trang từng làm cả ứng dụng không chạy mà các test khác không phát hiện).
 
 Ngoài test tự động, dashboard được kiểm tra thủ công bằng trình duyệt thật (Playwright): bấm chọn kỹ năng trên các biểu đồ bấm được, nền trắng khi hệ điều hành đặt chế độ tối, không còn nút thanh công cụ Plotly, kéo chuột không làm biểu đồ nhảy trục, thanh trượt hạng, tiêu đề không bị thanh header che, treemap bấm vào kỹ năng rồi quay lại được.
 
@@ -410,7 +443,7 @@ python -m pytest -q tests
 ## 12. Hạn chế và việc còn lại
 
 1. **Một nguồn nhu cầu duy nhất** (Hacker News): thiên lệch về startup/công nghệ và thị trường Mỹ, làm từ xa; không đại diện toàn ngành. Chỉ 15 tin (≈ 0,02%) nêu Việt Nam là địa điểm, nên **kết quả không nói được gì về thị trường Việt Nam**. Số tin/quý giảm theo thời gian (còn ≈ 700–1.100 tin/quý gần đây).
-2. **Nhận diện bằng từ khóa/regex**: cả kỹ năng lẫn các đặc trưng mô tả (remote, lương, cấp bậc, địa điểm, công ty) có thể sót hoặc nhầm; **chưa được đo độ chính xác với nhãn người gán**. "Tin nhắc kỹ năng" chưa chắc là "đang cần người biết kỹ năng đó".
+2. **Nhận diện bằng từ khóa/regex**: kỹ năng đã được kiểm tra nhanh trên 60 tin (độ chính xác 99,3%, độ phủ 97,3%, mục 4.5), nhưng người chấm là Claude chứ không phải nhóm gán nhãn độc lập; các đặc trưng mô tả (remote, lương, cấp bậc, địa điểm, công ty) **chưa được đo độ chính xác**. "Tin nhắc kỹ năng" chưa chắc là "đang cần người biết kỹ năng đó".
 3. **Tín hiệu mỏng:** Stack Overflow mới 3 kỹ năng dùng được (tag `java` dở dang), GitHub Archive chưa làm → kết luận về giả thuyết dẫn trước có sức mạnh thống kê thấp. Muốn mạnh hơn: đặt `SE_API_KEY` để hoàn tất 68 tag, thêm GitHub Archive (Spark, lấy mẫu theo giờ).
 4. **Dự báo giá trị chưa vượt baseline** `naive_last`; chỉ dự báo hướng được kiểm chứng, và mô hình hướng chỉ đọc đà gần đây của chính kỹ năng (không biết nguyên nhân). Điểm macro-F1 0,47 là mức trung bình, nên dùng để tham khảo chứ không phải lời hứa.
 5. **Quy tắc đủ điều kiện ≥ 1% (2015–2022)** loại các kỹ năng mới nổi (LLM, Generative AI, RAG…) khỏi nhãn dù chúng có thể quan trọng nhất hiện nay; dashboard vẫn hiện lịch sử của các kỹ năng này nhưng không có dự báo được kiểm chứng.
@@ -418,4 +451,4 @@ python -m pytest -q tests
 7. **Phân tích "vì sao tăng/giảm"** chỉ mô tả sự thay đổi đến từ đâu, không chứng minh nhân quả; hiện đang ẩn khỏi giao diện.
 8. **Dữ liệu `archive*.zip`** ở thư mục gốc thuộc pipeline cũ, không được Skill Radar sử dụng (không đưa lên git).
 9. Một số tháng 2015 của HN bị thiếu nên mô hình chỉ dùng từ 2015Q3.
-10. **Việc còn lại (chưa làm):** mô hình chủ đề (NMF) và dự báo theo nhóm kỹ năng; hoàn tất Stack Overflow; chụp ảnh màn hình đưa vào báo cáo.
+10. **Việc còn lại (chưa làm):** mô hình chủ đề (NMF); hoàn tất Stack Overflow; chụp ảnh màn hình đưa vào báo cáo.

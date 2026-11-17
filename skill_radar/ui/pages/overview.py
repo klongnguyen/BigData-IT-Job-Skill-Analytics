@@ -35,6 +35,34 @@ def _kpis(g):
                    help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước. Cùng điều kiện với thẻ Tăng nhanh nhất.")
 
 
+def _outlook(g):
+    series = g["radar_series"]
+    series = series[series.eligible.astype(bool)]
+    picked = pd.concat([series.nlargest(5, "delta_pp_4q"), series.nsmallest(5, "delta_pp_4q")]).drop_duplicates("skill").sort_values("delta_pp_4q")
+    cat = g["category_forecast"].sort_values("delta_pp_4q")
+    t = theme.tokens()
+    color = {"Rising": t["up"], "Stable": t["flat"], "Fading": t["down"]}
+    left, right = st.columns(2)
+    with left:
+        fig = go.Figure(go.Bar(x=picked.delta_pp_4q, y=picked.label, orientation="h", marker_color=[color[d] for d in picked.direction],
+                               hovertemplate="<b>%{y}</b><br>Thay đổi dự báo: %{x:+.2f} điểm %<extra></extra>"))
+        fig.add_vline(x=0, line_color=t["axis"], line_width=1)
+        theme.style(fig, height=360, legend=False, xtitle="Thay đổi dự báo sau 4 quý (điểm %)")
+        fig.update_xaxes(showgrid=True)
+        fig.update_yaxes(showgrid=False)
+        theme.header("Dự báo năm tới: kỹ năng", "5 kỹ năng dự báo tăng nhiều nhất và 5 giảm nhiều nhất so với năm vừa qua.")
+        theme.show(fig, "ov_outlook_skill")
+    with right:
+        fig = go.Figure(go.Bar(x=cat.delta_pp_4q, y=cat.category.map(theme.CATEGORY_VI), orientation="h", marker_color=[color[d] for d in cat.direction],
+                               hovertemplate="<b>%{y}</b><br>Thay đổi dự báo: %{x:+.2f} điểm %<extra></extra>"))
+        fig.add_vline(x=0, line_color=t["axis"], line_width=1)
+        theme.style(fig, height=360, legend=False, xtitle="Thay đổi dự báo sau 4 quý (điểm %)")
+        fig.update_xaxes(showgrid=True)
+        fig.update_yaxes(showgrid=False)
+        theme.header("Dự báo năm tới: nhóm kỹ năng", "Xanh là tăng, đỏ là giảm, xám là ổn định. Đây là hướng đi, chưa phải con số chính xác. Xem chi tiết ở trang Dự báo.")
+        theme.show(fig, "ov_outlook_cat")
+
+
 def _treemap(g):
     hist = g["radar_history"]
     now = insights.window_share(hist, insights.recent_periods(hist))
@@ -125,6 +153,7 @@ def _bump(g):
 
 def render(g):
     _kpis(g)
+    _outlook(g)
     left, right = st.columns([1.15, 1])
     with left:
         _treemap(g)

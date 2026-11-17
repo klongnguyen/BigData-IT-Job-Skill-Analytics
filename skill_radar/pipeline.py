@@ -15,6 +15,7 @@ import pandas as pd
 from sklearn.metrics import f1_score
 
 from skill_radar import analytics
+from skill_radar import category_forecast as C
 from skill_radar import backtest as B
 from skill_radar import db
 from skill_radar import leadlag as L
@@ -175,6 +176,7 @@ def run(warehouse=db.WAREHOUSE, gold=db.GOLD, today=None):
             db.write_table(g, "signal_quarter", signal_frame(long), indexes=["skill"])
             store.save_results(g, manifest)
             facts = analytics.build(wh, g, panel.periods, P.last_complete_month(today))
+            C.write(g, C.run(g))                      # category-level forecast, reads the gold posting tables just written
         manifest["gold_facts"] = facts
     finally:
         wh.close()
