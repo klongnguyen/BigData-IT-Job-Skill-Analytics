@@ -59,8 +59,8 @@ def _fan(g, skill, key="pf_fan"):
     theme.style(fig, height=400, hover="x unified", ytitle="% tin nhắc tới")
     fig.update_yaxes(rangemode="tozero", ticksuffix="%")
     add_events(fig, g["event"])
-    theme.header("Lịch sử và kịch bản 4 quý tới", "Cột: từng quý. Đường: trung bình 4 quý. Đường nét đứt là kịch bản, chưa vượt baseline 'giữ nguyên quý cuối' trên giai đoạn kiểm tra." if bool(row.eligible)
-                 else "Kỹ năng này có tỷ lệ trung bình < 1% giai đoạn 2015–2022 nên chưa đủ bằng chứng để dự báo; chỉ hiển thị lịch sử.")
+    theme.header("Lịch sử và kịch bản 4 quý tới", "Cột là từng quý, đường là trung bình 4 quý. Nét đứt chỉ là kịch bản, chưa chắc chính xác." if bool(row.eligible)
+                 else "Kỹ năng này quá ít tin nên không dự báo, chỉ hiển thị lịch sử.")
     theme.time_range(fig)
     theme.show(fig, key)
 
@@ -81,7 +81,7 @@ def _attributes(g, skill, key="pf_attrs"):
     fig.update_layout(barmode="group", bargap=0.35)
     fig.update_xaxes(ticksuffix="%", showgrid=True)
     fig.update_yaxes(showgrid=False)
-    theme.header(f"Chân dung tin tuyển {g['label'][skill]} so với thị trường", f"Năm {years[0]}–{years[1]}; {n_fmt(data.n.iloc[0])} tin nhắc tới {g['label'][skill]}.")
+    theme.header(f"Chân dung tin tuyển {g['label'][skill]} so với thị trường", f"Năm {years[0]} đến {years[1]}, dựa trên {n_fmt(data.n.iloc[0])} tin nhắc tới {g['label'][skill]}.")
     theme.show(fig, key)
 
 
@@ -98,7 +98,7 @@ def _co_skills(g, skill, key="pf_co"):
     theme.style(fig, height=380, legend=False, xtitle=f"% tin nhắc {g['label'][skill]} cũng nhắc kỹ năng này")
     fig.update_xaxes(ticksuffix="%", showgrid=True)
     fig.update_yaxes(showgrid=False)
-    theme.header("Hay đi kèm với", f"Từ {g['facts']['ecosystem_first_quarter']} đến nay. Lift > 1: đi cùng nhau nhiều hơn mức ngẫu nhiên.")
+    theme.header("Hay đi kèm với", f"Từ {g['facts']['ecosystem_first_quarter']} đến nay. Lift lớn hơn 1 nghĩa là đi cùng nhau nhiều hơn ngẫu nhiên.")
     theme.show(fig, key)
 
 
@@ -116,14 +116,14 @@ def _kpis(g, skill):
     cols[2].metric("Đỉnh lịch sử", theme.pct(row.peak_share), delta=f"quý {row.peak_period}", delta_color="off", border=True)
     cols[3].metric("Hướng 1 năm tới", theme.DIRECTION_VI[row.direction] if bool(row.eligible) else "—",
                    delta=f"{theme.pp(row.delta_pp_4q)} điểm %" if bool(row.eligible) else None, delta_color="off", border=True,
-                   help="Nhãn từ mô hình hướng đã kiểm chứng (GBM). Kỹ năng có tỷ lệ trung bình < 1% giai đoạn 2015–2022 chưa đủ bằng chứng nên không có nhãn."
-                   if bool(row.eligible) else "Chưa đủ bằng chứng: tỷ lệ trung bình < 1% giai đoạn 2015–2022 nên không dự báo hướng.")
+                   help="Nhãn do mô hình GBM đoán."
+                   if bool(row.eligible) else "Kỹ năng này quá ít tin nên không dự báo hướng.")
     if len(mine) and int(mine.n.iloc[0]) >= MIN_SALARY_N:
         cols[4].metric("Lương trung vị", f"{mine['median'].iloc[0]:.0f}k USD", border=True,
                        delta=f"{mine['median'].iloc[0] - overall['median'].iloc[0]:+.0f}k so với chung".replace(".", ","), delta_color="off",
-                       help=f"{int(mine.n.iloc[0])} tin nêu lương USD/năm trong 8 quý gần nhất")
+                       help=f"Dựa trên {int(mine.n.iloc[0])} tin nêu lương USD trong 8 quý gần nhất")
     else:
-        cols[4].metric("Lương trung vị", "—", border=True, help=f"Chưa đủ {MIN_SALARY_N} tin nêu lương USD cho kỹ năng này")
+        cols[4].metric("Lương trung vị", "—", border=True, help=f"Chưa đủ {MIN_SALARY_N} tin nêu lương cho kỹ năng này")
 
 
 def skill_panel(g, skill, prefix):

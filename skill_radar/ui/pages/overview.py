@@ -25,14 +25,14 @@ def _kpis(g):
     up, down = big.idxmax(), big.idxmin()
     cols = st.columns(5)
     cols[0].metric("Tin đã phân tích", n_fmt(g["facts"]["postings"]), border=True,
-                   help=f"Hacker News 'Ask HN: Who is hiring?', {g['facts']['first_quarter']} đến {g['facts']['last_quarter']}")
+                   help=f"Hacker News Ask HN: Who is hiring, {g['facts']['first_quarter']} đến {g['facts']['last_quarter']}")
     cols[1].metric("Kỹ năng theo dõi", len(g["skills"]), border=True, help="75 kỹ năng trong 8 nhóm, nhận diện bằng quy tắc từ khóa")
     cols[2].metric("Phổ biến nhất", g["label"][top], delta=f"{theme.pct(now[top])} số tin", delta_color="off", border=True,
                    help="Kỹ năng được nhắc trong nhiều tin nhất ở 4 quý gần nhất.")
     cols[3].metric("Tăng nhanh nhất", g["label"][up], delta=f"{big[up]:+.1f} điểm %".replace(".", ","), border=True,
-                   help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước đó. Chỉ xét kỹ năng có ít nhất 1% số tin ở một trong hai giai đoạn.")
+                   help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước. Chỉ xét kỹ năng có ít nhất 1% số tin.")
     cols[4].metric("Giảm mạnh nhất", g["label"][down], delta=f"{big[down]:+.1f} điểm %".replace(".", ","), border=True,
-                   help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước đó (cùng điều kiện như thẻ Tăng nhanh nhất).")
+                   help="Thay đổi tỷ lệ tin nhắc tới kỹ năng so với 4 quý trước. Cùng điều kiện với thẻ Tăng nhanh nhất.")
 
 
 def _treemap(g):
@@ -61,7 +61,7 @@ def _treemap(g):
         hovertemplate="<b>%{label}</b><br>%{customdata[2]} tin nhắc tới (%{customdata[0]} số tin)<br>Thay đổi so với 4 quý trước: %{customdata[1]} điểm %<extra></extra>"))
     fig.update_layout(height=490, margin={"l": 0, "r": 0, "t": 34, "b": 0}, paper_bgcolor="rgba(0,0,0,0)",       # top margin holds the path bar
                       font={"color": t["text"], "size": 13})
-    theme.header("Bản đồ kỹ năng năm qua", "Diện tích = số tin nhắc tới kỹ năng trong 4 quý gần nhất. Màu = thay đổi tỷ lệ so với 4 quý trước (xanh: tăng, đỏ: giảm). **Bấm vào một nhóm hoặc kỹ năng** để phóng to; muốn quay lại, bấm tên ở thanh đường dẫn phía trên biểu đồ hoặc nút bên dưới.")
+    theme.header("Bản đồ kỹ năng năm qua", "Ô càng lớn thì kỹ năng càng được nhắc nhiều trong 4 quý gần nhất. Xanh là tăng, đỏ là giảm so với 4 quý trước. **Bấm vào một ô** để phóng to.")
     nonce = st.session_state.get("ov_tm_nonce", 0)
     st.button("↺ Về toàn cảnh", key="ov_tm_reset", help="Thu biểu đồ về cấp nhóm kỹ năng ban đầu",
               on_click=lambda: st.session_state.update(ov_tm_nonce=st.session_state.get("ov_tm_nonce", 0) + 1))
@@ -82,7 +82,7 @@ def _composition(g):
     theme.style(fig, height=380, hover="x unified", ytitle="% lượt nhắc kỹ năng")
     theme.time_range(fig)
     fig.update_yaxes(ticksuffix="%", range=[0, 100])
-    theme.header("Cơ cấu lượt nhắc kỹ năng theo nhóm", "Mỗi tin có thể nhắc nhiều kỹ năng; biểu đồ chia 100% tổng lượt nhắc của từng quý.")
+    theme.header("Cơ cấu lượt nhắc kỹ năng theo nhóm", "Mỗi quý chia 100% tổng lượt nhắc kỹ năng.")
     theme.show(fig, "ov_composition")
 
 
@@ -93,8 +93,7 @@ def _bump(g):
     ranks = annual.loc[years].rank(axis=1, ascending=False, method="first")     # ties broken so labels never overlap
     last =ranks.loc[years[-1]].sort_values(kind="stable")
     total = len(last)
-    theme.header("Cuộc đua xếp hạng kỹ năng", f"Hạng theo tỷ lệ tin nhắc tới trong từng năm; {years[-1]} tính đến quý gần nhất. Màu theo nhóm kỹ năng. "
-                 f"Chọn khoảng hạng của năm {years[-1]} để xem; biểu đồ dài ra theo số hạng, cuộn trang xuống để xem hết. **Bấm vào một đường** để mở hồ sơ kỹ năng.")
+    theme.header("Cuộc đua xếp hạng kỹ năng", f"Hạng theo tỷ lệ tin nhắc tới mỗi năm, màu theo nhóm kỹ năng. Năm {years[-1]} tính đến quý gần nhất. **Bấm vào một đường** để xem chi tiết.")
     lo, hi = st.slider("Khoảng hạng hiển thị (theo năm gần nhất)", 1, total, (1, 12), key="ov_bump_range")
     top = list(last.index[lo - 1:hi])
     ymax = min(total, max(MAX_RANK, hi + 4)) if lo == 1 else min(total, hi + 4)
@@ -118,7 +117,7 @@ def _bump(g):
     fig.update_yaxes(dtick=1, title="Hạng (1 = nhiều nhất)", range=[ymax + 0.5, ymin - 0.5])
     fig.update_xaxes(tickvals=years, range=[years[0] - 1.8, years[-1] + 1.8], tickformat="d")
     if ymax < max(ranks[top].max()):
-        st.caption(f"Đường đi ra ngoài khung nghĩa là kỹ năng đó khi ấy xếp thấp hơn hạng {ymax} (hoặc cao hơn hạng {ymin}).")
+        st.caption(f"Đường ra ngoài khung nghĩa là năm đó kỹ năng xếp thấp hơn hạng {ymax} hoặc cao hơn hạng {ymin}.")
     picked = interact.clickable(fig, "ov_bump", ids)
     if picked:
         profile.skill_panel(g, picked, "ov")

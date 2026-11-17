@@ -18,7 +18,7 @@ PAGES = {
     "Hồ sơ kỹ năng": (profile, "Mọi góc nhìn về một kỹ năng"),
     "Hệ sinh thái": (ecosystem, "Kỹ năng nào đi cùng nhau"),
     "Skill Navigator": (navigator, "Độ phủ kỹ năng của bạn"),
-    "Dự báo & độ tin cậy": (forecast, "Dự báo và kiểm chứng"),
+    "Dự báo & độ tin cậy": (forecast, "Dự báo và độ chính xác"),
 }
 
 
@@ -39,7 +39,7 @@ def main():
         st.query_params["page"] = page
         st.divider()
         f = g["facts"]
-        st.caption(f"**Nguồn:** Hacker News 'Ask HN: Who is hiring?'\n\n**Giai đoạn:** {f['first_quarter']} – {f['last_quarter']}\n\n"
+        st.caption(f"**Nguồn:** Hacker News, Ask HN: Who is hiring\n\n**Giai đoạn:** {f['first_quarter']} – {f['last_quarter']}\n\n"
                    f"**Tin phân tích:** {f['postings']:,}".replace(",", "."))
         st.caption("Dữ liệu lưu trong SQLite (`gold.db`).")
     st.markdown(f'<div class="hero">{page}</div><div class="subtitle">{PAGES[page][1]} · nhu cầu kỹ năng CNTT từ tin tuyển dụng, 2015–nay</div>', unsafe_allow_html=True)

@@ -148,32 +148,31 @@ def summarize(label, periods_a, periods_b, shifts, breadth_a, breadth_b, brk, br
     """Bullet sentences (Vietnamese) that put the driver analysis together. ``shifts`` is a list of shift_share results."""
     first = shifts[0]
     total = first["share_b"] - first["share_a"]
-    out = [f"**{label}:** {_pct(first['share_a'])} tin (quý {periods_a[0]}–{periods_a[-1]}) → {_pct(first['share_b'])} (quý {periods_b[0]}–{periods_b[-1]}), "
+    out = [f"**{label}:** đổi từ {_pct(first['share_a'])} tin (quý {periods_a[0]} đến {periods_a[-1]}) thành {_pct(first['share_b'])} (quý {periods_b[0]} đến {periods_b[-1]}), "
            f"thay đổi {_pp(total)} điểm %."]
     if abs(total) >= 0.003:
         ratios = [s["within"] / total for s in shifts]
         within = float(np.mean(ratios))
         if within >= 0.7:
-            out.append("**Do chính kỹ năng:** phần lớn thay đổi xảy ra trong các tin tương đương (cùng hình thức làm việc, cấp bậc, khu vực), "
-                       "tức kỹ năng được nhắc nhiều hơn/ít hơn chứ không phải do cơ cấu tin đổi.")
+            out.append("**Do chính kỹ năng:** kỹ năng được nhắc nhiều hơn hoặc ít hơn ngay trong các tin cùng loại.")
         elif within <= 0.3:
-            out.append("**Do cơ cấu tin:** phần lớn thay đổi đến từ việc loại tin tuyển dụng thay đổi (ví dụ nhiều tin remote hơn), không phải do kỹ năng được nhắc nhiều hơn trong tin tương đương.")
+            out.append("**Do cơ cấu tin:** loại tin tuyển dụng thay đổi, ví dụ nhiều tin remote hơn.")
         else:
-            out.append("**Một phần do cơ cấu tin:** thay đổi vừa đến từ việc kỹ năng được nhắc khác đi, vừa đến từ việc loại tin tuyển dụng thay đổi.")
+            out.append("**Một phần do cơ cấu tin:** vừa do kỹ năng được nhắc khác đi, vừa do loại tin thay đổi.")
     if breadth_b["posts"] < 30 or breadth_a["posts"] < 30:
-        out.append(f"**Số tin ít:** chỉ {breadth_a['posts']} và {breadth_b['posts']} tin nhắc kỹ năng trong hai giai đoạn nên kết luận dễ nhiễu.")
+        out.append(f"**Số tin ít:** chỉ {breadth_a['posts']} và {breadth_b['posts']} tin nhắc kỹ năng, nên kết luận dễ sai.")
     else:
-        out.append(f"**Độ rộng:** {breadth_a['authors']} → {breadth_b['authors']} nhà tuyển dụng khác nhau nhắc kỹ năng; 5 nhà đăng nhiều nhất chiếm "
-                   f"{_pct(breadth_a['top5_share'], 0)} → {_pct(breadth_b['top5_share'], 0)} số tin.")
+        out.append(f"**Độ rộng:** số nhà tuyển dụng nhắc kỹ năng đổi từ {breadth_a['authors']} thành {breadth_b['authors']}, 5 nhà đăng nhiều nhất chiếm "
+                   f"{_pct(breadth_a['top5_share'], 0)} rồi {_pct(breadth_b['top5_share'], 0)} số tin.")
     if brk.get("significant"):
         before = f"{brk['slope_before_pp_year'] + 0.0:+.1f}".replace("-0,0", "0,0").replace("-0.0", "0.0").replace(".", ",")
         after = f"{brk['slope_after_pp_year'] + 0.0:+.1f}".replace(".", ",")
-        text = f"**Bước ngoặt:** xu hướng đổi hướng quanh {break_period}: trước đó {before} điểm %/năm, sau đó {after} điểm %/năm."
+        text = f"**Bước ngoặt:** xu hướng đổi hướng quanh {break_period}, trước đó {before} điểm %/năm, sau đó {after} điểm %/năm."
         if events:
             text += f" Gần với sự kiện: {', '.join(events)}."
         out.append(text)
     else:
-        out.append("**Bước ngoặt:** không thấy điểm đổi hướng rõ ràng; xu hướng khá đều.")
+        out.append("**Bước ngoặt:** chưa thấy điểm đổi hướng rõ, xu hướng khá đều.")
     if len(together) or len(against):
         names = lambda ids: ", ".join(labels[s] for s in ids)
         parts = []
@@ -181,8 +180,8 @@ def summarize(label, periods_a, periods_b, shifts, breadth_a, breadth_b, brk, br
             parts.append(f"cùng chiều với {names(list(together)[:3])}")
         if len(against):
             parts.append(f"ngược chiều với {names(list(against)[:3])}")
-        out.append("**Biến động " + "; ".join(parts) + "** (tương quan, không phải nguyên nhân).")
+        out.append("**Biến động:** " + ", ".join(parts) + " (chỉ là tương quan).")
     slope = f"{inputs['slope_pp_per_quarter']:+.2f}".replace(".", ",")
     base = f"{inputs['base_pp']:.1f}".replace(".", ",")
-    out.append(f"**Dự báo dựa vào gì:** chỉ dựa vào đà gần đây (độ dốc 8 quý {slope} điểm %/quý, mức nền {base}%), không dựa vào các yếu tố ở trên.")
+    out.append(f"**Dự báo dựa vào gì:** chỉ dựa vào đà gần đây (độ dốc 8 quý {slope} điểm %/quý, mức nền {base}%).")
     return out

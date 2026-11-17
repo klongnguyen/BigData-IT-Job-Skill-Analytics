@@ -37,16 +37,14 @@ def _map(g):
     fig.update_yaxes(visible=False, gridcolor="rgba(0,0,0,0)")
     fig.update_layout(legend={"orientation": "h", "y": -0.02, "yanchor": "top"})
     f = g["facts"]
-    theme.header("Bản đồ công nghệ: các “stack” hay đi cùng nhau",
-                 f"Mỗi chấm là một kỹ năng; hai kỹ năng càng gần nhau càng hay xuất hiện cùng nhau trong một tin. Màu và hình = cụm ({int(f['cluster_k'])} cụm, "
-                 f"{f['ecosystem_first_quarter']} đến nay, {int(f['cluster_window_postings']):,} tin). Đường nối: cặp có lift ≥ 2. "
-                 "**Bấm vào một chấm** để xem chi tiết và các kỹ năng hay đi kèm.".replace(",", "."))
+    theme.header("Bản đồ công nghệ: các nhóm hay đi cùng nhau",
+                 f"Hai kỹ năng càng gần nhau thì càng hay xuất hiện cùng một tin. Màu là cụm ({int(f['cluster_k'])} cụm). **Bấm vào một chấm** để xem chi tiết.")
     picked = interact.clickable(fig, "eco_map", ids)
     if picked:
         profile.skill_panel(g, picked, "eco")
         profile._co_skills(g, picked, key="eco_map_co")
     if f["cluster_silhouette"] < 0.25:
-        st.caption(f"Lưu ý: độ tách cụm khá yếu (silhouette {theme.vn(f['cluster_silhouette'])}). Các kỹ năng chồng lấn nhau nhiều, nên coi cụm là gợi ý chứ không phải ranh giới cứng.")
+        st.caption(f"Các cụm tách nhau khá yếu (silhouette {theme.vn(f['cluster_silhouette'])}), nên chỉ coi là gợi ý.")
     summary = (placed.groupby(["cluster", "cluster_name"]).apply(
         lambda d: pd.Series({"Số kỹ năng": len(d), "Kỹ năng": ", ".join(g["label"][s] for s in d.sort_values("mentions", ascending=False).skill)}), include_groups=False)
                .reset_index().drop(columns="cluster").rename(columns={"cluster_name": "Cụm"}))
@@ -72,14 +70,14 @@ def _lift_matrix(g):
     theme.style(fig, height=max(480, 22 * len(ids) + 120), legend=False)
     fig.update_yaxes(autorange="reversed", showgrid=False)
     fig.update_xaxes(showgrid=False, tickangle=-60)
-    theme.header("Ma trận lift", "Xanh: hai kỹ năng đi cùng nhau nhiều hơn ngẫu nhiên; đỏ: ít hơn; xám nhạt/trống: không đủ dữ liệu. Xếp theo cụm.")
+    theme.header("Ma trận lift", "Xanh là đi cùng nhau nhiều hơn ngẫu nhiên, đỏ là ít hơn, ô trống là thiếu dữ liệu.")
     theme.show(fig, "eco_lift")
 
 
 def _explorer(g):
     from skill_radar.ui.pages.profile import co_skills
     ids = list(g["skill_cluster"].sort_values("mentions", ascending=False).skill)
-    skill = st.selectbox("Chọn một kỹ năng để xem “bạn đồng hành”", ids, format_func=g["label"].get, key="eco_skill")
+    skill = st.selectbox("Chọn một kỹ năng để xem các kỹ năng đi kèm", ids, format_func=g["label"].get, key="eco_skill")
     co = co_skills(g["skill_pair_window"], skill, top=15)
     if co.empty:
         st.info("Chưa đủ dữ liệu đồng xuất hiện.")
@@ -92,7 +90,7 @@ def _explorer(g):
     theme.style(fig, height=460, legend=False, xtitle=f"% tin nhắc {g['label'][skill]} cũng nhắc kỹ năng này")
     fig.update_xaxes(ticksuffix="%", showgrid=True)
     fig.update_yaxes(showgrid=False)
-    theme.header(f"Kỹ năng đi cùng {g['label'][skill]}", "Màu theo nhóm kỹ năng (Ngôn ngữ, Front-end, …).")
+    theme.header(f"Kỹ năng đi cùng {g['label'][skill]}", "Màu theo nhóm kỹ năng.")
     theme.show(fig, "eco_explorer")
 
 

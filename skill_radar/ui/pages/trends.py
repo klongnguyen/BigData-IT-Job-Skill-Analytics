@@ -33,7 +33,7 @@ def _heatmap(g):
     theme.style(fig, height=max(360, 22 * len(order) + 90), legend=False)
     fig.update_yaxes(autorange="reversed", showgrid=False)
     fig.update_xaxes(side="top", showgrid=False)
-    theme.header("Bản đồ nhiệt: kỹ năng × năm", "Mỗi ô là % tin trong năm đó nhắc tới kỹ năng; xếp theo năm gần nhất. Năm đầu và năm cuối có thể chưa đủ 4 quý.")
+    theme.header("Bản đồ nhiệt: kỹ năng × năm", "Mỗi ô là % tin trong năm đó có nhắc tới kỹ năng. Xếp theo năm gần nhất.")
     theme.show(fig, "tr_heatmap")
 
 
@@ -66,7 +66,7 @@ def _dumbbell(g):
     theme.style(fig, height=max(380, 24 * len(order) + 80), hover="closest", xtitle="% số tin nhắc tới kỹ năng")
     fig.update_xaxes(ticksuffix="%", showgrid=True)
     fig.update_yaxes(showgrid=False)
-    theme.header(f"Người thắng, người thua: {a} → {b}", "Vòng rỗng = năm đầu, chấm đặc = năm cuối; đường xanh: tăng, đỏ: giảm. Chỉ tính kỹ năng có tỷ lệ ≥ 1% ở ít nhất một trong hai năm.")
+    theme.header(f"Người thắng, người thua: {a} → {b}", "Vòng rỗng là năm đầu, chấm đặc là năm cuối. Xanh là tăng, đỏ là giảm. Chỉ xét kỹ năng có từ 1% tin trở lên.")
     theme.show(fig, "tr_dumbbell")
 
 
@@ -104,8 +104,7 @@ def _quadrant(g):
     ticks = [v for v in (0.3, 0.5, 1, 2, 5, 10, 20, 30) if df.now.min() * 100 / 1.5 <= v <= df.now.max() * 100 * 1.5]
     fig.update_xaxes(type="log", tickvals=ticks, ticktext=[f"{v:g}%".replace(".", ",") for v in ticks])
     fig.update_layout(legend={"y": 1.1})
-    theme.header("Vị thế và động lượng", "Kích thước = số tin; hình dạng + màu = nhóm. Đường chấm dọc là trung vị tỷ lệ (chia “phổ biến” và “ít phổ biến”). Đây là số liệu đã xảy ra, chưa phải dự báo. "
-                 "**Bấm vào một bong bóng** để xem chi tiết kỹ năng bên dưới; bấm đúp vào biểu đồ để bỏ chọn.")
+    theme.header("Vị thế và động lượng", "Bong bóng càng to thì càng nhiều tin, màu theo nhóm kỹ năng. Đường chấm chia kỹ năng phổ biến và ít phổ biến. **Bấm vào một bong bóng** để xem chi tiết.")
     picked = interact.clickable(fig, "tr_quadrant", ids)
     if picked:
         profile.skill_panel(g, picked, "tr")
@@ -141,7 +140,7 @@ def _compare(g):
     theme.time_range(fig)
     if show_events:
         add_events(fig, events)
-    theme.header("So sánh đường đi của các kỹ năng", "Chế độ chỉ số cho phép so sánh hình dạng tăng/giảm của kỹ năng lớn và nhỏ trên cùng một trục.")
+    theme.header("So sánh đường đi của các kỹ năng", "Chọn Chỉ số để so hình dạng đường của kỹ năng lớn và nhỏ trên cùng một trục.")
     theme.show(fig, "tr_compare")
 
 

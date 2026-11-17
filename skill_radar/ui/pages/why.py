@@ -36,7 +36,7 @@ def render(g, skill):
     label = g["label"][skill]
     hist = g["radar_history"]
     st.markdown("### Vì sao kỹ năng này tăng/giảm?")
-    st.caption("Phân tích mô tả từ chính các tin tuyển dụng. Dữ liệu không chứng minh được nguyên nhân: mục này chỉ chỉ ra thay đổi **đến từ đâu** và có gì đi cùng.")
+    st.caption("Chỉ cho thấy thay đổi **đến từ đâu**, không chứng minh được nguyên nhân.")
     choice = st.radio("So sánh 4 quý gần nhất với", list(OFFSETS), index=1, horizontal=True, key="why_offset")
     periods_b = insights.recent_periods(hist, 4)
     periods_a = insights.recent_periods(hist, 4, OFFSETS[choice])
@@ -87,8 +87,7 @@ def _break_tab(g, series, brk, break_period, events, label):
     fig.update_yaxes(rangemode="tozero", ticksuffix="%")
     add_events(fig, g["event"])
     theme.time_range(fig)
-    theme.header("Xu hướng đổi hướng khi nào?", "Đường đen là đường thẳng gấp khúc (hai độ dốc) khớp nhất với chuỗi; điểm gấp là bước ngoặt. Chỉ báo cáo khi đường gấp khúc giải thích thêm ≥ 20% sai số của một đường thẳng "
-                 "và đổi độ dốc ≥ 0,3 điểm %/năm. Vạch dọc xám: các sự kiện để đối chiếu, không phải bằng chứng nguyên nhân.")
+    theme.header("Xu hướng đổi hướng khi nào?", "Đường đen gồm hai đoạn thẳng khớp nhất với dữ liệu, chỗ gấp là bước ngoặt. Vạch xám là các sự kiện để tham khảo.")
     theme.show(fig, "why_break")
     if brk.get("significant"):
         before = f"{brk['slope_before_pp_year'] + 0.0:+.1f}".replace("-0.0", "0.0")
@@ -101,8 +100,7 @@ def _mix_tab(shifts, label, periods_a, periods_b):
     col, names = SEGMENTS[name]
     result = shifts[name]
     theme.header(f"Thay đổi của {label} đến từ chính kỹ năng hay từ cơ cấu tin?",
-                 f"Tách thay đổi tỷ lệ giữa quý {periods_a[0]}–{periods_a[-1]} và {periods_b[0]}–{periods_b[-1]} thành hai phần cộng lại đúng bằng tổng thay đổi: "
-                 "(1) kỹ năng được nhắc nhiều/ít hơn **trong các tin cùng loại**; (2) **loại tin thay đổi** (ví dụ tỷ lệ tin remote tăng, mà tin remote nhắc kỹ năng này nhiều/ít hơn).")
+                 f"Thay đổi từ quý {periods_a[0]} đến {periods_a[-1]} sang quý {periods_b[0]} đến {periods_b[-1]}, chia thành hai phần. Một là kỹ năng được nhắc nhiều hay ít hơn **trong tin cùng loại**. Hai là **loại tin thay đổi**, ví dụ tin remote nhiều lên.")
     theme.show(_waterfall(result, label), "why_waterfall")
     table = result["table"].assign(Nhóm=lambda d: d.category.map(lambda c: names.get(c, str(c))))
     table = table[["Nhóm", "w_a", "w_b", "p_a", "p_b", "within", "mix"]].rename(columns={
@@ -112,12 +110,11 @@ def _mix_tab(shifts, label, periods_a, periods_b):
         table[c] = (table[c] * 100).round(2)
     with st.expander("Chi tiết từng nhóm tin"):
         st.dataframe(table, hide_index=True, width="stretch")
-        st.caption("Đóng góp = tỷ trọng trung bình × thay đổi tỷ lệ nhắc (phần kỹ năng đổi) và thay đổi tỷ trọng × tỷ lệ nhắc trung bình (phần cơ cấu đổi).")
+        st.caption("Phần kỹ năng đổi = tỷ trọng trung bình × thay đổi tỷ lệ nhắc. Phần cơ cấu đổi = thay đổi tỷ trọng × tỷ lệ nhắc trung bình.")
 
 
 def _breadth_tab(a, b, periods_a, periods_b):
-    theme.header("Tăng trưởng có rộng không?", "Nếu số nhà tuyển dụng khác nhau tăng cùng nhịp với số tin thì là sự chấp nhận rộng; nếu vài nhà tuyển dụng đăng liên tục chiếm phần lớn thì tăng trưởng mong manh hơn. "
-                 "Nhà tuyển dụng được đếm theo mã tác giả ẩn danh.")
+    theme.header("Tăng trưởng có rộng không?", "Nếu số nhà tuyển dụng tăng cùng nhịp với số tin thì tăng trưởng rộng. Nếu vài người đăng liên tục chiếm phần lớn thì tăng trưởng yếu hơn.")
     rows = [("Số tin nhắc kỹ năng", a["posts"], b["posts"], n_fmt), ("Số nhà tuyển dụng khác nhau", a["authors"], b["authors"], n_fmt),
             ("Tin / nhà tuyển dụng", a["posts_per_author"], b["posts_per_author"], lambda v: f"{v:.2f}".replace(".", ",")),
             ("5 nhà đăng nhiều nhất chiếm", a["top5_share"], b["top5_share"], lambda v: theme.pct(v, 0))]
@@ -125,7 +122,7 @@ def _breadth_tab(a, b, periods_a, periods_b):
     for col, (name, va, vb, fmt) in zip(cols, rows):
         delta = f"trước: {fmt(va)}"
         col.metric(name, fmt(vb), delta=delta, delta_color="off", border=True)
-    st.caption(f"Giá trị lớn: quý {periods_b[0]}–{periods_b[-1]}; chú thích nhỏ: quý {periods_a[0]}–{periods_a[-1]}.")
+    st.caption(f"Số lớn là quý {periods_b[0]} đến {periods_b[-1]}, số nhỏ bên dưới là quý {periods_a[0]} đến {periods_a[-1]}.")
 
 
 def _comove_tab(g, skill, together, against, label):
@@ -149,18 +146,17 @@ def _comove_tab(g, skill, together, against, label):
     theme.style(fig, height=420, legend=False, xtitle="Tương quan của thay đổi theo năm (−1 đến +1)")
     fig.update_xaxes(range=[-1, 1], showgrid=True)
     fig.update_yaxes(showgrid=False)
-    theme.header(f"Kỹ năng nào biến động cùng / ngược chiều với {label}?", "Tương quan giữa thay đổi tỷ lệ theo năm (so với 4 quý trước) của hai kỹ năng, toàn giai đoạn. Xanh: cùng chiều (có thể bổ trợ); đỏ: ngược chiều (có thể thay thế). "
-                 "Chỉ so với kỹ năng có tỷ lệ trung bình ≥ 0,5%. Đây là tương quan, không phải nguyên nhân: hai kỹ năng có thể cùng chịu một yếu tố thứ ba.")
+    theme.header(f"Kỹ năng nào biến động cùng hay ngược chiều với {label}?", "Xanh là cùng tăng giảm, đỏ là ngược nhau. Đây chỉ là tương quan, không chứng minh nguyên nhân.")
     theme.show(fig, "why_comove")
 
 
 def _model_tab(inputs, label):
-    st.markdown(f"Mô hình dự báo hướng (Gradient Boosting) **không biết nguyên nhân**. Nó chỉ đọc vài con số về đà gần đây của {label} và của nhóm kỹ năng:")
+    st.markdown(f"Mô hình đoán hướng (Gradient Boosting) **không biết nguyên nhân**. Nó chỉ đọc vài con số về đà gần đây của {label} và nhóm kỹ năng:")
     base, slope = inputs["base_pp"], inputs["slope_pp_per_quarter"]
     last = inputs["last_vs_base_pp"]
     table = pd.DataFrame({"Đầu vào": ["Mức nền (trung bình 4 quý gần nhất)", "Độ dốc 8 quý gần nhất", "Quý gần nhất so với mức nền", "Quý trước đó so với mức nền", "Quý thứ ba tính ngược so với mức nền"],
                           "Giá trị": [f"{base:.1f}%", f"{slope:+.2f} điểm %/quý", f"{last[0]:+.2f} điểm %", f"{last[1]:+.2f} điểm %", f"{last[2]:+.2f} điểm %"]})
     table["Giá trị"] = table["Giá trị"].str.replace(".", ",", regex=False)
     st.dataframe(table, hide_index=True, width="stretch")
-    st.markdown("Ngoài ra mô hình còn dùng tổng số tin của quý và nhóm kỹ năng. Vì vậy dự báo thực chất là *quán tính*: kỹ năng đang lên thì dự đoán tiếp tục lên chậm dần, đang giảm thì giảm chậm dần. "
-                "Nó **không** học các nguyên nhân (công nghệ mới ra, sa thải, xu hướng remote…) ở các tab bên cạnh. Chính nhờ đó nó chỉ kiểm chứng được cho **hướng**, không cho con số.")
+    st.markdown("Mô hình còn dùng tổng số tin của quý và nhóm kỹ năng. Vì vậy dự báo chủ yếu là quán tính: đang lên thì tiếp tục lên chậm dần, đang giảm thì giảm chậm dần. "
+                "Nó **không** biết các nguyên nhân như công nghệ mới hay sa thải, nên chỉ đoán khá được **hướng**, không đoán chính xác con số.")

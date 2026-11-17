@@ -1,4 +1,4 @@
-"""Trang Dự báo & độ tin cậy: radar 1 năm tới, kiểm chứng mô hình, tín hiệu cộng đồng."""
+"""Trang Dự báo & độ tin cậy: radar 1 năm tới, độ chính xác của mô hình, tín hiệu cộng đồng."""
 
 import numpy as np
 import pandas as pd
@@ -29,19 +29,6 @@ def confusion(cells, model, band):
     return counts
 
 
-def _status(g):
-    info = g["results"]["info"]
-    scores = g["results"]["model_score"]
-    prod = scores[(scores.scope == "all_eligible") & (scores.model == info["rate_model"])].iloc[0]
-    if info["dv_validated"]:
-        st.success(f"**Đã kiểm chứng:** nhãn hướng thay đổi sau 1 năm (macro-F1 {theme.vn(info['dv_macro_f1_model'])} so với "
-                   f"{theme.vn(info['dv_macro_f1_always_stable'])} khi luôn đoán 'Ổn định'), thử trên {info['holdout_targets']} chưa từng dùng để chọn mô hình.")
-    else:
-        st.warning("Nhãn hướng chưa vượt baseline 'luôn Ổn định'.")
-    if pd.notna(prod.ci_hi) and prod.ci_hi >= 0:
-        st.warning("**Chưa kiểm chứng:** giá trị tỷ lệ dự báo chưa vượt baseline 'giữ nguyên quý cuối', nên coi là kịch bản.")
-
-
 def _radar(g):
     series = g["radar_series"].assign(label_vi=lambda d: d.direction.map(theme.DIRECTION_VI), category_vi=lambda d: d.category.map(theme.CATEGORY_VI))
     cats = [c for c in theme.CATEGORY_ORDER if c in set(series.category)]
@@ -62,8 +49,7 @@ def _radar(g):
     fig.update_xaxes(showgrid=True)
     fig.update_yaxes(showgrid=False)
     fig.update_traces(customdata=shown.skill, selected={"marker": {"opacity": 1}}, unselected={"marker": {"opacity": 0.35}})
-    theme.header("Radar 1 năm tới", "16 kỹ năng thay đổi nhiều nhất. Đường chấm ±1 điểm % là ngưỡng đặt trước cho nhãn Đang lên / Suy giảm. Xanh: lên, đỏ: giảm, xám: ổn định. "
-                 "**Bấm vào một cột** để xem chi tiết kỹ năng đó bên dưới.")
+    theme.header("Radar 1 năm tới", "16 kỹ năng thay đổi nhiều nhất. Đường chấm là mốc ±1 điểm %. **Bấm vào một cột** để xem chi tiết.")
     picked = interact.clickable(fig, "fc_radar", {0: list(shown.skill)})
     if picked:
         profile.skill_panel(g, picked, "fc")
@@ -94,7 +80,7 @@ def _direction(g):
     fig.update_yaxes(showgrid=False, autorange="reversed")
     left, right = st.columns([1, 1.3])
     with left:
-        theme.header("Ma trận nhầm lẫn của nhãn hướng", f"Mô hình {MODEL_LABELS.get(model, model)}, dự báo 4 quý, giai đoạn kiểm tra {info['holdout_targets']}. Mỗi hàng chia 100% theo thực tế.")
+        theme.header("Ma trận nhầm lẫn của nhãn hướng", f"Mỗi hàng là hướng thực tế, chia 100% theo hướng mô hình đoán. Dự báo 4 quý, giai đoạn {info['holdout_targets']}.")
         theme.show(fig, "fc_confusion")
     with right:
         labels = g["results"]["label_score"]
@@ -105,16 +91,15 @@ def _direction(g):
         fig = go.Figure(go.Bar(y=[MODEL_LABELS.get(m, m) for m in mods.model], x=mods.macro_f1, orientation="h",
                                marker={"color": [t["up"] if m == model else t["flat"] for m in mods.model]},
                                hovertemplate="<b>%{y}</b><br>macro-F1 %{x:.3f}<extra></extra>"))
-        fig.add_vline(x=stable, line_dash="dot", line_color=t["down"], annotation_text=f"Luôn đoán Ổn định {theme.vn(stable)}", annotation_position="top left")
+        fig.add_vline(x=stable, line_dash="dot", line_color=t["down"], annotation_text=f"Luôn đoán Ổn định: {theme.vn(stable)}", annotation_position="top left")
         theme.style(fig, height=380, legend=False, xtitle="macro-F1 của nhãn hướng (cao hơn là tốt hơn)")
         fig.update_xaxes(showgrid=True, range=[0, max(mods.macro_f1.max(), stable) * 1.15])
         fig.update_yaxes(showgrid=False)
-        theme.header("Mô hình nào đoán đúng hướng?", f"Cột xanh: mô hình dùng cho dashboard (chọn trên dữ liệu đến {info['selection_end']}). Ngưỡng ±{theme.vn(info['band_pp'], 1)} điểm %.")
+        theme.header("Mô hình nào đoán đúng hướng?", "Cột xanh là mô hình đang dùng. Cột càng dài càng tốt.")
         theme.show(fig, "fc_f1")
     gain_lo, gain_hi = info["dv_gain_lo"], info["dv_gain_hi"]
-    st.markdown(f"Chênh lệch macro-F1 so với đoán 'luôn Ổn định': **{theme.pp(info['dv_gain'], 3)}**, khoảng tin cậy 95% [{theme.vn(gain_lo, 3)}; {theme.vn(gain_hi, 3)}]"
-                + (" không chứa 0, nên mô hình hướng tốt hơn đoán bừa." if gain_lo > 0 else " chứa 0, nên chưa kết luận được."))
-    st.caption("Mô hình `giữ nguyên quý cuối` còn nhỉnh hơn một chút ở ngưỡng 0,5 và 1,0 điểm % trên giai đoạn kiểm tra; mô hình hướng được chọn từ trước trên dữ liệu chọn mô hình nên báo cáo nguyên trạng.")
+    st.markdown(f"So với việc luôn đoán Ổn định, macro-F1 hơn **{theme.pp(info['dv_gain'], 3)}** (khoảng tin cậy 95%: {theme.vn(gain_lo, 3)} đến {theme.vn(gain_hi, 3)}). "
+                + ("Khoảng này không chứa 0 nên mô hình đoán hướng tốt hơn đoán bừa." if gain_lo > 0 else "Khoảng này chứa 0 nên chưa kết luận được."))
 
 
 def _values(g):
@@ -137,12 +122,12 @@ def _values(g):
                              error_x={"type": "data", "symmetric": False, "array": cmp.ci_hi - cmp.diff_pp, "arrayminus": cmp.diff_pp - cmp.ci_lo, "color": t["muted"], "thickness": 2},
                              hovertemplate="<b>%{y}</b><br>Chênh %{x:+.3f} điểm % so với baseline<extra></extra>"))
     fig.add_vline(x=0, line_color=t["text2"], line_width=1)
-    theme.style(fig, height=380, legend=False, xtitle="Chênh sai số so với baseline (điểm %; âm = tốt hơn)")
+    theme.style(fig, height=380, legend=False, xtitle="Chênh sai số so với baseline (điểm %, âm là tốt hơn)")
     fig.update_xaxes(showgrid=True)
     fig.update_yaxes(showgrid=False, autorange="reversed")
     left, right = st.columns(2)
     with left:
-        theme.header("Có mô hình nào đánh bại “giữ nguyên quý cuối”?", f"So với baseline '{MODEL_LABELS.get(base.model, base.model)}'. Chấm + khoảng tin cậy 95% (bootstrap theo {int(base.skills)} kỹ năng). Xanh: tốt hơn rõ ràng; đỏ: tệ hơn; xám: chưa phân biệt được.")
+        theme.header(f"Có mô hình nào hơn {MODEL_LABELS.get(base.model, base.model)}?", "Chấm là chênh lệch sai số, thanh ngang là khoảng tin cậy 95%. Xanh: tốt hơn. Đỏ: tệ hơn. Xám: chưa phân biệt được.")
         theme.show(fig, "fc_compare")
     with right:
         hz = res["model_horizon_error"]
@@ -154,7 +139,7 @@ def _values(g):
                                      line={"color": theme.series_colors()[i], "width": 2.5}, marker={"size": 7}, hovertemplate="%{y:.3f}<extra>" + MODEL_LABELS.get(m, m) + "</extra>"))
         theme.style(fig, height=380, hover="x unified", ytitle="Sai số tuyệt đối TB (điểm %)", xtitle="Dự báo trước")
         fig.update_yaxes(rangemode="tozero")
-        theme.header("Sai số tăng theo thời gian dự báo", "Dự báo càng xa càng khó; mọi mô hình đều tăng sai số gần như song song.")
+        theme.header("Sai số tăng theo thời gian dự báo", "Dự báo càng xa càng khó nên sai số tăng ở mọi mô hình.")
         theme.show(fig, "fc_horizon")
 
     cells = g["backtest_cell"]
@@ -174,22 +159,22 @@ def _values(g):
     fig.update_yaxes(range=[0, lim])
     mae = float((sub.pred - sub.actual).abs().mean() * 100)
     with c2:
-        theme.header("Dự đoán so với thực tế (giai đoạn kiểm tra)", f"Mỗi chấm là một (kỹ năng, quý) chưa từng thấy; càng gần đường chéo càng đúng. Sai số TB {theme.vn(mae, 2)} điểm %, {len(sub)} điểm.")
+        theme.header("Dự đoán so với thực tế (giai đoạn kiểm tra)", f"Mỗi chấm là một kỹ năng trong một quý. Càng gần đường chéo càng đúng. Sai số trung bình {theme.vn(mae, 2)} điểm %.")
         theme.show(fig, "fc_scatter")
-    st.markdown(f"Khoảng dự báo 80% phủ đúng **{theme.pct(info['interval_coverage_80'], 1)}** giá trị thực trên giai đoạn kiểm tra, nên độ rộng khoảng là hợp lý.")
+    st.markdown(f"Khoảng dự báo 80% chứa đúng giá trị thực **{theme.pct(info['interval_coverage_80'], 1)}** số lần, nên độ rộng khoảng là hợp lý.")
 
 
 def _signals(g):
     res, info = g["results"], g["results"]["info"]
     eff = res["model_score"]
     eff = eff[(eff.scope == "all_eligible") & (eff.model == "gbm+signals")].iloc[0]
-    st.markdown(f"Thêm tín hiệu cộng đồng vào mô hình: chênh sai số **{theme.pp(eff.signal_diff_pp, 3)}** điểm % (KTC 95% [{theme.vn(eff.signal_ci_lo, 3)}; {theme.vn(eff.signal_ci_hi, 3)}]). "
+    st.markdown(f"Thêm tín hiệu cộng đồng vào mô hình làm sai số đổi **{theme.pp(eff.signal_diff_pp, 3)}** điểm % (khoảng tin cậy 95%: {theme.vn(eff.signal_ci_lo, 3)} đến {theme.vn(eff.signal_ci_hi, 3)}). "
                 + ("Khoảng này chứa 0 nên **chưa thấy cải thiện**." if eff.signal_ci_lo <= 0 <= eff.signal_ci_hi else "Khoảng này không chứa 0."))
     lead, lags = res["leadlag_signal"], res["leadlag"]
     for r in lead.itertuples():
         name = SIGNAL_VI.get(r.signal, r.signal)
         if not r.has_lags or r.n_skills < MIN_SIGNAL_SKILLS:
-            st.caption(f"{name}: mới có {r.n_skills} kỹ năng (cần ít nhất {MIN_SIGNAL_SKILLS}), chưa đủ để kết luận.")
+            st.caption(f"{name}: mới có {r.n_skills} kỹ năng, cần ít nhất {MIN_SIGNAL_SKILLS} mới kết luận được.")
             continue
         sub = lags[lags.signal == r.signal].sort_values("lag")
         fig = go.Figure(go.Scatter(x=sub.lag, y=sub.mean_corr, mode="lines+markers", line={"color": theme.series_colors()[0], "width": 2.5}, marker={"size": 8},
@@ -200,7 +185,7 @@ def _signals(g):
         fig.update_xaxes(dtick=1)
         left, right = st.columns(2)
         with left:
-            theme.header(f"{name}: có đi trước nhu cầu không?", f"Tương quan trung bình theo độ trễ, {r.n_skills} kỹ năng, khoảng tin cậy 95%. Khoảng chứa 0 = không có bằng chứng.")
+            theme.header(f"{name}: có đi trước nhu cầu không?", f"Tương quan trung bình của {r.n_skills} kỹ năng. Nếu thanh sai số chứa 0 thì chưa có bằng chứng.")
             theme.show(fig, f"fc_lag_{r.signal}")
         with right:
             per = res["leadlag_skill"]
@@ -210,7 +195,7 @@ def _signals(g):
             theme.style(fig, height=300, legend=False, xtitle="Độ trễ (quý)")
             fig.update_yaxes(autorange="reversed", showgrid=False)
             fig.update_xaxes(showgrid=False)
-            theme.header("Từng kỹ năng", "Xanh: cùng chiều; đỏ: ngược chiều. Dấu hiệu rõ nhất là cùng thời điểm, chưa thấy đi trước.")
+            theme.header("Từng kỹ năng", "Xanh: cùng chiều. Đỏ: ngược chiều. Rõ nhất là cùng thời điểm, chưa thấy đi trước.")
             theme.show(fig, f"fc_lagskill_{r.signal}")
     sig = g["signal_quarter"]
     with_npm = sorted(sig.dropna(subset=["npm_dl"]).skill.unique()) if "npm_dl" in sig else []
@@ -224,15 +209,13 @@ def _signals(g):
         fig.add_trace(go.Scatter(x=qdate(s.period), y=s.npm_dl / s.npm_dl.max() * 100, mode="lines", name="Lượt tải npm", line={"color": theme.series_colors()[1], "width": 2.5}))
         theme.style(fig, height=340, hover="x unified", ytitle="Chỉ số (đỉnh = 100)")
         theme.time_range(fig)
-        theme.header(f"{g['label'][skill]}: tuyển dụng và lượt tải npm", "Cả hai chuẩn hóa về đỉnh = 100 để cùng một trục; không phải hai trục khác thang đo.")
+        theme.header(f"{g['label'][skill]}: tuyển dụng và lượt tải npm", "Cả hai quy về đỉnh = 100 để so cùng một trục.")
         theme.show(fig, "fc_overlay_chart")
-    st.caption("Kết luận hiện tại: chưa có bằng chứng cho thấy hoạt động cộng đồng đi trước nhu cầu tuyển dụng. Stack Overflow mới có "
-               f"{info.get('signal_skills_se_share', 0)} kỹ năng và GitHub chưa thu thập, nên đây là 'chưa đủ dữ liệu', chưa phải 'chắc chắn không có'.")
+    st.caption(f"Hiện chưa có bằng chứng cộng đồng đi trước tuyển dụng. Stack Overflow mới có {info.get('signal_skills_se_share', 0)} kỹ năng và GitHub chưa thu thập, nên chưa thể kết luận chắc chắn.")
 
 
 def render(g):
-    _status(g)
-    tabs = st.tabs(["Radar 1 năm tới", "Kiểm chứng nhãn hướng", "Kiểm chứng giá trị dự báo", "Tín hiệu cộng đồng"])
+    tabs = st.tabs(["Radar 1 năm tới", "Độ chính xác của hướng", "Độ chính xác của số liệu", "Tín hiệu cộng đồng"])
     with tabs[0]:
         _radar(g)
     with tabs[1]:
@@ -245,8 +228,8 @@ def render(g):
         f, info = g["facts"], g["results"]["info"]
         st.markdown(f"Nguồn: {info['evidence_source']}, {info['n_quarters']} quý ({info['first_quarter']} đến {info['last_quarter']}), "
                     f"**{f['postings']:,}** tin, {info['skills_total']} kỹ năng.".replace(",", "."))
-        st.markdown("- Hacker News lệch về startup và công ty công nghệ, nhiều công ty ở Mỹ; không đại diện toàn thị trường, nhất là Việt Nam.\n"
-                    "- Kỹ năng được nhận diện bằng quy tắc từ khóa: 'có nhắc tới' chưa chắc là 'đang tuyển kỹ năng đó'.\n"
-                    "- Một công ty có thể đăng lại hằng tháng.\n"
-                    "- Các chỉ số thị trường (remote, lương, cấp bậc…) là thống kê mô tả từ regex, chưa đối chiếu với nhãn thủ công.\n"
-                    f"- Quy trình đánh giá đặt trước: chọn mô hình tới {info['selection_end']}, chấm một lần trên {info['holdout_targets']}.")
+        st.markdown("- Hacker News thiên về startup và công ty công nghệ ở Mỹ, không đại diện cho cả thị trường, nhất là Việt Nam.\n"
+                    "- Kỹ năng nhận diện bằng từ khóa, nên được nhắc tới chưa chắc là đang tuyển.\n"
+                    "- Một công ty có thể đăng lại mỗi tháng.\n"
+                    "- Số liệu remote, lương, cấp bậc lấy bằng regex, chưa đối chiếu thủ công.\n"
+                    f"- Mô hình chọn bằng dữ liệu đến {info['selection_end']}, rồi chấm một lần trên {info['holdout_targets']}.")

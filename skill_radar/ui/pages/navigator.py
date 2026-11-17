@@ -35,7 +35,7 @@ def _apply_preset():
 def render(g):
     matrix_all, posting_all, skills = _matrix(data.db.GOLD.stat().st_mtime)
     index = {s: i for i, s in enumerate(skills)}
-    st.markdown("Chọn những kỹ năng bạn đã có. Một tin **phù hợp** khi bạn biết ít nhất một tỷ lệ đặt trước trong số các kỹ năng được nêu trong tin.")
+    st.markdown("Chọn kỹ năng bạn đã có. Một tin **phù hợp** khi bạn biết đủ tỷ lệ kỹ năng mà tin nêu (chỉnh ở thanh trượt bên dưới).")
     if "nav_skills" not in st.session_state:
         st.session_state["nav_skills"] = PRESETS["Back-end Python"]
     c1, c2 = st.columns([1, 3])
@@ -65,7 +65,7 @@ def render(g):
     fit = int(nav.fits(matrix, known, threshold).sum())
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("Độ phủ thị trường", theme.pct(cover), border=True, help="Tỷ lệ tin (có nêu ít nhất một kỹ năng) mà bạn đáp ứng đủ ngưỡng.")
+    m1.metric("Độ phủ thị trường", theme.pct(cover), border=True, help="Tỷ lệ tin mà bạn đáp ứng đủ yêu cầu.")
     m2.metric("Số tin phù hợp", f"{n_fmt(fit)} / {n_fmt(len(matrix))}", border=True)
     m3.metric("Kỹ năng đã chọn", len(known), border=True)
     if not known:
@@ -84,7 +84,7 @@ def render(g):
             theme.style(fig, height=430, legend=False, xtitle="Độ phủ tăng thêm (điểm %)")
             fig.update_xaxes(showgrid=True)
             fig.update_yaxes(showgrid=False)
-            theme.header("Nên học gì tiếp theo?", "Mỗi thanh: số tin mới trở nên phù hợp nếu bạn học thêm kỹ năng đó (chỉ tính một kỹ năng thêm).")
+            theme.header("Nên học gì tiếp theo?", "Mỗi thanh là số tin mới phù hợp nếu bạn học thêm đúng kỹ năng đó.")
             theme.show(fig, "nav_gain")
         else:
             st.info("Không còn kỹ năng nào làm tăng độ phủ ở ngưỡng này.")
@@ -98,7 +98,7 @@ def render(g):
                                        hovertemplate="%{x}: %{y:.1f}%<extra></extra>"))
             theme.style(fig, height=430, legend=False, ytitle="Độ phủ (%)")
             fig.update_yaxes(range=[0, min(100, max(values) * 1.2 + 5)], ticksuffix="%")
-            theme.header("Lộ trình học tham lam", "Mỗi bước chọn kỹ năng làm tăng độ phủ nhiều nhất, rồi lặp lại.")
+            theme.header("Lộ trình học tham lam", "Mỗi bước chọn kỹ năng làm độ phủ tăng nhiều nhất.")
             theme.show(fig, "nav_path")
 
     fits_all = nav.fits(matrix_all, known, threshold)
@@ -108,6 +108,6 @@ def render(g):
     theme.style(fig, height=300, legend=False, hover="x unified", ytitle="% tin phù hợp")
     theme.time_range(fig)
     fig.update_yaxes(rangemode="tozero", ticksuffix="%")
-    theme.header("Bộ kỹ năng này có “ăn khách” hơn theo thời gian?", "Độ phủ của đúng bộ kỹ năng đang chọn qua từng quý (trung bình 4 quý), trên toàn bộ tin, không phụ thuộc bộ lọc giai đoạn.")
+    theme.header("Bộ kỹ năng này có được tìm nhiều hơn theo thời gian không?", "Độ phủ của bộ kỹ năng đang chọn qua từng quý, trung bình 4 quý.")
     theme.show(fig, "nav_time")
-    st.caption("Lưu ý: kết quả mô tả các tin trên Hacker News (thiên về startup, Mỹ, remote), kỹ năng nhận diện bằng từ khóa; không phải lời khuyên nghề nghiệp cho thị trường Việt Nam.")
+    st.caption("Kết quả dựa trên tin Hacker News, thiên về startup và Mỹ, chưa phản ánh thị trường Việt Nam.")
